@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": ["types/*"]
+    },
+    "module": "commonjs",
+    "target": "es5",
+    "outDir": "dist",
+    "lib": ["es2015", "dom"],
+    "sourceMap": true,
+    "rootDir": "src",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true,
+    "preserveSymlinks": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules"]
+}

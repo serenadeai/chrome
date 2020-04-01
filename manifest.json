@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "Serenade",
+  "version": "1.0.0",
+  "description": "Code with voice. Learn more at https://serenade.ai.",
+  "permissions": ["tabs", "ws://localhost:17373/", "*://*/*"],
+  "background": {
+    "scripts": ["build/extension.js"]
+  },
+  "icons": {
+    "16": "img/16x16.png",
+    "32": "img/32x32.png",
+    "48": "img/48x48.png",
+    "128": "img/128x128.png"
+  }
+}

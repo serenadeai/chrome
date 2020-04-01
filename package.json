@@ -1,0 +1,44 @@
+{
+  "name": "serenade",
+  "version": "1.0.0",
+  "description": "Code with voice. Learn more at https://serenade.ai.",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/serenadeai/chrome.git"
+  },
+  "keywords": [
+    "voice",
+    "accessibility"
+  ],
+  "author": "Serenade Labs, Inc. <contact@serenade.ai>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/serenadeai/chrome/issues"
+  },
+  "scripts": {
+    "build": "webpack --mode development",
+    "dist": "webpack --mode production",
+    "watch": "webpack --mode development --watch"
+  },
+  "homepage": "https://serenade.ai",
+  "devDependencies": {
+    "@types/chrome": "^0.0.103",
+    "@types/mkdirp": "^1.0.0",
+    "@types/node": "^13.9.8",
+    "@types/uuid": "^7.0.2",
+    "@types/ws": "^7.2.3",
+    "ts-loader": "^6.2.2",
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "mkdirp": "^1.0.3",
+    "utf-8-validate": "^5.0.2",
+    "uuid": "^7.0.2",
+    "ws": "^7.2.3"
+  }
+}
