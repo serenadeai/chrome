@@ -1,4 +1,99 @@
+enum OverlayType {
+  None = "NONE",
+  Links = "LINKS",
+  Inputs = "INPUTS"
+}
+
 export default class CommandHandler {
+  private overlayType: OverlayType = OverlayType.None;
+
+  private clearOverlays() {
+    const code = `
+(function() {
+  var overlays = document.getElementsByClassName("serenade-overlay");
+  while (overlays[0]) {
+    overlays[0].parentNode.removeChild(overlays[0]);
+  }
+})();
+    `;
+
+    chrome.tabs.executeScript({ code });
+    this.overlayType = OverlayType.None;
+  }
+
+  private nodesMatching(path: string) {
+    return `document.evaluate(".//*[not(self::script)][not(self::noscript)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)`;
+  }
+
+  private selector(): string {
+    let selector = "a, button";
+    if (this.overlayType == OverlayType.Inputs) {
+      selector = "input, textarea, div[contenteditable]";
+    }
+
+    return selector;
+  }
+
+  async COMMAND_TYPE_BACK(_data: any): Promise<any> {
+    const code = "window.history.back();";
+    chrome.tabs.executeScript({ code });
+  }
+
+  async COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
+    this.clearOverlays();
+  }
+
+  async COMMAND_TYPE_CLICK(data: any): Promise<any> {
+    let code = "";
+    if (this.overlayType != OverlayType.None) {
+      code = `
+(function() {
+  var counter = 1;
+  var elements = document.querySelectorAll("${this.selector()}");
+  for (var i = 0; i < elements.length; i++) {
+    if ("${this.overlayType}" == "LINKS" && /^\s*$/.test(elements[i].innerHTML)) {
+      continue;
+    }
+
+    if (counter == ${data.path}) {
+      elements[i].${this.overlayType == OverlayType.Links ? "click" : "focus"}();
+    }
+
+    counter++;
+  }
+})();
+      `;
+    } else {
+      code = `${this.nodesMatching(data.path)}.snapshotItem(0).click();`;
+    }
+
+    chrome.tabs.executeScript({ code });
+    this.clearOverlays();
+  }
+
+  async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
+    if (this.overlayType != OverlayType.None) {
+      return {
+        message: "clickable",
+        data: {
+          clickable: /^\d+$/.test(data.path)
+        }
+      };
+    }
+
+    const code = `${this.nodesMatching(data.path)}.snapshotLength > 0;`;
+    return new Promise(resolve => {
+      chrome.tabs.executeScript({ code }, result => {
+        resolve({
+          message: "clickable",
+          data: {
+            clickable: result[0]
+          }
+        });
+      });
+    });
+  }
+
   async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<any> {
     chrome.tabs.query({ currentWindow: true, active: true }, current => {
       if (!current || current.length == 0) {
@@ -13,14 +108,62 @@ export default class CommandHandler {
     chrome.tabs.create({});
   }
 
+  async COMMAND_TYPE_DIFF(data: any): Promise<any> {
+    const codeForActive = `document.activeElement && document.activeElement.tagName`;
+    const codeForInput = `document.activeElement.value = \`${data.source}\`; document.activeElement.setSelectionRange(${data.cursor}, ${data.cursor});`;
+
+    return new Promise(resolve => {
+      chrome.tabs.executeScript({ code: codeForActive }, active => {
+        if (active[0] == "INPUT") {
+          chrome.tabs.executeScript({ code: codeForInput }, _result => {
+            resolve(null);
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
-    return {
-      source: "",
-      cursor: 0,
-      filename: "",
-      files: [],
-      roots: []
-    };
+    const codeForSource = `
+document.activeElement ? (
+  document.activeElement.tagName == 'INPUT' ? document.activeElement.value : ""
+) : ""`;
+    const codeForCursor = `
+document.activeElement ? (
+  document.activeElement.tagName == 'INPUT' ? document.activeElement.selectionStart : 0
+) : 0`;
+
+    return new Promise(resolve => {
+      chrome.tabs.executeScript({ code: codeForSource }, source => {
+        chrome.tabs.executeScript({ code: codeForCursor }, cursor => {
+          resolve({
+            message: "editorState",
+            data: {
+              source: source[0],
+              cursor: cursor[0],
+              filename: "",
+              files: [],
+              roots: []
+            }
+          });
+        });
+      });
+    });
+  }
+
+  async COMMAND_TYPE_FORWARD(_data: any): Promise<any> {
+    const code = "window.history.forward();";
+    chrome.tabs.executeScript({ code });
+  }
+
+  async COMMAND_TYPE_OPEN_FILE(data: any): Promise<any> {
+    if (!data.path.startsWith("http")) {
+      data.path = "https://" + data.path;
+    }
+
+    chrome.tabs.update({ url: data.path });
   }
 
   async COMMAND_TYPE_NEXT_TAB(_data: any): Promise<any> {
@@ -53,6 +196,67 @@ export default class CommandHandler {
         chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
       });
     });
+  }
+
+  async COMMAND_TYPE_RELOAD(_data: any): Promise<any> {
+    chrome.tabs.reload();
+  }
+
+  async COMMAND_TYPE_SCROLL(data: any): Promise<any> {
+    const code = `
+if ("${data.direction}" == "left") {
+  window.scrollBy({ left: -window.innerWidth * 0.8, behavior: "smooth" });
+} else if ("${data.direction}" == "right") {
+  window.scrollBy({ left: window.innerWidth * 0.8, behavior: "smooth" });
+} else if ("${data.direction}" == "up") {
+  window.scrollBy({ top: -window.innerHeight * 0.8, behavior: "smooth" });
+} else if ("${data.direction}" == "down") {
+  window.scrollBy({ top: window.innerHeight * 0.8, behavior: "smooth" });
+}
+    `;
+
+    chrome.tabs.executeScript({ code });
+  }
+
+  async COMMAND_TYPE_SHOW(data: any): Promise<any> {
+    this.clearOverlays();
+    this.overlayType = OverlayType.Links;
+    if (data.text == "inputs") {
+      this.overlayType = OverlayType.Inputs;
+    }
+
+    const code = `
+(function() {
+  var counter = 1;
+  var bodyRect = document.body.getBoundingClientRect();
+  var elements = document.querySelectorAll("${this.selector()}");
+  for (var i = 0; i < elements.length; i++) {
+    if ("${this.overlayType}" == "LINKS" && /^\s*$/.test(elements[i].innerHTML)) {
+      continue;
+    }
+
+    var elementRect = elements[i].getBoundingClientRect();
+    var overlay = document.createElement("div");
+    overlay.innerHTML = counter;
+    overlay.className = "serenade-overlay";
+    overlay.style.position = "absolute";
+    overlay.style.zIndex = 999;
+    overlay.style.top = (elementRect.top - bodyRect.top) + "px";
+    overlay.style.left = (elementRect.left - bodyRect.left) + "px";
+    overlay.style.padding = "3px";
+    overlay.style.textAlign = "center";
+    overlay.style.color = "#e6ecf2";
+    overlay.style.background = "#1c1c16";
+    overlay.style.borderRadius = "3px";
+    overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+
+    document.body.appendChild(overlay);
+    counter++;
+  }
+})();
+    `;
+
+    chrome.tabs.executeScript({ code });
   }
 
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
