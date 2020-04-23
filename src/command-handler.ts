@@ -5,6 +5,7 @@ enum OverlayType {
 }
 
 export default class CommandHandler {
+  private overlayPath: string = "";
   private overlayType: OverlayType = OverlayType.None;
 
   private clearOverlays() {
@@ -18,20 +19,14 @@ export default class CommandHandler {
     `;
 
     chrome.tabs.executeScript({ code });
+    this.overlayPath = "";
     this.overlayType = OverlayType.None;
   }
 
-  private nodesMatching(path: string) {
-    return `document.evaluate(".//*[not(self::script)][not(self::noscript)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)`;
-  }
-
-  private selector(): string {
-    let selector = "a, button";
-    if (this.overlayType == OverlayType.Inputs) {
-      selector = "input, textarea, div[contenteditable]";
-    }
-
-    return selector;
+  private nodesMatching(path?: string) {
+    return path
+      ? `(function() { var snapshot = document.evaluate(".//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); var result = []; for (var i = 0; i < snapshot.snapshotLength; i++) { result.push(snapshot.snapshotItem(i)); } return result; })()`
+      : `(function() { var elements = document.querySelectorAll("${this.overlayType}" == "LINKS" ? "a, button" : "input, textarea, div[contenteditable]"); var result = []; for (var i = 0; i < elements.length; i++) { if ("${this.overlayType}" != "LINKS" || !/^\s*$/.test(elements[i].innerHTML)) { result.push(elements[i]); } } return result; })()`;
   }
 
   async COMMAND_TYPE_BACK(_data: any): Promise<any> {
@@ -44,28 +39,12 @@ export default class CommandHandler {
   }
 
   async COMMAND_TYPE_CLICK(data: any): Promise<any> {
-    let code = "";
-    if (this.overlayType != OverlayType.None) {
-      code = `
-(function() {
-  var counter = 1;
-  var elements = document.querySelectorAll("${this.selector()}");
-  for (var i = 0; i < elements.length; i++) {
-    if ("${this.overlayType}" == "LINKS" && /^\s*$/.test(elements[i].innerHTML)) {
-      continue;
-    }
-
-    if (counter == ${data.path}) {
-      elements[i].${this.overlayType == OverlayType.Links ? "click" : "focus"}();
-    }
-
-    counter++;
-  }
-})();
-      `;
-    } else {
-      code = `${this.nodesMatching(data.path)}.snapshotItem(0).click();`;
-    }
+    const code =
+      this.overlayType != OverlayType.None
+        ? `${this.nodesMatching(this.overlayPath)}[${data.path} - 1].${
+            this.overlayType == OverlayType.Links ? "click" : "focus"
+          }();`
+        : `${this.nodesMatching(data.path)}[0].click();`;
 
     chrome.tabs.executeScript({ code });
     this.clearOverlays();
@@ -81,7 +60,7 @@ export default class CommandHandler {
       };
     }
 
-    const code = `${this.nodesMatching(data.path)}.snapshotLength > 0;`;
+    const code = `${this.nodesMatching(data.path)}.length > 0;`;
     return new Promise(resolve => {
       chrome.tabs.executeScript({ code }, result => {
         resolve({
@@ -158,14 +137,6 @@ document.activeElement ? (
     chrome.tabs.executeScript({ code });
   }
 
-  async COMMAND_TYPE_OPEN_FILE(data: any): Promise<any> {
-    if (!data.path.startsWith("http")) {
-      data.path = "https://" + data.path;
-    }
-
-    chrome.tabs.update({ url: data.path });
-  }
-
   async COMMAND_TYPE_NEXT_TAB(_data: any): Promise<any> {
     chrome.tabs.query({ currentWindow: true, active: true }, current => {
       if (!current || current.length == 0) {
@@ -220,6 +191,7 @@ if ("${data.direction}" == "left") {
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
     this.clearOverlays();
+    this.overlayPath = data.path;
     this.overlayType = OverlayType.Links;
     if (data.text == "inputs") {
       this.overlayType = OverlayType.Inputs;
@@ -229,12 +201,8 @@ if ("${data.direction}" == "left") {
 (function() {
   var counter = 1;
   var bodyRect = document.body.getBoundingClientRect();
-  var elements = document.querySelectorAll("${this.selector()}");
+  var elements = ${this.nodesMatching(data.path)};
   for (var i = 0; i < elements.length; i++) {
-    if ("${this.overlayType}" == "LINKS" && /^\s*$/.test(elements[i].innerHTML)) {
-      continue;
-    }
-
     var elementRect = elements[i].getBoundingClientRect();
     var overlay = document.createElement("div");
     overlay.innerHTML = counter;
