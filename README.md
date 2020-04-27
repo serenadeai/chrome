@@ -36,14 +36,14 @@ Commands supported:
 - Actions
     - `show (links | inputs)`
     - `click`
-    - clickable
-        - improve selectors
+        - COMMAND_TYPE_CLICKABLE
     - `clear`
         - COMMAND_TYPE_CANCEL
     
 Todo:
 
 - add
+- improve click selectors
 - go to
 - delete
 - type
