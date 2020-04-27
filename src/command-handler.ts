@@ -1,7 +1,7 @@
 enum OverlayType {
   None = "NONE",
   Links = "LINKS",
-  Inputs = "INPUTS"
+  Inputs = "INPUTS",
 }
 
 export default class CommandHandler {
@@ -29,80 +29,15 @@ export default class CommandHandler {
       : `(function() { var elements = document.querySelectorAll("${this.overlayType}" == "LINKS" ? "a, button" : "input, textarea, div[contenteditable]"); var result = []; for (var i = 0; i < elements.length; i++) { if ("${this.overlayType}" != "LINKS" || !/^\s*$/.test(elements[i].innerHTML)) { result.push(elements[i]); } } return result; })()`;
   }
 
-  async COMMAND_TYPE_BACK(_data: any): Promise<any> {
-    const code = "window.history.back();";
-    chrome.tabs.executeScript({ code });
-  }
-
-  async COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
-    this.clearOverlays();
-  }
-
-  async COMMAND_TYPE_CLICK(data: any): Promise<any> {
-    const code =
-      this.overlayType != OverlayType.None
-        ? `${this.nodesMatching(this.overlayPath)}[${data.path} - 1].${
-            this.overlayType == OverlayType.Links ? "click" : "focus"
-          }();`
-        : `${this.nodesMatching(data.path)}[0].click();`;
-
-    chrome.tabs.executeScript({ code });
-    this.clearOverlays();
-  }
-
-  async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
-    if (this.overlayType != OverlayType.None) {
-      return {
-        message: "clickable",
-        data: {
-          clickable: /^\d+$/.test(data.path)
-        }
-      };
+  private static executeScript(code: string, callback?: (data: any) => void) {
+    if (callback) {
+      chrome.tabs.executeScript({ code }, (data) => callback(data));
+    } else {
+      chrome.tabs.executeScript({ code });
     }
-
-    const code = `${this.nodesMatching(data.path)}.length > 0;`;
-    return new Promise(resolve => {
-      chrome.tabs.executeScript({ code }, result => {
-        resolve({
-          message: "clickable",
-          data: {
-            clickable: result[0]
-          }
-        });
-      });
-    });
   }
 
-  async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<any> {
-    chrome.tabs.query({ currentWindow: true, active: true }, current => {
-      if (!current || current.length == 0) {
-        return;
-      }
-
-      chrome.tabs.remove(current[0].id!);
-    });
-  }
-
-  async COMMAND_TYPE_CREATE_TAB(_data: any): Promise<any> {
-    chrome.tabs.create({});
-  }
-
-  async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    const codeForActive = `document.activeElement && document.activeElement.tagName`;
-    const codeForInput = `document.activeElement.value = \`${data.source}\`; document.activeElement.setSelectionRange(${data.cursor}, ${data.cursor});`;
-
-    return new Promise(resolve => {
-      chrome.tabs.executeScript({ code: codeForActive }, active => {
-        if (active[0] == "INPUT") {
-          chrome.tabs.executeScript({ code: codeForInput }, _result => {
-            resolve(null);
-          });
-        } else {
-          resolve(null);
-        }
-      });
-    });
-  }
+  /* Editor state */
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     const codeForSource = `
@@ -114,9 +49,9 @@ document.activeElement ? (
   document.activeElement.tagName == 'INPUT' ? document.activeElement.selectionStart : 0
 ) : 0`;
 
-    return new Promise(resolve => {
-      chrome.tabs.executeScript({ code: codeForSource }, source => {
-        chrome.tabs.executeScript({ code: codeForCursor }, cursor => {
+    return new Promise((resolve) => {
+      CommandHandler.executeScript(codeForSource, (source) => {
+        CommandHandler.executeScript(codeForCursor, (cursor) => {
           resolve({
             message: "editorState",
             data: {
@@ -124,49 +59,39 @@ document.activeElement ? (
               cursor: cursor[0],
               filename: "",
               files: [],
-              roots: []
-            }
+              roots: [],
+            },
           });
         });
       });
     });
   }
 
+  async COMMAND_TYPE_DIFF(data: any): Promise<any> {
+    const codeForActive = `document.activeElement && document.activeElement.tagName`;
+    const codeForInput = `document.activeElement.value = \`${data.source}\`; document.activeElement.setSelectionRange(${data.cursor}, ${data.cursor});`;
+
+    return new Promise((resolve) => {
+      CommandHandler.executeScript(codeForActive, (active) => {
+        if (active[0] === "INPUT") {
+          CommandHandler.executeScript(codeForInput, (_result) => {
+            resolve(null);
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  /* Navigation */
+
+  async COMMAND_TYPE_BACK(_data: any): Promise<any> {
+    CommandHandler.executeScript("window.history.back();");
+  }
+
   async COMMAND_TYPE_FORWARD(_data: any): Promise<any> {
-    const code = "window.history.forward();";
-    chrome.tabs.executeScript({ code });
-  }
-
-  async COMMAND_TYPE_NEXT_TAB(_data: any): Promise<any> {
-    chrome.tabs.query({ currentWindow: true, active: true }, current => {
-      if (!current || current.length == 0) {
-        return;
-      }
-
-      chrome.tabs.query({ currentWindow: true, index: current[0].index + 1 }, tab => {
-        if (!tab || tab.length == 0) {
-          return;
-        }
-
-        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
-      });
-    });
-  }
-
-  async COMMAND_TYPE_PREVIOUS_TAB(_data: any): Promise<any> {
-    chrome.tabs.query({ currentWindow: true, active: true }, current => {
-      if (!current || current.length == 0) {
-        return;
-      }
-
-      chrome.tabs.query({ currentWindow: true, index: current[0].index - 1 }, tab => {
-        if (!tab || tab.length == 0) {
-          return;
-        }
-
-        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
-      });
-    });
+    CommandHandler.executeScript("window.history.forward();");
   }
 
   async COMMAND_TYPE_RELOAD(_data: any): Promise<any> {
@@ -174,26 +99,95 @@ document.activeElement ? (
   }
 
   async COMMAND_TYPE_SCROLL(data: any): Promise<any> {
-    const code = `
-if ("${data.direction}" == "left") {
-  window.scrollBy({ left: -window.innerWidth * 0.8, behavior: "smooth" });
-} else if ("${data.direction}" == "right") {
-  window.scrollBy({ left: window.innerWidth * 0.8, behavior: "smooth" });
-} else if ("${data.direction}" == "up") {
-  window.scrollBy({ top: -window.innerHeight * 0.8, behavior: "smooth" });
-} else if ("${data.direction}" == "down") {
-  window.scrollBy({ top: window.innerHeight * 0.8, behavior: "smooth" });
-}
-    `;
-
-    chrome.tabs.executeScript({ code });
+    let direction;
+    switch (data.direction) {
+      case "left":
+        direction = `left: -window.innerWidth * 0.8`;
+        break;
+      case "right":
+        direction = `left: window.innerWidth * 0.8`;
+        break;
+      case "up":
+        direction = `top: -window.innerWidth * 0.8`;
+        break;
+      case "down":
+        direction = `top: window.innerWidth * 0.8`;
+        break;
+    }
+    if (direction) {
+      CommandHandler.executeScript(
+        `window.scrollBy({ ${direction}, behavior: "smooth" });`
+      );
+    }
   }
+
+  /* Tab management */
+
+  async COMMAND_TYPE_CREATE_TAB(_data: any): Promise<any> {
+    chrome.tabs.create({});
+  }
+
+  async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<any> {
+    chrome.tabs.query({ currentWindow: true, active: true }, (current) => {
+      if (!current || current.length === 0) {
+        return;
+      }
+
+      chrome.tabs.remove(current[0].id!);
+    });
+  }
+
+  async COMMAND_TYPE_NEXT_TAB(_data: any): Promise<any> {
+    chrome.tabs.query({ currentWindow: true, active: true }, (current) => {
+      if (!current || current.length === 0) {
+        return;
+      }
+
+      chrome.tabs.query(
+        { currentWindow: true, index: current[0].index + 1 },
+        (tab) => {
+          if (!tab || tab.length === 0) {
+            return;
+          }
+
+          chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+        }
+      );
+    });
+  }
+
+  async COMMAND_TYPE_PREVIOUS_TAB(_data: any): Promise<any> {
+    chrome.tabs.query({ currentWindow: true, active: true }, (current) => {
+      if (!current || current.length === 0) {
+        return;
+      }
+
+      chrome.tabs.query(
+        { currentWindow: true, index: current[0].index - 1 },
+        (tab) => {
+          if (!tab || tab.length === 0) {
+            return;
+          }
+
+          chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+        }
+      );
+    });
+  }
+
+  async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
+    chrome.tabs.query({ currentWindow: true, index: data.index - 1 }, (tab) => {
+      chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+    });
+  }
+
+  /* Actions */
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
     this.clearOverlays();
     this.overlayPath = data.path;
     this.overlayType = OverlayType.Links;
-    if (data.text == "inputs") {
+    if (data.text === "inputs") {
       this.overlayType = OverlayType.Inputs;
     }
 
@@ -227,9 +221,44 @@ if ("${data.direction}" == "left") {
     chrome.tabs.executeScript({ code });
   }
 
-  async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
-    chrome.tabs.query({ currentWindow: true, index: data.index - 1 }, tab => {
-      chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+  async COMMAND_TYPE_CLICK(data: any): Promise<any> {
+    const code =
+      this.overlayType !== OverlayType.None
+        ? `${this.nodesMatching(this.overlayPath)}[${data.path} - 1].${
+            this.overlayType === OverlayType.Links ? "click" : "focus"
+          }();`
+        : `${this.nodesMatching(data.path)}[0].click();`;
+
+    chrome.tabs.executeScript({ code });
+    this.clearOverlays();
+  }
+
+  async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
+    if (this.overlayType !== OverlayType.None) {
+      return {
+        message: "clickable",
+        data: {
+          clickable: /^\d+$/.test(data.path),
+        },
+      };
+    }
+
+    return new Promise((resolve) => {
+      CommandHandler.executeScript(
+        `${this.nodesMatching(data.path)}.length > 0;`,
+        (result) => {
+          resolve({
+            message: "clickable",
+            data: {
+              clickable: result[0],
+            },
+          });
+        }
+      );
     });
+  }
+
+  async COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
+    this.clearOverlays();
   }
 }
