@@ -9,13 +9,19 @@ import CommandHandler from "./command-handler";
 export default class EditorHandler {
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     const codeForSource = `
-document.activeElement ? (
-  document.activeElement.tagName == 'INPUT' ? document.activeElement.value : ""
-) : ""`;
+      document.activeElement 
+        ? (
+          document.activeElement.tagName == 'INPUT' ? document.activeElement.value : ""
+        ) 
+        : ""
+    `;
     const codeForCursor = `
-document.activeElement ? (
-  document.activeElement.tagName == 'INPUT' ? document.activeElement.selectionStart : 0
-) : 0`;
+      document.activeElement
+        ? (
+          document.activeElement.tagName == 'INPUT' ? document.activeElement.selectionStart : 0
+        ) 
+        : 0
+    `;
 
     return new Promise((resolve) => {
       CommandHandler.executeScript(codeForSource, (source) => {
@@ -37,7 +43,10 @@ document.activeElement ? (
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
     const codeForActive = `document.activeElement && document.activeElement.tagName`;
-    const codeForInput = `document.activeElement.value = \`${data.source}\`; document.activeElement.setSelectionRange(${data.cursor}, ${data.cursor});`;
+    const codeForInput = `
+      document.activeElement.value = \`${data.source}\`;
+      document.activeElement.setSelectionRange(${data.cursor}, ${data.cursor});
+    `;
 
     return new Promise((resolve) => {
       CommandHandler.executeScript(codeForActive, (active) => {
