@@ -56,10 +56,39 @@ export default class NavigationHandler {
     // Scrolling to a path
     if (data.path) {
       CommandHandler.executeScript(
-        `
-          ${NavigationHandler.nodesMatching(data.path)}[0].scrollIntoView({
-            block: "start", inline: "nearest", behavior: "smooth"
-          });
+        ` 
+          (function() {
+            // Matches based on content ("path")
+            const matches = ${NavigationHandler.nodesMatching(data.path)};
+            // A match that is below or to the right of the window
+            let target = matches.find(node => {
+              const bounding = node.getBoundingClientRect();
+              return bounding.top >= window.innerHeight ||
+                     bounding.left >= window.innerWidth;
+            });
+            // If no match, look for the first match that is above the window
+            if (target === undefined) {
+              target = matches.find(node => {
+                const bounding = node.getBoundingClientRect();
+                return bounding.top < 0 ||
+                       bounding.left < 0;
+              });
+            }
+            // If still no match (only match is in window), use the first one anyways
+            if (target === undefined && matches.length) {
+              target = matches[0];
+            }
+            const style = window.getComputedStyle(target);
+            const backgroundColor = style.getPropertyValue("background-color");
+            target.style.backgroundColor = "yellow";
+            target.style.transition = "background-color 0.5s";
+            target.scrollIntoView({
+              block: "center", inline: "center", behavior: "smooth"
+            });
+            window.setTimeout(() => {
+              target.style.backgroundColor = backgroundColor;
+            }, 2000);
+          })();
         `
       );
     }
