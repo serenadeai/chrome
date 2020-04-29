@@ -5,19 +5,6 @@ import CommandHandler from "./command-handler";
  */
 
 export default class NavigationHandler {
-  private static nodesMatching(path: string) {
-    return `
-      (function() { 
-        var snapshot = document.evaluate(".//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        var result = [];
-        for (var i = 0; i < snapshot.snapshotLength; i++) { 
-          result.push(snapshot.snapshotItem(i)); 
-        }
-        return result; 
-      })()
-    `;
-  }
-
   async COMMAND_TYPE_BACK(_data: any): Promise<any> {
     CommandHandler.executeScript("window.history.back();");
   }
@@ -48,49 +35,59 @@ export default class NavigationHandler {
         break;
     }
     if (direction) {
-      CommandHandler.executeScript(
-        `window.scrollBy({ ${direction}, behavior: "smooth" });`
-      );
+      CommandHandler.executeScript(`window.scrollBy({ ${direction}, behavior: "smooth" });`);
     }
 
     // Scrolling to a path
     if (data.path) {
-      CommandHandler.executeScript(
-        ` 
-          (function() {
-            // Matches based on content ("path")
-            const matches = ${NavigationHandler.nodesMatching(data.path)};
-            // A match that is below or to the right of the window
-            let target = matches.find(node => {
-              const bounding = node.getBoundingClientRect();
-              return bounding.top >= window.innerHeight ||
-                     bounding.left >= window.innerWidth;
-            });
-            // If no match, look for the first match that is above the window
-            if (target === undefined) {
-              target = matches.find(node => {
-                const bounding = node.getBoundingClientRect();
-                return bounding.top < 0 ||
-                       bounding.left < 0;
-              });
-            }
-            // If still no match (only match is in window), use the first one anyways
-            if (target === undefined && matches.length) {
-              target = matches[0];
-            }
-            const style = window.getComputedStyle(target);
-            const backgroundColor = style.getPropertyValue("background-color");
-            target.style.backgroundColor = "yellow";
-            target.style.transition = "background-color 0.5s";
-            target.scrollIntoView({
-              block: "center", inline: "center", behavior: "smooth"
-            });
-            window.setTimeout(() => {
-              target.style.backgroundColor = backgroundColor;
-            }, 2000);
-          })();
-        `
-      );
+      const findMatchAndScroll = (path: string) => {
+        // Matches based on content ("path")
+        const snapshot = document.evaluate(
+          `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]`,
+          document,
+          null,
+          XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+          null
+        );
+        const matches = [];
+        for (let i = 0; i < snapshot.snapshotLength; i++) {
+          matches.push(snapshot.snapshotItem(i));
+        }
+        // A match that is below or to the right of the window
+        let target = matches.find((node) => {
+          const bounding = (node as Element).getBoundingClientRect();
+          return bounding.top >= window.innerHeight || bounding.left >= window.innerWidth;
+        });
+        // If no match, look for the first match that is above the window
+        if (target === undefined) {
+          target = matches.find((node) => {
+            const bounding = (node as Element).getBoundingClientRect();
+            return bounding.top < 0 || bounding.left < 0;
+          });
+        }
+        // If still no match (only match is in window), use the first one anyways
+        if (target === undefined && matches.length) {
+          target = matches[0];
+        }
+        // If still no match, stop
+        if (target === undefined) {
+          return;
+        }
+        const style = window.getComputedStyle(target as Element);
+        const backgroundColor = style.getPropertyValue("background-color");
+        (target as HTMLElement).style.backgroundColor = "yellow";
+        (target as HTMLElement).style.transition = "background-color 0.5s";
+        (target as Element).scrollIntoView({
+          block: "center",
+          inline: "center",
+          behavior: "smooth",
+        });
+        window.setTimeout(() => {
+          (target as HTMLElement).style.backgroundColor = backgroundColor;
+        }, 2000);
+      };
+
+      CommandHandler.executeScript(`(${findMatchAndScroll.toString()})("${data.path}")`);
     }
   }
 }
