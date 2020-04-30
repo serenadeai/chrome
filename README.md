@@ -18,36 +18,32 @@
 Commands supported:
 
 - Editor state
-    - COMMAND_TYPE_GET_EDITOR_STATE
-    - COMMAND_TYPE_DIFF
+    - TODO: `COMMAND_TYPE_GET_EDITOR_STATE`'
+    - `type`
+        - TODO: `COMMAND_TYPE_DIFF`
 - Navigation
     - `back`
     - `forward`
     - `reload`
     - `scroll (left | right | up | down)`
-        - TODO: `scroll to <text>`
+    - `scroll to <text>`
 - Tab management
     - `new tab`
-        - COMMAND_TYPE_CREATE_TAB
+        - `COMMAND_TYPE_CREATE_TAB`
     - `close tab`
     - `next tab`, `previous tab`
     - `(first | second ...) tab`
-        - COMMAND_TYPE_SWITCH_TAB
+        - `COMMAND_TYPE_SWITCH_TAB`
 - Actions
     - `show (links | inputs)`
     - `click`
-        - COMMAND_TYPE_CLICKABLE
+    - `COMMAND_TYPE_CLICKABLE`
     - `clear`
-        - COMMAND_TYPE_CANCEL
+        - `COMMAND_TYPE_CANCEL`
     
-Todo:
-
-- add
+TODO:    
 - improve click selectors
-- go to
-- delete
-- type
-- copy
+- proper type/go to/select/copy/paste/change/delete
 - custom
     - go to tab
     - google search results
