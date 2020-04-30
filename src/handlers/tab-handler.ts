@@ -23,16 +23,13 @@ export default class TabHandler {
         return;
       }
 
-      chrome.tabs.query(
-        { currentWindow: true, index: current[0].index + 1 },
-        (tab) => {
-          if (!tab || tab.length === 0) {
-            return;
-          }
-
-          chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+      chrome.tabs.query({ currentWindow: true, index: current[0].index + 1 }, (tab) => {
+        if (!tab || tab.length === 0) {
+          return;
         }
-      );
+
+        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+      });
     });
   }
 
@@ -42,16 +39,13 @@ export default class TabHandler {
         return;
       }
 
-      chrome.tabs.query(
-        { currentWindow: true, index: current[0].index - 1 },
-        (tab) => {
-          if (!tab || tab.length === 0) {
-            return;
-          }
-
-          chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+      chrome.tabs.query({ currentWindow: true, index: current[0].index - 1 }, (tab) => {
+        if (!tab || tab.length === 0) {
+          return;
         }
-      );
+
+        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
+      });
     });
   }
 

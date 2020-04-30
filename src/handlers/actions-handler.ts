@@ -1,4 +1,4 @@
-import CommandHandler from "./command-handler";
+import CommandHandler from "../command-handler";
 
 /*
  * Handles commands from the client about actions, like clicks.

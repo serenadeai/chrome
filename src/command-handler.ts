@@ -1,7 +1,7 @@
-import ActionsHandler from "./actions-handler";
-import TabHandler from "./tab-handler";
-import NavigationHandler from "./navigation-handler";
-import EditorHandler from "./editor-handler";
+import ActionsHandler from "./handlers/actions-handler";
+import TabHandler from "./handlers/tab-handler";
+import NavigationHandler from "./handlers/navigation-handler";
+import EditorHandler from "./handlers/editor-handler";
 
 /*
  * The CommandHandler class is a wrapper around other handlers
@@ -21,6 +21,17 @@ export class CommandHandler {
   // Converts code to an anonymous function in a string so it can be called.
   static executeFunction(code: () => void, callback?: (data: any) => void) {
     CommandHandler.executeScript(`(${code.toString()})()`, callback);
+  }
+
+  // Pass an argument to a function ... it should be fine as long as the argument
+  // is serializable?
+  static executeFunctionWithArg(
+    code: (arg: any) => void,
+    arg: any,
+    callback?: (data: any) => void
+  ) {
+    console.log(`(${code.toString()})(${JSON.stringify(arg)}`);
+    CommandHandler.executeScript(`(${code.toString()})(${JSON.stringify(arg)})`, callback);
   }
 
   // Helper to run code in the active tab.
