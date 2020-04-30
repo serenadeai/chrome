@@ -9,34 +9,34 @@ import CommandHandler from "./command-handler";
 export default class EditorHandler {
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     const codeForSource = `
-      document.activeElement 
-        ? (
-          document.activeElement.tagName == 'INPUT' ? document.activeElement.value : ""
-        ) 
-        : ""
+      document.activeElement && document.activeElement.tagName == 'INPUT'
+        ? document.activeElement.value
+        : false
     `;
     const codeForCursor = `
-      document.activeElement
-        ? (
-          document.activeElement.tagName == 'INPUT' ? document.activeElement.selectionStart : 0
-        ) 
+      document.activeElement && document.activeElement.tagName == 'INPUT'
+        ? document.activeElement.selectionStart
         : 0
     `;
 
     return new Promise((resolve) => {
       CommandHandler.executeScript(codeForSource, (source) => {
-        CommandHandler.executeScript(codeForCursor, (cursor) => {
-          resolve({
-            message: "editorState",
-            data: {
-              source: source[0],
-              cursor: cursor[0],
-              filename: "",
-              files: [],
-              roots: [],
-            },
+        if (source[0] !== false) {
+          CommandHandler.executeScript(codeForCursor, (cursor) => {
+            resolve({
+              message: "editorState",
+              data: {
+                source: source[0],
+                cursor: cursor[0],
+                filename: "",
+                files: [],
+                roots: [],
+              },
+            });
           });
-        });
+        } else {
+          resolve({ message: "editorState", data: { useSystemInsert: true } });
+        }
       });
     });
   }

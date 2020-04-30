@@ -40,6 +40,8 @@ export default class NavigationHandler {
 
     // Scrolling to a path
     if (data.path) {
+      // This function will run in the scope of the active tab,
+      // so it needs to be plain JS.
       const findMatchAndScroll = (path: string) => {
         // Matches based on content ("path")
         const snapshot = document.evaluate(

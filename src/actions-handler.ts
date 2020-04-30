@@ -15,16 +15,14 @@ export default class ActionsHandler {
   private overlayType: OverlayType = OverlayType.None;
 
   private clearOverlays() {
-    const code = `
-      (function() {
-        var overlays = document.getElementsByClassName("serenade-overlay");
-        while (overlays[0]) {
-          overlays[0].parentNode.removeChild(overlays[0]);
-        }
-      })();
-    `;
+    const clearOverlays = () => {
+      const overlays = document.getElementsByClassName("serenade-overlay");
+      while (overlays[0]) {
+        overlays[0].parentNode!.removeChild(overlays[0]);
+      }
+    };
 
-    CommandHandler.executeScript(code);
+    CommandHandler.executeFunction(clearOverlays);
     this.overlayPath = "";
     this.overlayType = OverlayType.None;
   }
@@ -63,7 +61,7 @@ export default class ActionsHandler {
           overlay.style.background = "#1c1c16";
           overlay.style.borderRadius = "3px";
           overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
-      
+
           document.body.appendChild(overlay);
           counter++;
         }
@@ -96,17 +94,14 @@ export default class ActionsHandler {
     }
 
     return new Promise((resolve) => {
-      CommandHandler.executeScript(
-        `${this.nodesMatching(data.path)}.length > 0;`,
-        (result) => {
-          resolve({
-            message: "clickable",
-            data: {
-              clickable: result[0],
-            },
-          });
-        }
-      );
+      CommandHandler.executeScript(`${this.nodesMatching(data.path)}.length > 0;`, (result) => {
+        resolve({
+          message: "clickable",
+          data: {
+            clickable: result[0],
+          },
+        });
+      });
     });
   }
 

@@ -18,6 +18,11 @@ export interface CommandHandler
     TabHandler {}
 
 export class CommandHandler {
+  // Converts code to an anonymous function in a string so it can be called.
+  static executeFunction(code: () => void, callback?: (data: any) => void) {
+    CommandHandler.executeScript(`(${code.toString()})()`, callback);
+  }
+
   // Helper to run code in the active tab.
   static executeScript(code: string, callback?: (data: any) => void) {
     if (callback) {
@@ -35,20 +40,12 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
       Object.defineProperty(
         derivedCtor.prototype,
         name,
-        Object.getOwnPropertyDescriptor(
-          baseCtor.prototype,
-          name
-        ) as PropertyDescriptor
+        Object.getOwnPropertyDescriptor(baseCtor.prototype, name) as PropertyDescriptor
       );
     });
   });
 }
 
-applyMixins(CommandHandler, [
-  ActionsHandler,
-  EditorHandler,
-  NavigationHandler,
-  TabHandler,
-]);
+applyMixins(CommandHandler, [ActionsHandler, EditorHandler, NavigationHandler, TabHandler]);
 
 export default CommandHandler;
