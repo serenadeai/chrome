@@ -91,7 +91,7 @@ export default class NavigationHandler {
         }, 2000);
       };
 
-      CommandHandler.executeFunctionWithArg(findMatchAndScroll, `"${data.path}"`);
+      CommandHandler.executeFunctionWithArg(findMatchAndScroll, data.path);
     }
   }
 }

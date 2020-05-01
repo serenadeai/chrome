@@ -13,6 +13,8 @@ export default class EditorHandler {
         const element = document.activeElement as HTMLElement;
         if (element.tagName === "INPUT") {
           return (element as HTMLInputElement).value;
+        } else if (element.tagName === "TEXTAREA") {
+          return (element as HTMLTextAreaElement).value;
         } else if (element.contentEditable === "true") {
           return element.innerText;
         }
@@ -25,6 +27,8 @@ export default class EditorHandler {
         const element = document.activeElement as HTMLElement;
         if (element.tagName === "INPUT") {
           return (element as HTMLInputElement).selectionStart;
+        } else if (element.tagName === "TEXTAREA") {
+          return (element as HTMLTextAreaElement).selectionStart;
         } else if (element.contentEditable === "true") {
           return document.getSelection()!.anchorOffset;
         }
@@ -57,41 +61,54 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    const activeElement = () => {
-      return document.activeElement;
+    const setInputValue = (data: any) => {
+      if (document.activeElement) {
+        const element = document.activeElement as HTMLElement;
+        const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;
+        if (element.tagName === "INPUT") {
+          (element as HTMLInputElement).value = data.source;
+          (element as HTMLInputElement).setSelectionRange(data.cursor, cursorEnd);
+        } else if (element.tagName === "TEXTAREA") {
+          (element as HTMLTextAreaElement).value = data.source;
+          (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
+        } else if (element.contentEditable === "true") {
+          // Sigh
+        }
+      }
     };
-    const codeForInput = `
-      document.activeElement.value = \`${data.source}\`;
-      document.activeElement.setSelectionRange(${data.cursor}, ${data.cursorEnd});
-    `;
 
     return new Promise((resolve) => {
-      CommandHandler.executeFunction(activeElement, (active) => {
-        if (active[0] !== null) {
-          CommandHandler.executeScript(codeForInput, (_result) => {
-            resolve(null);
-          });
-        }
+      CommandHandler.executeFunctionWithArg(setInputValue, data, (_result) => {
         resolve(null);
       });
     });
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
-    const activeElement = () => {
-      return document.activeElement;
-    };
-    const setRange = (data: any) => {
-      (document.activeElement! as HTMLInputElement).setSelectionRange(data.cursor, data.cursorEnd);
+    const setSelectionRange = (data: any) => {
+      if (document.activeElement) {
+        const element = document.activeElement as HTMLElement;
+        const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;
+        if (element.tagName === "INPUT") {
+          (element as HTMLInputElement).setSelectionRange(data.cursor, cursorEnd);
+        } else if (element.tagName === "TEXTAREA") {
+          (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
+        } else if (element.contentEditable === "true") {
+          const selection = document.getSelection();
+          if (selection) {
+            selection.setBaseAndExtent(
+              selection.anchorNode!,
+              data.cursor,
+              selection.anchorNode!,
+              cursorEnd
+            );
+          }
+        }
+      }
     };
 
     return new Promise((resolve) => {
-      CommandHandler.executeFunction(activeElement, (active) => {
-        if (active[0] !== null) {
-          CommandHandler.executeFunctionWithArg(setRange, data, (_result) => {
-            resolve(null);
-          });
-        }
+      CommandHandler.executeFunctionWithArg(setSelectionRange, data, (_result) => {
         resolve(null);
       });
     });

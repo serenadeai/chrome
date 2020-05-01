@@ -23,14 +23,13 @@ export class CommandHandler {
     CommandHandler.executeScript(`(${code.toString()})()`, callback);
   }
 
-  // Pass an argument to a function ... it should be fine as long as the argument
-  // is serializable?
+  // Pass an argument to a function ... it should be work as long as the argument
+  // is serializable
   static executeFunctionWithArg(
     code: (arg: any) => void,
     arg: any,
     callback?: (data: any) => void
   ) {
-    console.log(`(${code.toString()})(${JSON.stringify(arg)}`);
     CommandHandler.executeScript(`(${code.toString()})(${JSON.stringify(arg)})`, callback);
   }
 
