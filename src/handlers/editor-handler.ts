@@ -130,7 +130,19 @@ export default class EditorHandler {
         } else if (element.isContentEditable) {
           const selection = document.getSelection();
           if (selection) {
-            selection.setBaseAndExtent(element, data.cursor, element, cursorEnd);
+            let target = selection.focusNode ? selection.focusNode : selection.anchorNode;
+            if (target) {
+              if (target.nodeType !== Node.TEXT_NODE && target.hasChildNodes()) {
+                const children = target.childNodes;
+                for (let i = 0; i < children.length; i++) {
+                  if (children[i].nodeType === Node.TEXT_NODE) {
+                    target = children[i];
+                    break;
+                  }
+                }
+              }
+              selection.setBaseAndExtent(target, data.cursor, target, cursorEnd);
+            }
           }
         }
       }
