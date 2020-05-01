@@ -14,7 +14,6 @@ export default class EditorHandler {
     const activeElementSource = () => {
       if (document.activeElement) {
         const element = document.activeElement as HTMLElement;
-        console.log(element, element.isContentEditable);
         if (element.tagName === "INPUT") {
           return (element as HTMLInputElement).value;
         } else if (element.tagName === "TEXTAREA") {
@@ -59,7 +58,6 @@ export default class EditorHandler {
       CommandHandler.executeFunction(activeElementSource, (source) => {
         if (source[0] !== false) {
           CommandHandler.executeFunction(activeElementCursor, (cursor) => {
-            console.log(source[0], cursor[0]);
             resolve({
               message: "editorState",
               data: {
