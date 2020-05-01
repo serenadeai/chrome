@@ -2,6 +2,7 @@ import ActionsHandler from "./handlers/actions-handler";
 import TabHandler from "./handlers/tab-handler";
 import NavigationHandler from "./handlers/navigation-handler";
 import EditorHandler from "./handlers/editor-handler";
+import IPC from "./shared/ipc";
 
 /*
  * The CommandHandler class is a wrapper around other handlers
@@ -18,6 +19,13 @@ export interface CommandHandler
     TabHandler {}
 
 export class CommandHandler {
+  // The IPC class that's running this
+  ipc?: IPC;
+
+  setIPC(ipc: IPC) {
+    this.ipc = ipc;
+  }
+
   // Converts code to an anonymous function in a string so it can be called.
   static executeFunction(code: () => void, callback?: (data: any) => void) {
     CommandHandler.executeScript(`(${code.toString()})()`, callback);

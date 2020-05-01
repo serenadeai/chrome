@@ -1,4 +1,5 @@
 import CommandHandler from "../command-handler";
+import IPC from "../shared/ipc";
 
 /*
  * Handles commands from the client about the "editor" state.
@@ -7,16 +8,26 @@ import CommandHandler from "../command-handler";
  */
 
 export default class EditorHandler {
+  ipc?: IPC;
+
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     const activeElementSource = () => {
       if (document.activeElement) {
         const element = document.activeElement as HTMLElement;
+        console.log(element, element.isContentEditable);
         if (element.tagName === "INPUT") {
           return (element as HTMLInputElement).value;
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).value;
         } else if (element.isContentEditable) {
-          return element.innerText;
+          const selection = document.getSelection();
+          if (selection) {
+            if (selection.focusNode) {
+              return selection.focusNode.textContent;
+            } else if (selection.anchorNode) {
+              return selection.anchorNode.textContent;
+            }
+          }
         }
       }
 
@@ -30,7 +41,14 @@ export default class EditorHandler {
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).selectionStart;
         } else if (element.isContentEditable) {
-          return document.getSelection()!.anchorOffset;
+          const selection = document.getSelection();
+          if (selection) {
+            if (selection.focusNode) {
+              return selection.focusOffset;
+            } else if (selection.anchorNode) {
+              return selection.anchorOffset;
+            }
+          }
         }
       }
 
@@ -72,7 +90,26 @@ export default class EditorHandler {
           (element as HTMLTextAreaElement).value = data.source;
           (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
         } else if (element.isContentEditable) {
-          // Sigh
+          const selection = document.getSelection();
+          if (selection) {
+            let target = selection.focusNode ? selection.focusNode : selection.anchorNode;
+            if (target) {
+              // Set the textContent of the node the cursor is on
+              target.textContent = data.source;
+              // If the target is not itself a text node, find a child that is
+              if (target.nodeType !== Node.TEXT_NODE && target.hasChildNodes()) {
+                const children = target.childNodes;
+                for (let i = 0; i < children.length; i++) {
+                  if (children[i].nodeType === Node.TEXT_NODE) {
+                    target = children[i];
+                    break;
+                  }
+                }
+              }
+              // Now we can safely set the cursor
+              selection.collapse(target, data.cursor);
+            }
+          }
         }
       }
     };
