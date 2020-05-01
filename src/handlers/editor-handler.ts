@@ -15,7 +15,7 @@ export default class EditorHandler {
           return (element as HTMLInputElement).value;
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).value;
-        } else if (element.contentEditable === "true") {
+        } else if (element.isContentEditable) {
           return element.innerText;
         }
       }
@@ -29,7 +29,7 @@ export default class EditorHandler {
           return (element as HTMLInputElement).selectionStart;
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).selectionStart;
-        } else if (element.contentEditable === "true") {
+        } else if (element.isContentEditable) {
           return document.getSelection()!.anchorOffset;
         }
       }
@@ -71,7 +71,7 @@ export default class EditorHandler {
         } else if (element.tagName === "TEXTAREA") {
           (element as HTMLTextAreaElement).value = data.source;
           (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
-        } else if (element.contentEditable === "true") {
+        } else if (element.isContentEditable) {
           // Sigh
         }
       }
@@ -93,7 +93,7 @@ export default class EditorHandler {
           (element as HTMLInputElement).setSelectionRange(data.cursor, cursorEnd);
         } else if (element.tagName === "TEXTAREA") {
           (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
-        } else if (element.contentEditable === "true") {
+        } else if (element.isContentEditable) {
           const selection = document.getSelection();
           if (selection) {
             selection.setBaseAndExtent(
