@@ -21,10 +21,9 @@ export default class EditorHandler {
         } else if (element.isContentEditable) {
           const selection = document.getSelection();
           if (selection) {
-            if (selection.focusNode) {
-              return selection.focusNode.textContent;
-            } else if (selection.anchorNode) {
-              return selection.anchorNode.textContent;
+            const target = selection.focusNode ? selection.focusNode : selection.anchorNode;
+            if (target) {
+              return target.textContent;
             }
           }
         }
@@ -131,12 +130,7 @@ export default class EditorHandler {
         } else if (element.isContentEditable) {
           const selection = document.getSelection();
           if (selection) {
-            selection.setBaseAndExtent(
-              selection.anchorNode!,
-              data.cursor,
-              selection.anchorNode!,
-              cursorEnd
-            );
+            selection.setBaseAndExtent(element, data.cursor, element, cursorEnd);
           }
         }
       }

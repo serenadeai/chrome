@@ -19,7 +19,7 @@ export interface CommandHandler
     TabHandler {}
 
 export class CommandHandler {
-  // The IPC class that's running this
+  // We can use the extension's IPC to send messages back to the client if needed
   ipc?: IPC;
 
   setIPC(ipc: IPC) {
@@ -31,8 +31,8 @@ export class CommandHandler {
     CommandHandler.executeScript(`(${code.toString()})()`, callback);
   }
 
-  // Pass an argument to a function ... it should be work as long as the argument
-  // is serializable
+  // Pass an argument to the function.
+  // Warning: This only works if the argument is serializable!
   static executeFunctionWithArg(
     code: (arg: any) => void,
     arg: any,

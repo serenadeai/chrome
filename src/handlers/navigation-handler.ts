@@ -43,7 +43,6 @@ export default class NavigationHandler {
       // This function will run in the scope of the active tab,
       // so it needs to be plain JS.
       const findMatchAndScroll = (path: string) => {
-        console.log("started search");
         // Matches based on content ("path")
         const snapshot = document.evaluate(
           `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]`,
@@ -76,7 +75,6 @@ export default class NavigationHandler {
         if (target === undefined) {
           return;
         }
-        console.log(target);
         const style = window.getComputedStyle(target as Element);
         const backgroundColor = style.getPropertyValue("background-color");
         (target as HTMLElement).style.backgroundColor = "yellow";
