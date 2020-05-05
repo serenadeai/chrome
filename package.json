@@ -19,17 +19,25 @@
   "scripts": {
     "build": "webpack --mode development",
     "dist": "webpack --mode production",
-    "watch": "webpack --mode development --watch"
+    "watch": "webpack --mode development --watch",
+    "test": "mocha --require ts-node/register --watch-files src/editor/*.ts --watch-files test/*.ts --watch test/*.ts"
   },
   "homepage": "https://serenade.ai",
   "devDependencies": {
+    "@types/chai": "^4.2.11",
     "@types/chrome": "^0.0.103",
+    "@types/jsdom": "^16.2.1",
     "@types/mkdirp": "^1.0.0",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^13.9.8",
     "@types/uuid": "^7.0.2",
     "@types/ws": "^7.2.3",
+    "chai": "^4.2.0",
+    "jsdom": "^16.2.2",
+    "mocha": "^7.1.2",
     "prettier": "^2.0.5",
     "ts-loader": "^6.2.2",
+    "ts-node": "^8.9.1",
     "tslint": "^6.1.0",
     "typescript": "^3.8.3",
     "webpack": "^4.42.1",
@@ -39,7 +47,7 @@
     "bufferutil": "^4.0.1",
     "mkdirp": "^1.0.3",
     "utf-8-validate": "^5.0.2",
-    "uuid": "^7.0.2",
-    "ws": "^7.2.3"
+    "uuid": "^8.0.0",
+    "ws": "^7.2.5"
   }
 }

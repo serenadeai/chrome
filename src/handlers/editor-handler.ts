@@ -76,6 +76,7 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
+    console.log(data);
     const setInputValue = (data: any) => {
       if (document.activeElement) {
         const element = document.activeElement as HTMLElement;
