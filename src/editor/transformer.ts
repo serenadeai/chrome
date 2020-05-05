@@ -19,14 +19,14 @@ export default class Transformer {
       editable = editable.parentElement!;
     }
 
-    // start with the immediate children of the contenteditable
-    let nodes: Element[] = [];
-
     const addChildrenToStack = (stack: Node[], parent: Node) => {
       for (let i = parent.childNodes.length - 1; i > -1; i--) {
         stack.push(parent.childNodes[i]);
+        addChildrenToStack(stack, parent.childNodes[i]);
       }
     };
+
+    let nodes: Element[] = [];
     addChildrenToStack(nodes, editable);
 
     // add the length of the text content
@@ -36,34 +36,35 @@ export default class Transformer {
     while (nodes.length > 0) {
       let node = nodes.pop();
 
+      for (let node of nodes) {
+        console.log(node.nodeType, node.textContent);
+      }
+
       if (!node) {
         return result;
       }
-
-      console.log("Looking at: ", node!.textContent, node.nodeType, result);
+      console.log("Looking at: ", node.textContent, node.nodeType, result);
 
       // if we found the desired text node, then just add the cursor position in that text node
-      if (node === anchor) {
-        console.log(node.nodeType, result, range.startOffset);
+      if (node.parentElement === anchor) {
+        console.log("found", node.nodeType, result, range.startOffset);
         return result + range.startOffset;
       }
 
       // if we find a node that's a special node, add a line break
       else if (
         node.nodeType === Node.ELEMENT_NODE &&
-        ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
-        node.firstChild !== anchor // exclude anchor node
+        ["P", "BR", "DIV"].includes((node as HTMLElement).tagName)
       ) {
         result += 1;
+        console.log("newline", node.nodeType, result, range.startOffset);
       }
 
       // add the length of text nodes
       else if (node.nodeType === Node.TEXT_NODE) {
         result += node.textContent!.length;
+        console.log("text", node.nodeType, result, range.startOffset);
       }
-
-      // add children to preorder traversal
-      addChildrenToStack(nodes, node);
     }
 
     return 0;
