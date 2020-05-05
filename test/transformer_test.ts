@@ -9,48 +9,57 @@ window.document.body.innerHTML = `
 
 // Select our contenteditable div
 const target = window.document.getElementById("target")!;
-const transformer = new Transformer(target);
 
 const setEditorHTML = (content: string) => {
   target.innerHTML = content;
 };
 
 describe("getCursorPosition()", function () {
-  // it("should return cursor position", function () {
-  //   const first = window.document.getElementsByTagName("p")[0];
-  //   let range = window.document.createRange();
-  //   range.selectNodeContents(first);
-  //   window.getSelection()!.removeAllRanges();
-  //   window.getSelection()!.addRange(range);
-  //
-  //   assert.equal(transformer.getCursorPosition(), 0);
-  // });
-  // it("should return cursor position", function () {
-  //   const second = window.document.getElementsByTagName("p")[1];
-  //   assert.equal(second.childNodes.length, 1);
-  //
-  //   let range = window.document.createRange();
-  //   range.setStart(second.firstChild!, 0);
-  //   range.setEnd(second.firstChild!, 0);
-  //   window.getSelection()!.removeAllRanges();
-  //   window.getSelection()!.addRange(range);
-  //
-  //   assert.equal(transformer.getCursorPosition(), 11);
-  // });
+  it("simple case", function () {
+    setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
+
+    const second = window.document.getElementsByTagName("span")[1];
+    let range = window.document.createRange();
+    range.selectNodeContents(second);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    assert.equal(Transformer.getCursor(target), 1);
+  });
+
+  it("complex case", function () {
+    /*
+      ab
+      cde
+      f
+      ghi
+     */
+    setEditorHTML(
+      `<div><span>a</span>b<p>c<span>d</span>e</p></div><div>f<p>g<span>h</span><span>i</span></p></div>`
+    );
+
+    const d = window.document.getElementsByTagName("span")[1];
+    let range = window.document.createRange();
+    range.selectNodeContents(d);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    assert.equal(Transformer.getCursor(target), 4);
+  });
 });
 
 describe("getSource()", function () {
-  it("source for simple case", function () {
+  it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-    assert.equal(transformer.getSource(), `abc`);
+    assert.equal(Transformer.getSource(target), `abc`);
   });
 
-  it("source for complex case", function () {
+  it("complex case", function () {
     setEditorHTML(
       `<p>a</p><div><p>b</p><br><p><span>e</span>c<span>d<i>f</i></span></p><span>h</span></div><p>g</p>`
     );
     assert.equal(
-      transformer.getSource(),
+      Transformer.getSource(target),
       `a
 b
 ecdf

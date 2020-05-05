@@ -1,17 +1,110 @@
 export default class Transformer {
-  private node: Node;
-
-  constructor(node: Node) {
-    this.node = node;
-  }
-
   // Returns the cursor position as seen by the user.
-  getCursor() {
+  static getCursor(target: Node) {
+    const selected = window.getSelection();
+    if (selected === null || selected.rangeCount < 1) {
+      return 0;
+    }
+
+    const range = selected.getRangeAt(0);
+    const anchor = range.startContainer;
+
+    // get the parent contenteditable node that will be the root of the tree search
+    let editable = anchor.parentElement!;
+    while (editable) {
+      if (editable.hasAttribute("contenteditable")) {
+        break;
+      }
+
+      editable = editable.parentElement!;
+    }
+
+    // start with the immediate children of the contenteditable
+    let nodes: Element[] = [];
+
+    const addChildrenToStack = (stack: Node[], parent: Node) => {
+      for (let i = parent.childNodes.length - 1; i > -1; i--) {
+        stack.push(parent.childNodes[i]);
+      }
+    };
+    addChildrenToStack(nodes, editable);
+
+    // add the length of the text content
+    let result = 0;
+
+    // do a pre-order DFS of the DOM starting at the editor root
+    while (nodes.length > 0) {
+      let node = nodes.pop();
+
+      if (!node) {
+        return result;
+      }
+
+      console.log("Looking at: ", node!.textContent, node.nodeType, result);
+
+      // if we found the desired text node, then just add the cursor position in that text node
+      if (node === anchor) {
+        console.log(node.nodeType, result, range.startOffset);
+        return result + range.startOffset;
+      }
+
+      // if we find a node that's a special node, add a line break
+      else if (
+        node.nodeType === Node.ELEMENT_NODE &&
+        ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
+        node.firstChild !== anchor // exclude anchor node
+      ) {
+        result += 1;
+      }
+
+      // add the length of text nodes
+      else if (node.nodeType === Node.TEXT_NODE) {
+        result += node.textContent!.length;
+      }
+
+      // add children to preorder traversal
+      addChildrenToStack(nodes, node);
+    }
+
     return 0;
+
+    // Generic DFS to traverse the node. We do this manually so we can add a line break
+    // for certain tags: P, BR, DIV.
+    const visit = (node: Node, cursor: number) => {
+      console.log(node, node.nodeType, node.textContent, cursor);
+      // If we're at our selected node, return the offset
+      if (node === range.startContainer) {
+        console.log("matched");
+        return cursor + range.startOffset;
+      }
+      // If we have children, visit them:
+      else if (node.hasChildNodes()) {
+        let children = node.childNodes;
+
+        for (let i = 0; i < children.length; i++) {
+          cursor = visit(children[i], cursor);
+        }
+
+        // After visiting our children, add a line break if we're a tag that should
+        // have one visually.
+        if (
+          node.nodeType === Node.ELEMENT_NODE &&
+          ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
+          node !== target // exclude anchor node
+        ) {
+          cursor += 1;
+        }
+      } else {
+        cursor += node.textContent!.length;
+      }
+      return cursor;
+    };
+
+    return visit(target, 0);
   }
 
   // Returns the source text as seen by the user.
-  getSource() {
+  static getSource(target: Node) {
     // Generic DFS to print the node. We do this manually so we can add a line break
     // for certain tags: P, BR, DIV.
     const visit = (node: Node, content: string) => {
@@ -28,7 +121,7 @@ export default class Transformer {
         if (
           node.nodeType === Node.ELEMENT_NODE &&
           ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
-          node !== this.node // exclude anchor node
+          node !== target // exclude anchor node
         ) {
           content = content.concat("\n");
         }
@@ -38,7 +131,7 @@ export default class Transformer {
       return content;
     };
 
-    return visit(this.node, "");
+    return visit(target, "");
   }
 
   // Deletes the range of text at the cursor positions as seen by the user.
