@@ -5,8 +5,56 @@ export default class Transformer {
     this.node = node;
   }
 
-  getNodeInnerText() {
-    return (this.node as HTMLElement).innerHTML;
+  // Returns the cursor position as seen by the user.
+  getCursor() {
+    return 0;
+  }
+
+  // Returns the source text as seen by the user.
+  getSource() {
+    // Generic DFS to print the node. We do this manually so we can add a line break
+    // for certain tags: P, BR, DIV.
+    const visit = (node: Node, content: string) => {
+      // If we have children, visit them:
+      if (node.hasChildNodes()) {
+        let children = node.childNodes;
+
+        for (let i = 0; i < children.length; i++) {
+          content = visit(children[i], content);
+        }
+
+        // After visiting our children, add a line break if we're a tag that should
+        // have one visually.
+        if (
+          node.nodeType === Node.ELEMENT_NODE &&
+          ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
+          node !== this.node // exclude anchor node
+        ) {
+          content = content.concat("\n");
+        }
+      } else {
+        content = content.concat(node.textContent!);
+      }
+      return content;
+    };
+
+    return visit(this.node, "");
+  }
+
+  // Deletes the range of text at the cursor positions as seen by the user.
+  deleteRange(start: number, stop: number) {
+    return stop - start;
+  }
+
+  // Inserts text at the cursor position as seen by the user.
+  insertText(start: number, text: string) {
+    return start + text;
+  }
+
+  // Replaces the range of text at the cursors positions as seen by the user.
+  replaceRange(start: number, stop: number, text: string) {
+    this.deleteRange(start, stop);
+    this.insertText(start, text);
   }
 
   getCursorPosition() {
