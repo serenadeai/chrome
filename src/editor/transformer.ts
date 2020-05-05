@@ -19,15 +19,29 @@ export default class Transformer {
       }
     };
 
-    const selected = document.getSelection();
+    const selected = window.getSelection();
     if (selected === null || selected.rangeCount < 1) {
       return 0;
     }
 
-    console.log(selected);
-
     const range = selected.getRangeAt(0);
     const anchor = selected.anchorNode!;
+
+    console.log(
+      "Selection:",
+      anchor,
+      selected.anchorOffset,
+      selected.focusNode,
+      selected.focusOffset
+    );
+
+    console.log(
+      "Range:",
+      range.startContainer,
+      range.startOffset,
+      range.endContainer,
+      range.endOffset
+    );
 
     // get the parent contenteditable node that will be the root of the tree search
     let editable = anchor.parentElement!;
@@ -58,19 +72,24 @@ export default class Transformer {
         return result;
       }
 
+      console.log(node.tagName, node.textContent);
+
       // if we found the desired text node, then just add the cursor position in that text node
       if (node === anchor) {
+        console.log(result, range.startOffset);
         return result + range.startOffset;
       }
 
       // if we find a node like `<span>hi</span>` that doesn't match, then include the tags
       // in our offset into the string
       else if (node.childNodes.length === 1 && node.childNodes[0] !== anchor) {
+        console.log(node.outerHTML.length);
         result += node.outerHTML.length;
       }
 
       // add the length of text nodes
       else if (node.nodeType === Node.TEXT_NODE) {
+        console.log(node.textContent!.length);
         result += node.textContent!.length;
       }
 

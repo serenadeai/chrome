@@ -20,7 +20,7 @@
     "build": "webpack --mode development",
     "dist": "webpack --mode production",
     "watch": "webpack --mode development --watch",
-    "test": "mocha --require ts-node/register --watch-files src/editor/*.ts --watch-files test/*.ts --watch test/*.ts"
+    "test": "mocha --require ts-node/register --require jsdom-global/register --watch-files src/editor/*.ts --watch-files test/*.ts --watch test/*.ts"
   },
   "homepage": "https://serenade.ai",
   "devDependencies": {
@@ -34,6 +34,7 @@
     "@types/ws": "^7.2.3",
     "chai": "^4.2.0",
     "jsdom": "^16.2.2",
+    "jsdom-global": "^3.0.2",
     "mocha": "^7.1.2",
     "prettier": "^2.0.5",
     "ts-loader": "^6.2.2",
