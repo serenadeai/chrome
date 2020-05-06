@@ -1,22 +1,21 @@
 export default class Transformer {
-  // Returns the cursor position as seen by the user.
-  static getCursor(target: Node) {
-    const selected = window.getSelection();
-    if (selected === null || selected.rangeCount < 1) {
-      return 0;
-    }
-
-    const range = selected.getRangeAt(0);
-    const anchor = range.startContainer;
-
-    // get the parent contenteditable node that will be the root of the tree search
-    let editable = anchor.parentElement!;
+  // Goes to the root contenteditable of the target node
+  // and builds a post-order traversal of the tree
+  private static _postOrderNodes(target: Node): Node[] {
+    // get the parent contenteditable node that will
+    // be the root of the tree search
+    let editable = target.parentElement!;
     while (editable) {
       if (editable.hasAttribute("contenteditable")) {
         break;
       }
 
       editable = editable.parentElement!;
+    }
+
+    // if we didn't find one, return an empty list
+    if (!editable.hasAttribute("contenteditable")) {
+      return [];
     }
 
     const addChildrenToStack = (stack: Node[], parent: Node) => {
@@ -26,13 +25,27 @@ export default class Transformer {
       }
     };
 
-    let nodes: Element[] = [];
+    let nodes: Node[] = [];
     addChildrenToStack(nodes, editable);
+
+    return nodes;
+  }
+
+  // Returns the cursor position as seen by the user.
+  static getCursor() {
+    const selected = window.getSelection();
+    if (selected === null || selected.rangeCount < 1) {
+      return 0;
+    }
+
+    const range = selected.getRangeAt(0);
+    const anchor = range.startContainer;
 
     // add the length of the text content
     let result = 0;
 
-    // do a pre-order DFS of the DOM starting at the editor root
+    let nodes = Transformer._postOrderNodes(anchor);
+
     while (nodes.length > 0) {
       let node = nodes.pop();
 
@@ -45,8 +58,17 @@ export default class Transformer {
       }
       console.log("Looking at: ", node.textContent, node.nodeType, result);
 
-      // if we found the desired text node, then just add the cursor position in that text node
+      // if we found the desired text node, then add the cursor position in that text node
+      // and add a line break if the parent's previous sibling doesn't have one and we need one
       if (node.parentElement === anchor) {
+        console.log(node.parentElement.nodeType, node.parentElement.tagName);
+        if (
+          node.parentElement.nodeType === Node.ELEMENT_NODE &&
+          ["P", "BR", "DIV"].includes(node.parentElement.tagName)
+        ) {
+          result += 1;
+        }
+
         console.log("found", node.nodeType, result, range.startOffset);
         return result + range.startOffset;
       }
@@ -67,41 +89,7 @@ export default class Transformer {
       }
     }
 
-    return 0;
-
-    // Generic DFS to traverse the node. We do this manually so we can add a line break
-    // for certain tags: P, BR, DIV.
-    const visit = (node: Node, cursor: number) => {
-      console.log(node, node.nodeType, node.textContent, cursor);
-      // If we're at our selected node, return the offset
-      if (node === range.startContainer) {
-        console.log("matched");
-        return cursor + range.startOffset;
-      }
-      // If we have children, visit them:
-      else if (node.hasChildNodes()) {
-        let children = node.childNodes;
-
-        for (let i = 0; i < children.length; i++) {
-          cursor = visit(children[i], cursor);
-        }
-
-        // After visiting our children, add a line break if we're a tag that should
-        // have one visually.
-        if (
-          node.nodeType === Node.ELEMENT_NODE &&
-          ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
-          node !== target // exclude anchor node
-        ) {
-          cursor += 1;
-        }
-      } else {
-        cursor += node.textContent!.length;
-      }
-      return cursor;
-    };
-
-    return visit(target, 0);
+    return result;
   }
 
   // Returns the source text as seen by the user.

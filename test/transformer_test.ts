@@ -4,12 +4,11 @@ import Transformer from "../src/editor/transformer";
 // Make a contenteditable div in our global document
 window.document.body.innerHTML = `
   <!DOCTYPE html>
-  <div contenteditable="true" id="target"></div>
+  <div contenteditable="true"></div>
 `;
 
-// Select our contenteditable div
-const target = window.document.getElementById("target")!;
-
+// Select our div so we can set the content
+const target = window.document.getElementsByTagName("div")[0]!;
 const setEditorHTML = (content: string) => {
   target.innerHTML = content;
 };
@@ -24,7 +23,7 @@ describe("getCursorPosition()", function () {
     window.getSelection()!.removeAllRanges();
     window.getSelection()!.addRange(range);
 
-    assert.equal(Transformer.getCursor(target), 1);
+    assert.equal(Transformer.getCursor(), 1);
   });
 
   it("complex case", function () {
@@ -44,7 +43,7 @@ describe("getCursorPosition()", function () {
     window.getSelection()!.removeAllRanges();
     window.getSelection()!.addRange(range);
 
-    assert.equal(Transformer.getCursor(target), 4);
+    assert.equal(Transformer.getCursor(), 4);
   });
 });
 
@@ -52,6 +51,34 @@ describe("getSource()", function () {
   it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
     assert.equal(Transformer.getSource(target), `abc`);
+  });
+
+  it("newline case before", function () {
+    setEditorHTML(`<p>a</p><span>b</span>`);
+    assert.equal(
+      Transformer.getSource(target),
+      `a
+b`
+    );
+  });
+
+  it("newline case after", function () {
+    setEditorHTML(`<span>a</span><p>b</p>`);
+    assert.equal(
+      Transformer.getSource(target),
+      `a
+b`
+    );
+  });
+
+  it("newline case between", function () {
+    setEditorHTML(`<span>a</span><p>b</p><span>c</span>`);
+    assert.equal(
+      Transformer.getSource(target),
+      `a
+b
+c`
+    );
   });
 
   it("complex case", function () {
