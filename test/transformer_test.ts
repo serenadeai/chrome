@@ -43,7 +43,7 @@ describe("getCursor()", function () {
     window.getSelection()!.removeAllRanges();
     window.getSelection()!.addRange(range);
 
-    assert.equal(Transformer.getCursor(), 4);
+    assert.equal(Transformer.getCursor(), 12);
   });
 });
 

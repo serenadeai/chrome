@@ -58,59 +58,69 @@ export default class Transformer {
     if (range === null) {
       return 0;
     }
-    const anchor = range.startContainer;
+
+    const target = range.startContainer;
+    if (!(target instanceof HTMLElement)) {
+      return 0;
+    }
+
+    const anchor = Transformer._getAnchor(target);
 
     if (!(anchor instanceof HTMLElement)) {
       return 0;
     }
 
-    let nodes = Transformer._preOrderNodes(anchor);
+    let content = "";
 
-    for (let node of nodes) {
-      console.log((node as HTMLElement).tagName || "", node.nodeType, node.textContent);
-    }
+    const isBlockElement = (node: Node): boolean => {
+      return ["P", "DIV"].includes((node as HTMLElement).tagName);
+    };
 
-    // add the length of the text content so far to get the cursor position
-    let result = 0;
+    const isManualLineBreak = (node: Node): boolean => {
+      return ["BR"].includes((node as HTMLElement).tagName);
+    };
 
-    for (let node of nodes) {
-      console.log("Looking at: ", node.textContent, node.nodeType, result);
+    // two consecutive block elements shouldn't have two newlines added
+    let justAddedManualNewline = true;
 
-      // if we found the desired text node, then add the cursor position in that text node
-      // and add a line break if the parent's previous sibling doesn't have one and we need one
-      if (node.parentElement === anchor) {
-        console.log(node.parentElement.nodeType, node.parentElement.tagName);
-        if (
-          node.parentElement.nodeType === Node.ELEMENT_NODE &&
-          ["P", "BR", "DIV"].includes(node.parentElement.tagName)
-        ) {
-          result += 1;
+    // look at parent, each child, then parent (so we can add newlines properly)
+    const visit = (anchor: Node) => {
+      for (let i = 0; i < anchor.childNodes.length; i++) {
+        const node = anchor.childNodes.item(i);
+
+        if (isBlockElement(node) && !justAddedManualNewline) {
+          content = content.concat("\n");
         }
 
-        console.log("found", node.nodeType, result, range.startOffset);
-        return result + range.startOffset;
-      }
+        if (node === target) {
+          content = content.concat("");
+          break;
+        }
 
-      // if we find a node that's a special node, add a line break
-      else if (
-        node.nodeType === Node.ELEMENT_NODE &&
-        ["P", "BR", "DIV"].includes((node as HTMLElement).tagName)
-      ) {
-        result += 1;
-        console.log("newline", node.nodeType, result, range.startOffset);
-      }
+        // get contents of each child
+        visit(node);
 
-      // add the length of text nodes
-      else if (node.nodeType === Node.TEXT_NODE) {
-        result += node.textContent!.length;
-        console.log("text", node.nodeType, result, range.startOffset);
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (isBlockElement(node) && !justAddedManualNewline) {
+            content = content.concat("\n");
+            justAddedManualNewline = true;
+          } else if (isManualLineBreak(node)) {
+            content = content.concat("\n");
+          }
+        } else {
+          content = content.concat(node.textContent!);
+          justAddedManualNewline = false;
+        }
       }
-    }
+    };
 
-    return result;
+    visit(anchor);
+
+    return content.length;
   }
 
-  // Returns the source text as seen by the user.
+  // Returns the source text as seen by the user. We can't use the built-in
+  // textContent because it doesn't generate line breaks.
   static getSource(target: HTMLElement): string | null {
     const anchor = Transformer._getAnchor(target);
     if (anchor === null || !(anchor instanceof HTMLElement)) {
