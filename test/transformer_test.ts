@@ -67,7 +67,8 @@ b`
     assert.equal(
       Transformer.getSource(target),
       `a
-b`
+b
+`
     );
   });
 
@@ -83,12 +84,14 @@ c`
 
   it("complex case", function () {
     setEditorHTML(
-      `<p>a</p><div><p>b</p><br><p><span>e</span>c<span>d<i>f</i></span></p><span>h</span></div><p>g</p>`
+      `<p>a</p><div><div><p>b</p><p>c</p></div><br><p><span>e</span>c<span>d<i>f</i></span></p><span>h</span></div><p>g</p>`
     );
     assert.equal(
       Transformer.getSource(target),
       `a
 b
+c
+
 ecdf
 h
 g

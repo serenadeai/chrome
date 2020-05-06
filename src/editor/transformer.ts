@@ -117,25 +117,44 @@ export default class Transformer {
       return null;
     }
 
-    let nodes = Transformer._preOrderNodes(anchor);
-    for (let node of nodes) {
-      console.log((node as HTMLElement).tagName || "", node.nodeType, node.textContent);
-    }
-
     let content = "";
 
-    for (let node of nodes) {
-      console.log("Looking at: ", node.textContent, node.nodeType, content);
+    const isBlockElement = (node: Node): boolean => {
+      return ["P", "DIV"].includes((node as HTMLElement).tagName);
+    };
 
-      if (
-        node.nodeType === Node.ELEMENT_NODE &&
-        ["P", "BR", "DIV"].includes((node as HTMLElement).tagName)
-      ) {
-        content = content.concat("\n");
-      } else {
-        content = content.concat(node.textContent!);
-      }
-    }
+    const isManualLineBreak = (node: Node): boolean => {
+      return ["BR"].includes((node as HTMLElement).tagName);
+    };
+
+    // two consecutive block elements shouldn't have two newlines added
+    let justAddedManualNewline = true;
+
+    // look at parent, each child, then parent (so we can add newlines properly)
+    const visit = (anchor: Node) => {
+      anchor.childNodes.forEach((node: ChildNode) => {
+        if (isBlockElement(node) && !justAddedManualNewline) {
+          content = content.concat("\n");
+        }
+
+        // get contents of each child
+        visit(node);
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (isBlockElement(node) && !justAddedManualNewline) {
+            content = content.concat("\n");
+            justAddedManualNewline = true;
+          } else if (isManualLineBreak(node)) {
+            content = content.concat("\n");
+          }
+        } else {
+          content = content.concat(node.textContent!);
+          justAddedManualNewline = false;
+        }
+      });
+    };
+
+    visit(anchor);
 
     return content;
   }
