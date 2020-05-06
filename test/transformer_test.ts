@@ -13,7 +13,7 @@ const setEditorHTML = (content: string) => {
   target.innerHTML = content;
 };
 
-describe("getCursorPosition()", function () {
+describe("getCursor()", function () {
   it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
 
@@ -34,7 +34,7 @@ describe("getCursorPosition()", function () {
       ghi
      */
     setEditorHTML(
-      `<div><span>a</span>b<p>c<span>d</span>e</p></div><div>f<p>g<span>h</span><span>i</span></p></div>`
+      `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
 
     const d = window.document.getElementsByTagName("span")[1];

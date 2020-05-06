@@ -1,10 +1,7 @@
 export default class Transformer {
-  // Goes to the root contenteditable of the target node
-  // and builds a post-order traversal of the tree
-  private static _postOrderNodes(target: Node): Node[] {
-    // get the parent contenteditable node that will
-    // be the root of the tree search
-    let editable = target.parentElement!;
+  // Given a node, traverse up the tree to find a contenteditable node, if exists
+  private static _getAnchor(target: HTMLElement): Node | null {
+    let editable = target;
     while (editable) {
       if (editable.hasAttribute("contenteditable")) {
         break;
@@ -15,47 +12,68 @@ export default class Transformer {
 
     // if we didn't find one, return an empty list
     if (!editable.hasAttribute("contenteditable")) {
+      return null;
+    }
+
+    return editable;
+  }
+
+  // Goes to the root contenteditable of the target node
+  // and builds a pre-order traversal of the tree
+  private static _preOrderNodes(target: HTMLElement): Node[] {
+    // get the parent contenteditable node that will
+    // be the root of the tree search
+    let editable = Transformer._getAnchor(target);
+
+    // if we didn't find one, return an empty list
+    if (editable === null) {
       return [];
     }
 
-    const addChildrenToStack = (stack: Node[], parent: Node) => {
-      for (let i = parent.childNodes.length - 1; i > -1; i--) {
-        stack.push(parent.childNodes[i]);
-        addChildrenToStack(stack, parent.childNodes[i]);
-      }
+    // add each child first, then its children
+    const addToList = (list: Node[], parent: Node) => {
+      parent.childNodes.forEach((node: ChildNode) => {
+        list.push(node);
+        addToList(list, node);
+      });
     };
 
     let nodes: Node[] = [];
-    addChildrenToStack(nodes, editable);
+    addToList(nodes, editable);
 
     return nodes;
   }
 
-  // Returns the cursor position as seen by the user.
-  static getCursor() {
+  private static _getRange(): Range | null {
     const selected = window.getSelection();
     if (selected === null || selected.rangeCount < 1) {
+      return null;
+    }
+    return selected.getRangeAt(0);
+  }
+
+  // Returns the cursor position as seen by the user.
+  static getCursor(): number {
+    const range = Transformer._getRange();
+    if (range === null) {
+      return 0;
+    }
+    const anchor = range.startContainer;
+
+    if (!(anchor instanceof HTMLElement)) {
       return 0;
     }
 
-    const range = selected.getRangeAt(0);
-    const anchor = range.startContainer;
+    let nodes = Transformer._preOrderNodes(anchor);
 
-    // add the length of the text content
+    for (let node of nodes) {
+      console.log((node as HTMLElement).tagName || "", node.nodeType, node.textContent);
+    }
+
+    // add the length of the text content so far to get the cursor position
     let result = 0;
 
-    let nodes = Transformer._postOrderNodes(anchor);
-
-    while (nodes.length > 0) {
-      let node = nodes.pop();
-
-      for (let node of nodes) {
-        console.log(node.nodeType, node.textContent);
-      }
-
-      if (!node) {
-        return result;
-      }
+    for (let node of nodes) {
       console.log("Looking at: ", node.textContent, node.nodeType, result);
 
       // if we found the desired text node, then add the cursor position in that text node
@@ -93,34 +111,33 @@ export default class Transformer {
   }
 
   // Returns the source text as seen by the user.
-  static getSource(target: Node) {
-    // Generic DFS to print the node. We do this manually so we can add a line break
-    // for certain tags: P, BR, DIV.
-    const visit = (node: Node, content: string) => {
-      // If we have children, visit them:
-      if (node.hasChildNodes()) {
-        let children = node.childNodes;
+  static getSource(target: HTMLElement): string | null {
+    const anchor = Transformer._getAnchor(target);
+    if (anchor === null || !(anchor instanceof HTMLElement)) {
+      return null;
+    }
 
-        for (let i = 0; i < children.length; i++) {
-          content = visit(children[i], content);
-        }
+    let nodes = Transformer._preOrderNodes(anchor);
+    for (let node of nodes) {
+      console.log((node as HTMLElement).tagName || "", node.nodeType, node.textContent);
+    }
 
-        // After visiting our children, add a line break if we're a tag that should
-        // have one visually.
-        if (
-          node.nodeType === Node.ELEMENT_NODE &&
-          ["P", "BR", "DIV"].includes((node as HTMLElement).tagName) &&
-          node !== target // exclude anchor node
-        ) {
-          content = content.concat("\n");
-        }
+    let content = "";
+
+    for (let node of nodes) {
+      console.log("Looking at: ", node.textContent, node.nodeType, content);
+
+      if (
+        node.nodeType === Node.ELEMENT_NODE &&
+        ["P", "BR", "DIV"].includes((node as HTMLElement).tagName)
+      ) {
+        content = content.concat("\n");
       } else {
         content = content.concat(node.textContent!);
       }
-      return content;
-    };
+    }
 
-    return visit(target, "");
+    return content;
   }
 
   // Deletes the range of text at the cursor positions as seen by the user.
