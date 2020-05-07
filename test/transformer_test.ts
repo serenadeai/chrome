@@ -26,6 +26,20 @@ describe("getCursor()", function () {
     assert.equal(Transformer.getCursor(), 1);
   });
 
+  it("offset case", function () {
+    setEditorHTML(`<span>a</span><span>bananas</span><span>c</span>`);
+
+    const second = window.document.getElementsByTagName("span")[1];
+    let range = window.document.createRange();
+    range.setStart(second.childNodes.item(0), 2); // after the first a
+    range.setEnd(second.childNodes.item(0), 2);
+    range.collapse();
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    assert.equal(Transformer.getCursor(), 3);
+  });
+
   it("complex case", function () {
     /*
       ab

@@ -1,7 +1,13 @@
 export default class Transformer {
   // Given a node, traverse up the tree to find a contenteditable node, if exists
-  private static _getAnchor(target: HTMLElement): Node | null {
-    let editable = target;
+  private static _getAnchor(target: HTMLElement | Text): Node | null {
+    let editable;
+    if (target instanceof Text) {
+      editable = target.parentElement!;
+    } else {
+      editable = target;
+    }
+
     while (editable) {
       if (editable.hasAttribute("contenteditable")) {
         break;
@@ -60,7 +66,7 @@ export default class Transformer {
     }
 
     const target = range.startContainer;
-    if (!(target instanceof HTMLElement)) {
+    if (!(target instanceof HTMLElement) && !(target instanceof Text)) {
       return 0;
     }
 
@@ -83,6 +89,8 @@ export default class Transformer {
     // two consecutive block elements shouldn't have two newlines added
     let justAddedManualNewline = true;
 
+    let shouldBreak = false;
+
     // look at parent, each child, then parent (so we can add newlines properly)
     const visit = (anchor: Node) => {
       for (let i = 0; i < anchor.childNodes.length; i++) {
@@ -93,7 +101,11 @@ export default class Transformer {
         }
 
         if (node === target) {
-          content = content.concat("");
+          content = content.concat(node.textContent!.substring(0, range.startOffset));
+          shouldBreak = true;
+        }
+
+        if (shouldBreak) {
           break;
         }
 
