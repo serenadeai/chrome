@@ -26,6 +26,18 @@ describe("getCursor()", function () {
     assert.equal(Transformer.getCursor(), 1);
   });
 
+  it("space case", function () {
+    setEditorHTML(`<span>a&nbsp;&nbsp;</span><span>b</span><span>c</span>`);
+
+    const second = window.document.getElementsByTagName("span")[1];
+    let range = window.document.createRange();
+    range.selectNodeContents(second);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    assert.equal(Transformer.getCursor(), 3);
+  });
+
   it("offset case", function () {
     setEditorHTML(`<span>a</span><span>bananas</span><span>c</span>`);
 
@@ -65,6 +77,16 @@ describe("getSource()", function () {
   it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
     assert.equal(Transformer.getSource(target), `abc`);
+  });
+
+  it("space case", function () {
+    setEditorHTML(`<p>a&nbsp;&nbsp;c</p><span>b</span>`);
+    // The non-breaking space is Unicode 160, not a typed space, which is 32.
+    assert.equal(
+      Transformer.getSource(target),
+      `a${String.fromCodePoint(160)}${String.fromCodePoint(160)}c
+b`
+    );
   });
 
   it("newline case before", function () {

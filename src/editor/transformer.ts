@@ -24,32 +24,6 @@ export default class Transformer {
     return editable;
   }
 
-  // Goes to the root contenteditable of the target node
-  // and builds a pre-order traversal of the tree
-  private static _preOrderNodes(target: HTMLElement): Node[] {
-    // get the parent contenteditable node that will
-    // be the root of the tree search
-    let editable = Transformer._getAnchor(target);
-
-    // if we didn't find one, return an empty list
-    if (editable === null) {
-      return [];
-    }
-
-    // add each child first, then its children
-    const addToList = (list: Node[], parent: Node) => {
-      parent.childNodes.forEach((node: ChildNode) => {
-        list.push(node);
-        addToList(list, node);
-      });
-    };
-
-    let nodes: Node[] = [];
-    addToList(nodes, editable);
-
-    return nodes;
-  }
-
   private static _getRange(): Range | null {
     const selected = window.getSelection();
     if (selected === null || selected.rangeCount < 1) {
@@ -58,23 +32,13 @@ export default class Transformer {
     return selected.getRangeAt(0);
   }
 
-  // Returns the cursor position as seen by the user.
-  static getCursor(): number {
-    const range = Transformer._getRange();
-    if (range === null) {
-      return 0;
-    }
-
-    const target = range.startContainer;
-    if (!(target instanceof HTMLElement) && !(target instanceof Text)) {
-      return 0;
-    }
-
+  private static _getTextContent(target: HTMLElement | Text, range?: Range): string | null {
     const anchor = Transformer._getAnchor(target);
-
-    if (!(anchor instanceof HTMLElement)) {
-      return 0;
+    if (anchor === null || !(anchor instanceof HTMLElement)) {
+      return null;
     }
+
+    const selected = range ? range.startContainer : null;
 
     let content = "";
 
@@ -100,7 +64,7 @@ export default class Transformer {
           content = content.concat("\n");
         }
 
-        if (node === target) {
+        if (range && selected && node === selected) {
           content = content.concat(node.textContent!.substring(0, range.startOffset));
           shouldBreak = true;
         }
@@ -128,57 +92,30 @@ export default class Transformer {
 
     visit(anchor);
 
-    return content.length;
+    return content;
+  }
+
+  // Returns the cursor position as seen by the user.
+  static getCursor(): number {
+    const range = Transformer._getRange();
+    if (range === null) {
+      return 0;
+    }
+
+    const target = range.startContainer;
+    if (!(target instanceof HTMLElement) && !(target instanceof Text)) {
+      return 0;
+    }
+
+    const textContent = Transformer._getTextContent(target, range);
+
+    return textContent ? textContent.length : 0;
   }
 
   // Returns the source text as seen by the user. We can't use the built-in
   // textContent because it doesn't generate line breaks.
   static getSource(target: HTMLElement): string | null {
-    const anchor = Transformer._getAnchor(target);
-    if (anchor === null || !(anchor instanceof HTMLElement)) {
-      return null;
-    }
-
-    let content = "";
-
-    const isBlockElement = (node: Node): boolean => {
-      return ["P", "DIV"].includes((node as HTMLElement).tagName);
-    };
-
-    const isManualLineBreak = (node: Node): boolean => {
-      return ["BR"].includes((node as HTMLElement).tagName);
-    };
-
-    // two consecutive block elements shouldn't have two newlines added
-    let justAddedManualNewline = true;
-
-    // look at parent, each child, then parent (so we can add newlines properly)
-    const visit = (anchor: Node) => {
-      anchor.childNodes.forEach((node: ChildNode) => {
-        if (isBlockElement(node) && !justAddedManualNewline) {
-          content = content.concat("\n");
-        }
-
-        // get contents of each child
-        visit(node);
-
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          if (isBlockElement(node) && !justAddedManualNewline) {
-            content = content.concat("\n");
-            justAddedManualNewline = true;
-          } else if (isManualLineBreak(node)) {
-            content = content.concat("\n");
-          }
-        } else {
-          content = content.concat(node.textContent!);
-          justAddedManualNewline = false;
-        }
-      });
-    };
-
-    visit(anchor);
-
-    return content;
+    return Transformer._getTextContent(target);
   }
 
   // Deletes the range of text at the cursor positions as seen by the user.
