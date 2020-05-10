@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import Transformer from "../src/editor/transformer";
+import IPC from "../src/shared/ipc";
 
 // Make a contenteditable div in our global document
 window.document.body.innerHTML = `
@@ -154,13 +155,28 @@ g
 //     // check new HTML, cursor
 //   });
 //
-//   it("insert text at cursor", function () {
-//     // set innerHTML
-//     // place cursor
-//     // ask for source and cursor
-//     // insert text command
-//     // check new HTML, cursor
-//   });
+it("insert text at cursor", function () {
+  // ask for source and cursor
+  // insert text command
+  // check new HTML, cursor
+  it("space case", function () {
+    // set innerHTML
+    setEditorHTML(`<p>a&nbsp;&nbsp;c</p><span>b</span>`);
+
+    // place cursor before b, cursor 4
+    const second = window.document.getElementsByTagName("span")[1];
+    window.getSelection()!.collapse(second.childNodes.item(0), 1);
+
+    const ipc = {
+      sendMessage: (message: string, data: any) => {
+        data;
+        return message;
+      },
+    };
+
+    Transformer.deleteRange((ipc as unknown) as IPC, 2, 4);
+  });
+});
 //
 //   it("replace range", function () {
 //     // set innerHTML

@@ -204,7 +204,7 @@ export default class Transformer {
   }
 
   // Deletes the range of text at the cursor positions as seen by the user.
-  deleteRange(ipc: IPC, start: number, stop: number) {
+  static deleteRange(ipc: IPC, start: number, stop: number) {
     // Set the cursor to the element and offset that represents the stop,
     // and simulate (stop - start) deletes.
     Transformer.setCursor(stop);
@@ -213,7 +213,7 @@ export default class Transformer {
   }
 
   // Inserts text at the cursor position as seen by the user.
-  insertText(ipc: IPC, start: number, text: string) {
+  static insertText(ipc: IPC, start: number, text: string) {
     // Set the cursor to the element and offset that represents the start,
     // and simulate keypresses for text.
     Transformer.setCursor(start);
@@ -221,8 +221,8 @@ export default class Transformer {
   }
 
   // Replaces the range of text at the cursors positions as seen by the user.
-  replaceRange(ipc: IPC, start: number, stop: number, text: string) {
-    this.deleteRange(ipc, start, stop);
-    this.insertText(ipc, start, text);
+  static replaceRange(ipc: IPC, start: number, stop: number, text: string) {
+    Transformer.deleteRange(ipc, start, stop);
+    Transformer.insertText(ipc, start, text);
   }
 }
