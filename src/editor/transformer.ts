@@ -1,3 +1,5 @@
+import IPC from "../shared/ipc";
+
 export default class Transformer {
   // Given a node, traverse up the tree to find a contenteditable node, if exists
   private static _getAnchor(target: HTMLElement | Text): Node | null {
@@ -24,14 +26,9 @@ export default class Transformer {
     return editable;
   }
 
-  private static _getRange(): Range | null {
-    const selected = window.getSelection();
-    if (selected === null || selected.rangeCount < 1) {
-      return null;
-    }
-    return selected.getRangeAt(0);
-  }
-
+  // Given a target element and optional selection range, returns the text
+  // content for the parent contenteditable (anchor). If optional selection
+  // range, stops returning at the start of the cursor.
   private static _getTextContent(target: HTMLElement | Text, range?: Range): string | null {
     const anchor = Transformer._getAnchor(target);
     if (anchor === null || !(anchor instanceof HTMLElement)) {
@@ -39,8 +36,6 @@ export default class Transformer {
     }
 
     const selected = range ? range.startContainer : null;
-
-    let content = "";
 
     const isBlockElement = (node: Node): boolean => {
       return ["P", "DIV"].includes((node as HTMLElement).tagName);
@@ -54,6 +49,8 @@ export default class Transformer {
     let justAddedManualNewline = true;
 
     let shouldBreak = false;
+
+    let content = "";
 
     // look at parent, each child, then parent (so we can add newlines properly)
     const visit = (anchor: Node) => {
@@ -95,9 +92,97 @@ export default class Transformer {
     return content;
   }
 
+  static setCursor(offset: number) {
+    const selected = window.getSelection();
+    if (selected === null || selected.rangeCount < 1) {
+      return;
+    }
+
+    const range = selected.getRangeAt(0);
+    if (range === null) {
+      return;
+    }
+
+    const target = range.startContainer;
+    if (!(target instanceof HTMLElement) && !(target instanceof Text)) {
+      return;
+    }
+
+    const anchor = Transformer._getAnchor(target);
+    if (anchor === null || !(anchor instanceof HTMLElement)) {
+      return;
+    }
+
+    const isBlockElement = (node: Node): boolean => {
+      return ["P", "DIV"].includes((node as HTMLElement).tagName);
+    };
+
+    const isManualLineBreak = (node: Node): boolean => {
+      return ["BR"].includes((node as HTMLElement).tagName);
+    };
+
+    // two consecutive block elements shouldn't have two newlines added
+    let justAddedManualNewline = true;
+
+    let shouldBreak = false;
+
+    let cursor = 0;
+
+    // look at parent, each child, then parent (so we can add newlines properly)
+    const visit = (anchor: Node) => {
+      for (let i = 0; i < anchor.childNodes.length; i++) {
+        const node = anchor.childNodes.item(i);
+
+        if (isBlockElement(node) && !justAddedManualNewline) {
+          cursor += 1; // for newline
+        }
+
+        if (
+          node.nodeType === Node.TEXT_NODE &&
+          node.textContent &&
+          node.textContent.length + cursor >= offset
+        ) {
+          // call range to set
+          const innerOffset = offset - cursor;
+          window.getSelection()!.empty();
+          window.getSelection()!.collapse(node, innerOffset);
+          shouldBreak = true;
+        }
+
+        if (shouldBreak) {
+          break;
+        }
+
+        // get contents of each child
+        visit(node);
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (isBlockElement(node) && !justAddedManualNewline) {
+            cursor += 1; // for newline
+            justAddedManualNewline = true;
+          } else if (isManualLineBreak(node)) {
+            cursor += 1; // for newline
+          }
+        } else {
+          cursor += node.textContent!.length;
+          justAddedManualNewline = false;
+        }
+      }
+    };
+
+    visit(anchor);
+
+    return;
+  }
+
   // Returns the cursor position as seen by the user.
   static getCursor(): number {
-    const range = Transformer._getRange();
+    const selected = window.getSelection();
+    if (selected === null || selected.rangeCount < 1) {
+      return 0;
+    }
+
+    const range = selected.getRangeAt(0);
     if (range === null) {
       return 0;
     }
@@ -119,111 +204,25 @@ export default class Transformer {
   }
 
   // Deletes the range of text at the cursor positions as seen by the user.
-  deleteRange(start: number, stop: number) {
-    return stop - start;
+  deleteRange(ipc: IPC, start: number, stop: number) {
+    // Set the cursor to the element and offset that represents the stop,
+    // and simulate (stop - start) deletes.
+    Transformer.setCursor(stop);
+    const deleteCount = stop - start;
+    return ipc.send("simulateDelete", { deleteCount });
   }
 
   // Inserts text at the cursor position as seen by the user.
-  insertText(start: number, text: string) {
-    return start + text;
+  insertText(ipc: IPC, start: number, text: string) {
+    // Set the cursor to the element and offset that represents the start,
+    // and simulate keypresses for text.
+    Transformer.setCursor(start);
+    return ipc.send("insertText", { text });
   }
 
   // Replaces the range of text at the cursors positions as seen by the user.
-  replaceRange(start: number, stop: number, text: string) {
-    this.deleteRange(start, stop);
-    this.insertText(start, text);
-  }
-
-  getCursorPosition() {
-    // add children to the stack for a preorder traversal
-    const addChildrenToStack = (stack: Element[], parent: Element) => {
-      for (let i = parent.childNodes.length - 1; i > -1; i--) {
-        if (parent.childNodes[i].nodeType === Node.ELEMENT_NODE) {
-          stack.push(parent.childNodes[i] as Element);
-        }
-      }
-    };
-
-    const selected = window.getSelection();
-    if (selected === null || selected.rangeCount < 1) {
-      return 0;
-    }
-
-    const range = selected.getRangeAt(0);
-    const anchor = selected.anchorNode!;
-
-    console.log(
-      "Selection:",
-      anchor,
-      selected.anchorOffset,
-      selected.focusNode,
-      selected.focusOffset
-    );
-
-    console.log(
-      "Range:",
-      range.startContainer,
-      range.startOffset,
-      range.endContainer,
-      range.endOffset
-    );
-
-    // get the parent contenteditable node that will be the root of the tree search
-    let editable = anchor.parentElement!;
-    while (editable) {
-      if (editable.hasAttribute("contenteditable")) {
-        break;
-      }
-
-      editable = editable.parentElement!;
-    }
-
-    // start with the immediate children of the contenteditable
-    let nodes: Element[] = [];
-    addChildrenToStack(nodes, editable);
-
-    // for content like `<span>hi</span>`, we want to include the length of the start tag,
-    // but not of the end tag
-    let result = 0;
-    if (anchor.parentNode && anchor.parentNode !== editable) {
-      result += (anchor.parentNode as HTMLElement).outerHTML.indexOf(">");
-    }
-
-    // do a pre-order DFS of the DOM starting at the editor root
-    while (nodes.length > 0) {
-      let node = nodes.pop();
-
-      if (!node) {
-        return result;
-      }
-
-      console.log(node.tagName, node.textContent);
-
-      // if we found the desired text node, then just add the cursor position in that text node
-      if (node === anchor) {
-        console.log(result, range.startOffset);
-        return result + range.startOffset;
-      }
-
-      // if we find a node like `<span>hi</span>` that doesn't match, then include the tags
-      // in our offset into the string
-      else if (node.childNodes.length === 1 && node.childNodes[0] !== anchor) {
-        console.log(node.outerHTML.length);
-        result += node.outerHTML.length;
-      }
-
-      // add the length of text nodes
-      else if (node.nodeType === Node.TEXT_NODE) {
-        console.log(node.textContent!.length);
-        result += node.textContent!.length;
-      }
-
-      // add children to preorder traversal
-      else {
-        addChildrenToStack(nodes, node);
-      }
-    }
-
-    return 0;
+  replaceRange(ipc: IPC, start: number, stop: number, text: string) {
+    this.deleteRange(ipc, start, stop);
+    this.insertText(ipc, start, text);
   }
 }

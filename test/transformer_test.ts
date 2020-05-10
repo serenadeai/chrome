@@ -13,15 +13,35 @@ const setEditorHTML = (content: string) => {
   target.innerHTML = content;
 };
 
+describe("_setCursor()", function () {
+  it("simple case", function () {
+    setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
+
+    const first = window.document.getElementsByTagName("span")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(2);
+
+    const second = window.document.getElementsByTagName("span")[1];
+    // The selection should be on the second span's Text element
+    const text = second.childNodes.item(0);
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, text);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 1);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, text);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+  });
+});
+
 describe("getCursor()", function () {
   it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
 
     const second = window.document.getElementsByTagName("span")[1];
-    let range = window.document.createRange();
-    range.selectNodeContents(second);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
+    window.getSelection()!.collapse(second, 0);
 
     assert.equal(Transformer.getCursor(), 1);
   });
@@ -30,10 +50,7 @@ describe("getCursor()", function () {
     setEditorHTML(`<span>a&nbsp;&nbsp;</span><span>b</span><span>c</span>`);
 
     const second = window.document.getElementsByTagName("span")[1];
-    let range = window.document.createRange();
-    range.selectNodeContents(second);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
+    window.getSelection()!.collapse(second, 0);
 
     assert.equal(Transformer.getCursor(), 3);
   });
@@ -42,12 +59,7 @@ describe("getCursor()", function () {
     setEditorHTML(`<span>a</span><span>bananas</span><span>c</span>`);
 
     const second = window.document.getElementsByTagName("span")[1];
-    let range = window.document.createRange();
-    range.setStart(second.childNodes.item(0), 2); // after the first a
-    range.setEnd(second.childNodes.item(0), 2);
-    range.collapse();
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
+    window.getSelection()!.collapse(second.childNodes.item(0), 2);
 
     assert.equal(Transformer.getCursor(), 3);
   });
@@ -64,10 +76,7 @@ describe("getCursor()", function () {
     );
 
     const d = window.document.getElementsByTagName("span")[1];
-    let range = window.document.createRange();
-    range.selectNodeContents(d);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
+    window.getSelection()!.collapse(d, 0);
 
     assert.equal(Transformer.getCursor(), 12);
   });
