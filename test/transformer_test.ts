@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import { assert } from "chai";
 import Transformer from "../src/editor/transformer";
 import IPC from "../src/shared/ipc";
@@ -29,6 +30,32 @@ describe("_setCursor()", function () {
     const second = window.document.getElementsByTagName("span")[1];
     // The selection should be on the second span's Text element
     const text = second.childNodes.item(0);
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, text);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 1);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, text);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+  });
+
+  it("complex case", function () {
+    /*
+      ab
+      cde
+      f
+      ghi
+     */
+    setEditorHTML(
+      `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
+    );
+
+    const d = window.document.getElementsByTagName("span")[1];
+    window.getSelection()!.collapse(d, 0);
+
+    Transformer.setCursor(11);
+
+    const bold = window.document.getElementsByTagName("b")[0];
+    // The selection should be on the bold element's Text element
+    const text = bold.childNodes.item(0);
 
     assert.equal(window.getSelection()!.getRangeAt(0).startContainer, text);
     assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 1);
@@ -146,43 +173,54 @@ g
   });
 });
 
-// describe("commands", function () {
-//   it("delete range at cursor", function () {
-//     // set innerHTML
-//     // place cursor
-//     // ask for source and cursor
-//     // delete range command
-//     // check new HTML, cursor
-//   });
-//
-it("insert text at cursor", function () {
-  // ask for source and cursor
-  // insert text command
-  // check new HTML, cursor
+describe("deleteRange", function () {
   it("space case", function () {
     // set innerHTML
     setEditorHTML(`<p>a&nbsp;&nbsp;c</p><span>b</span>`);
 
-    // place cursor before b, cursor 4
-    const second = window.document.getElementsByTagName("span")[1];
+    // place cursor after b, cursor 5
+    const second = window.document.getElementsByTagName("span")[0];
     window.getSelection()!.collapse(second.childNodes.item(0), 1);
 
     const ipc = {
-      sendMessage: (message: string, data: any) => {
-        data;
-        return message;
+      send: (message: string, data: any) => {
+        return { message, data };
       },
     };
 
-    Transformer.deleteRange((ipc as unknown) as IPC, 2, 4);
+    const mock = sinon.mock(ipc);
+    mock.expects("send").once().withArgs("simulateDelete", { deleteCount: 2 });
+
+    // call deleteRange
+    Transformer.deleteRange((ipc as unknown) as IPC, 3, 5);
+
+    mock.verify();
   });
 });
-//
-//   it("replace range", function () {
-//     // set innerHTML
-//     // place cursor
-//     // ask for source and cursor
-//     // replace range command
-//     // check new HTML, cursor
-//   });
-// });
+
+describe("insertText", function () {
+  it("space case", function () {
+    // set innerHTML
+    setEditorHTML(`<p>a&nbsp;&nbsp;c</p><span>b</span>`);
+
+    // place cursor after b, cursor 5
+    const second = window.document.getElementsByTagName("span")[0];
+    window.getSelection()!.collapse(second.childNodes.item(0), 1);
+
+    const ipc = {
+      send: (message: string, data: any) => {
+        return { message, data };
+      },
+    };
+
+    const spy = sinon.spy(Transformer, "setCursor");
+    const mock = sinon.mock(ipc);
+    mock.expects("send").once().withArgs("insertText", { text: "efg" });
+
+    // call insertText
+    Transformer.insertText((ipc as unknown) as IPC, 5, "efg");
+
+    mock.verify();
+    assert(spy.calledOnceWithExactly(5));
+  });
+});
