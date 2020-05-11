@@ -11,7 +11,6 @@ chrome.runtime.onConnect.addListener((port) => {
         } else if (element.tagName === "TEXTAREA") {
           activeElementSource = (element as HTMLTextAreaElement).value;
         } else if (element.isContentEditable) {
-          console.log(Transformer.getSource(element));
           activeElementSource = Transformer.getSource(element);
         }
       }
@@ -46,7 +45,5 @@ chrome.runtime.onConnect.addListener((port) => {
       }
       return port.postMessage({ success: true });
     }
-
-    port.postMessage({ counter: msg.counter + 1 });
   });
 });

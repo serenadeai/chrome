@@ -59,6 +59,27 @@ describe("setCursor()", function () {
     assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
   });
 
+  it("simple case with line break", function () {
+    setEditorHTML(`<span>a</span><span>b</span><br><span>c</span>`);
+
+    const first = window.document.getElementsByTagName("span")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(0, 4);
+
+    const a = window.document.getElementsByTagName("span")[0];
+    const aText = a.childNodes.item(0);
+    const br = window.document.getElementsByTagName("br")[0];
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, aText);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+  });
+
   it("complex case", function () {
     /*
       ab
