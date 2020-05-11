@@ -92,7 +92,7 @@ export default class Transformer {
     return content;
   }
 
-  static setCursor(offset: number) {
+  static setCursor(offset: number, cursorEnd?: number) {
     const selected = window.getSelection();
     if (selected === null || selected.rangeCount < 1) {
       return;
@@ -125,6 +125,7 @@ export default class Transformer {
     let justAddedManualNewline = true;
 
     let shouldBreak = false;
+    let startSet = false;
 
     let cursor = 0;
 
@@ -140,12 +141,33 @@ export default class Transformer {
         if (
           node.nodeType === Node.TEXT_NODE &&
           node.textContent &&
-          node.textContent.length + cursor >= offset
+          node.textContent.length + cursor > offset &&
+          !startSet
         ) {
-          // call range to set
+          // call range to set start
           const innerOffset = offset - cursor;
-          window.getSelection()!.empty();
+          if (window.getSelection()!.rangeCount) {
+            window.getSelection()!.empty();
+          }
           window.getSelection()!.collapse(node, innerOffset);
+          startSet = true;
+
+          if (cursorEnd === undefined) {
+            shouldBreak = true;
+          }
+        }
+
+        if (
+          node.nodeType === Node.TEXT_NODE &&
+          node.textContent &&
+          cursorEnd &&
+          node.textContent.length + cursor >= cursorEnd &&
+          !shouldBreak
+        ) {
+          // call range to set end
+          const innerOffset = cursorEnd - cursor;
+          window.getSelection()!.extend(node, innerOffset);
+
           shouldBreak = true;
         }
 

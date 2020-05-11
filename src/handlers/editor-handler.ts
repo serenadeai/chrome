@@ -1,5 +1,6 @@
 import CommandHandler from "../command-handler";
 import IPC from "../shared/ipc";
+import Transformer from "../editor/transformer";
 
 /*
  * Handles commands from the client about the "editor" state.
@@ -19,13 +20,7 @@ export default class EditorHandler {
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).value;
         } else if (element.isContentEditable) {
-          const selection = document.getSelection();
-          if (selection) {
-            const target = selection.focusNode ? selection.focusNode : selection.anchorNode;
-            if (target) {
-              return target.textContent;
-            }
-          }
+          return Transformer.getSource(element);
         }
       }
 
@@ -39,14 +34,7 @@ export default class EditorHandler {
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).selectionStart;
         } else if (element.isContentEditable) {
-          const selection = document.getSelection();
-          if (selection) {
-            if (selection.focusNode) {
-              return selection.focusOffset;
-            } else if (selection.anchorNode) {
-              return selection.anchorOffset;
-            }
-          }
+          return Transformer.getCursor();
         }
       }
 
@@ -76,7 +64,6 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    console.log(data);
     const setInputValue = (data: any) => {
       if (document.activeElement) {
         const element = document.activeElement as HTMLElement;
@@ -88,26 +75,8 @@ export default class EditorHandler {
           (element as HTMLTextAreaElement).value = data.source;
           (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
         } else if (element.isContentEditable) {
-          const selection = document.getSelection();
-          if (selection) {
-            let target = selection.focusNode ? selection.focusNode : selection.anchorNode;
-            if (target) {
-              // Set the textContent of the node the cursor is on
-              target.textContent = data.source;
-              // If the target is not itself a text node, find a child that is
-              if (target.nodeType !== Node.TEXT_NODE && target.hasChildNodes()) {
-                const children = target.childNodes;
-                for (let i = 0; i < children.length; i++) {
-                  if (children[i].nodeType === Node.TEXT_NODE) {
-                    target = children[i];
-                    break;
-                  }
-                }
-              }
-              // Now we can safely set the cursor
-              selection.collapse(target, data.cursor);
-            }
-          }
+          Transformer.insertText(this.ipc!, 0, data.source);
+          Transformer.setCursor(data.cursor);
         }
       }
     };
@@ -129,22 +98,7 @@ export default class EditorHandler {
         } else if (element.tagName === "TEXTAREA") {
           (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
         } else if (element.isContentEditable) {
-          const selection = document.getSelection();
-          if (selection) {
-            let target = selection.focusNode ? selection.focusNode : selection.anchorNode;
-            if (target) {
-              if (target.nodeType !== Node.TEXT_NODE && target.hasChildNodes()) {
-                const children = target.childNodes;
-                for (let i = 0; i < children.length; i++) {
-                  if (children[i].nodeType === Node.TEXT_NODE) {
-                    target = children[i];
-                    break;
-                  }
-                }
-              }
-              selection.setBaseAndExtent(target, data.cursor, target, cursorEnd);
-            }
-          }
+          Transformer.setCursor(data.cursor, cursorEnd);
         }
       }
     };
