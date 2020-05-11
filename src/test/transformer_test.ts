@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { assert } from "chai";
-import Transformer from "../editor/transformer";
+import Transformer from "../content/transformer";
 import IPC from "../shared/ipc";
 
 // Make a contenteditable div in our global document

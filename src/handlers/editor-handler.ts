@@ -1,6 +1,6 @@
 import CommandHandler from "../command-handler";
 import IPC from "../shared/ipc";
-import Transformer from "../editor/transformer";
+import Transformer from "../content/transformer";
 import Port = chrome.runtime.Port;
 
 /*
@@ -12,63 +12,31 @@ import Port = chrome.runtime.Port;
 export default class EditorHandler {
   // These are declared by CommandHandler, which we extend
   ipc?: IPC;
-  connectToActiveTab?: () => Promise<Port>;
+  postAndWait?: (request: string, data?: any) => Promise<any>;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
-    const result = await this.connectToActiveTab!();
-    console.log(result);
-
-    console.log("ok");
-    return;
-
-    const activeElementSource = () => {
-      if (document.activeElement) {
-        const element = document.activeElement as HTMLElement;
-        if (element.tagName === "INPUT") {
-          return (element as HTMLInputElement).value;
-        } else if (element.tagName === "TEXTAREA") {
-          return (element as HTMLTextAreaElement).value;
-        } else if (element.isContentEditable) {
-          console.log(Transformer.getSource(element));
-          return Transformer.getSource(element);
-        }
-      }
-
-      return false;
-    };
-    const activeElementCursor = () => {
-      if (document.activeElement) {
-        const element = document.activeElement as HTMLElement;
-        if (element.tagName === "INPUT") {
-          return (element as HTMLInputElement).selectionStart;
-        } else if (element.tagName === "TEXTAREA") {
-          return (element as HTMLTextAreaElement).selectionStart;
-        } else if (element.isContentEditable) {
-          return Transformer.getCursor();
-        }
-      }
-
-      return 0;
-    };
-
     return new Promise((resolve) => {
-      CommandHandler.executeFunction(activeElementSource, (source) => {
-        if (source[0] !== false) {
-          CommandHandler.executeFunction(activeElementCursor, (cursor) => {
+      this.postAndWait!("activeElementSource").then((sourceResponse) => {
+        this.postAndWait!("activeElementCursor").then((cursorResponse) => {
+          if (sourceResponse === null) {
             resolve({
               message: "editorState",
               data: {
-                source: source[0],
-                cursor: cursor[0],
-                filename: "",
-                files: [],
-                roots: [],
+                useSystemInsert: true,
               },
             });
+          }
+          resolve({
+            message: "editorState",
+            data: {
+              source: sourceResponse.activeElementSource,
+              cursor: cursorResponse.activeElementCursor,
+              filename: "",
+              files: [],
+              roots: [],
+            },
           });
-        } else {
-          resolve({ message: "editorState", data: { useSystemInsert: true } });
-        }
+        });
       });
     });
   }
@@ -99,24 +67,6 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
-    const setSelectionRange = (data: any) => {
-      if (document.activeElement) {
-        const element = document.activeElement as HTMLElement;
-        const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;
-        if (element.tagName === "INPUT") {
-          (element as HTMLInputElement).setSelectionRange(data.cursor, cursorEnd);
-        } else if (element.tagName === "TEXTAREA") {
-          (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
-        } else if (element.isContentEditable) {
-          Transformer.setCursor(data.cursor, cursorEnd);
-        }
-      }
-    };
-
-    return new Promise((resolve) => {
-      CommandHandler.executeFunctionWithArg(setSelectionRange, data, (_result) => {
-        resolve(null);
-      });
-    });
+    return this.postAndWait!("selectActiveElement", data);
   }
 }

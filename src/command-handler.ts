@@ -33,27 +33,45 @@ export class CommandHandler {
     this.ipc = ipc;
   }
 
+  // Opens a connection to the active tab if one isn't opened already.
+  // https://developer.chrome.com/extensions/messaging#connect
   connectToActiveTab(): Promise<Port> {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tabId = tabs[0].id;
-        console.log(tabId);
         if (tabId) {
+          // If we have one already, return it
           if (this.ports.get(tabId)) {
             resolve(this.ports.get(tabId));
           }
 
-          const port = chrome.tabs.connect(tabId);
-          port.onMessage.addListener(function (msg) {
-            console.log(msg.counter);
+          // Connect and save the port, and make sure we remove on disconnect
+          // (navigation event in tab).
+          const port = chrome.tabs.connect(tabId, { name: tabId.toString() });
+          this.ports.set(tabId, port);
+          port.onDisconnect.addListener((port: Port) => {
+            this.ports.delete(parseInt(port.name, 10));
           });
 
-          this.ports.set(tabId, port);
           resolve(port);
         }
         reject();
       });
     });
+  }
+
+  async postAndWait(request: string, data?: any): Promise<any> {
+    const port = await this.connectToActiveTab!();
+
+    const sourcePromise = new Promise((resolve) => {
+      port.onMessage.addListener((msg) => {
+        resolve(msg);
+      });
+    });
+
+    port.postMessage({ request, data });
+
+    return sourcePromise;
   }
 
   // Converts code to an anonymous function in a string so it can be called.
