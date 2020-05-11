@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { assert } from "chai";
-import Transformer from "../src/editor/transformer";
-import IPC from "../src/shared/ipc";
+import Transformer from "../editor/transformer";
+import IPC from "../shared/ipc";
 
 // Make a contenteditable div in our global document
 window.document.body.innerHTML = `

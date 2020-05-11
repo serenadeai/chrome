@@ -7,6 +7,12 @@
   "background": {
     "scripts": ["build/extension.js"]
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["build/extension.js"]
+    }
+  ],
   "browser_action": {
     "default_icon": {
       "16": "img/16x16.png",

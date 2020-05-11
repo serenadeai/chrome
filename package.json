@@ -20,7 +20,7 @@
     "build": "webpack --mode development",
     "dist": "webpack --mode production",
     "watch": "webpack --mode development --watch",
-    "test": "mocha --require ts-node/register --require jsdom-global/register --watch-files src/editor/*.ts --watch-files test/*.ts --watch test/*.ts"
+    "test": "mocha --require ts-node/register --require jsdom-global/register --watch-files src/editor/*.ts --watch-files src/test/*.ts --watch src/test/*.ts"
   },
   "homepage": "https://serenade.ai",
   "devDependencies": {
