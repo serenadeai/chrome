@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["build/extension.js"]
+      "js": ["build/page.js"]
     }
   ],
   "browser_action": {

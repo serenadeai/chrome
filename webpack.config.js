@@ -7,7 +7,8 @@ module.exports = [
     name: "extension",
     target: "web",
     entry: {
-      extension: "./src/extension.ts"
+      extension: "./src/extension.ts",
+      page: "./src/content/page.ts",
     },
     output: {
       path: path.resolve(__dirname, "build"),

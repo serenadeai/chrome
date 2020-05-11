@@ -12,6 +12,9 @@ export default class EditorHandler {
   ipc?: IPC;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
+    console.log("ok");
+    return;
+
     const activeElementSource = () => {
       if (document.activeElement) {
         const element = document.activeElement as HTMLElement;
@@ -20,6 +23,7 @@ export default class EditorHandler {
         } else if (element.tagName === "TEXTAREA") {
           return (element as HTMLTextAreaElement).value;
         } else if (element.isContentEditable) {
+          console.log(Transformer.getSource(element));
           return Transformer.getSource(element);
         }
       }

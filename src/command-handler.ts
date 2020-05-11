@@ -3,6 +3,7 @@ import TabHandler from "./handlers/tab-handler";
 import NavigationHandler from "./handlers/navigation-handler";
 import EditorHandler from "./handlers/editor-handler";
 import IPC from "./shared/ipc";
+import Port = chrome.runtime.Port;
 
 /*
  * The CommandHandler class is a wrapper around other handlers
@@ -22,8 +23,37 @@ export class CommandHandler {
   // We can use the extension's IPC to send messages back to the client if needed
   ipc?: IPC;
 
+  ports: Map<number, Port>;
+
+  constructor() {
+    this.ports = new Map<number, Port>();
+  }
+
   setIPC(ipc: IPC) {
     this.ipc = ipc;
+  }
+
+  connectToActiveTab(): Promise<Port> {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs[0].id;
+        console.log(tabId);
+        if (tabId) {
+          if (this.ports.get(tabId)) {
+            resolve(this.ports.get(tabId));
+          }
+
+          const port = chrome.tabs.connect(tabId);
+          port.onMessage.addListener(function (msg) {
+            console.log(msg.counter);
+          });
+
+          this.ports.set(tabId, port);
+          resolve(port);
+        }
+        reject();
+      });
+    });
   }
 
   // Converts code to an anonymous function in a string so it can be called.
