@@ -135,17 +135,25 @@ export default class Transformer {
         const node = anchor.childNodes.item(i);
 
         if (isBlockElement(node) && !justAddedManualNewline) {
+          cursor += 1; // for newline before
+        }
+        if (isManualLineBreak(node)) {
           cursor += 1; // for newline
         }
 
         if (
-          node.nodeType === Node.TEXT_NODE &&
-          node.textContent &&
-          node.textContent.length + cursor > offset &&
+          ((node.nodeType === Node.TEXT_NODE &&
+            node.textContent &&
+            node.textContent.length + cursor > offset) ||
+            (isBlockElement(node) && !justAddedManualNewline && cursor - 1 === offset) ||
+            (isManualLineBreak(node) && cursor === offset)) &&
           !startSet
         ) {
           // call range to set start
-          const innerOffset = offset - cursor;
+          let innerOffset = offset - cursor;
+          if (isBlockElement(node) || isManualLineBreak(node)) {
+            innerOffset = 0;
+          }
           if (window.getSelection()!.rangeCount) {
             window.getSelection()!.empty();
           }
@@ -158,14 +166,19 @@ export default class Transformer {
         }
 
         if (
-          node.nodeType === Node.TEXT_NODE &&
-          node.textContent &&
           cursorEnd &&
-          node.textContent.length + cursor >= cursorEnd &&
-          !shouldBreak
+          !shouldBreak &&
+          ((node.nodeType === Node.TEXT_NODE &&
+            node.textContent &&
+            node.textContent.length + cursor >= cursorEnd) ||
+            (isBlockElement(node) && !justAddedManualNewline && cursor - 1 >= cursorEnd) ||
+            (isManualLineBreak(node) && cursor === cursorEnd))
         ) {
           // call range to set end
-          const innerOffset = cursorEnd - cursor;
+          let innerOffset = cursorEnd - cursor;
+          if (isBlockElement(node) || isManualLineBreak(node)) {
+            innerOffset = 0;
+          }
           window.getSelection()!.extend(node, innerOffset);
 
           shouldBreak = true;
@@ -182,8 +195,6 @@ export default class Transformer {
           if (isBlockElement(node) && !justAddedManualNewline) {
             cursor += 1; // for newline
             justAddedManualNewline = true;
-          } else if (isManualLineBreak(node)) {
-            cursor += 1; // for newline
           }
         } else {
           cursor += node.textContent!.length;

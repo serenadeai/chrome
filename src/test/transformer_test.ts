@@ -68,7 +68,7 @@ describe("setCursor()", function () {
     window.getSelection()!.removeAllRanges();
     window.getSelection()!.addRange(range);
 
-    Transformer.setCursor(0, 4);
+    Transformer.setCursor(0, 3);
 
     const a = window.document.getElementsByTagName("span")[0];
     const aText = a.childNodes.item(0);
@@ -77,6 +77,27 @@ describe("setCursor()", function () {
     assert.equal(window.getSelection()!.getRangeAt(0).startContainer, aText);
     assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
     assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+  });
+
+  it("simple case with line break at start", function () {
+    setEditorHTML(`<span>a</span><span>b</span><br><p>c</p>`);
+
+    const first = window.document.getElementsByTagName("span")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(3, 4);
+
+    const br = window.document.getElementsByTagName("br")[0];
+    const c = window.document.getElementsByTagName("p")[0];
+    const cText = c.childNodes.item(0);
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, cText);
     assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
   });
 
@@ -295,5 +316,9 @@ describe("insertText", function () {
 
     mock.verify();
     assert(spy.calledOnceWithExactly(5));
+  });
+
+  after(function () {
+    (Transformer.setCursor as any).restore();
   });
 });
