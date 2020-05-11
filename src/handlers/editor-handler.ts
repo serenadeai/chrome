@@ -1,6 +1,7 @@
 import CommandHandler from "../command-handler";
 import IPC from "../shared/ipc";
 import Transformer from "../editor/transformer";
+import Port = chrome.runtime.Port;
 
 /*
  * Handles commands from the client about the "editor" state.
@@ -9,9 +10,14 @@ import Transformer from "../editor/transformer";
  */
 
 export default class EditorHandler {
+  // These are declared by CommandHandler, which we extend
   ipc?: IPC;
+  connectToActiveTab?: () => Promise<Port>;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
+    const result = await this.connectToActiveTab!();
+    console.log(result);
+
     console.log("ok");
     return;
 
