@@ -1,4 +1,5 @@
 import IPC from "../shared/ipc";
+import { start } from "repl";
 
 export default class Transformer {
   // Given a node, traverse up the tree to find a contenteditable node, if exists
@@ -26,6 +27,76 @@ export default class Transformer {
     return editable;
   }
 
+  // Given a node, its offset from the start, and a cursorStart and cursorEnd,
+  // set the cursor in the node.
+  private static _trySetCursor(
+    node: Node,
+    startOffset: number,
+    cursorStart?: number,
+    cursorEnd?: number
+  ) {
+    let shouldBreak = false;
+
+    console.log(node.textContent, startOffset, cursorStart, cursorEnd);
+
+    if (
+      cursorStart !== undefined &&
+      node.nodeType === Node.TEXT_NODE &&
+      node.textContent &&
+      node.textContent.length + startOffset > cursorStart &&
+      startOffset <= cursorStart
+      //   || (Transformer._isBlockElement(node) && !justAddedManualNewline && cursor - 1 === offset) ||
+      //   (isManualLineBreak(node) && cursor === offset)) &&
+    ) {
+      // call range to set start
+      let innerOffset = cursorStart - startOffset;
+      let startNode = node;
+      // if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
+      //   innerOffset = 0;
+      //   // select the start of the next node if there is one
+      //   if (i + 1 < anchor.childNodes.length) {
+      //     // startNode = anchor.childNodes.item(i + 1);
+      //   }
+      // }
+      if (window.getSelection()!.rangeCount) {
+        window.getSelection()!.empty();
+      }
+      console.log(
+        "start",
+        startNode.nodeType,
+        startNode.textContent,
+        innerOffset,
+        startOffset,
+        cursorStart
+      );
+      window.getSelection()!.collapse(startNode, innerOffset);
+
+      if (cursorEnd === undefined) {
+        shouldBreak = true;
+      }
+    }
+
+    if (
+      cursorEnd !== undefined &&
+      node.nodeType === Node.TEXT_NODE &&
+      node.textContent &&
+      node.textContent.length + startOffset >= cursorEnd &&
+      startOffset < cursorEnd
+      // || (Transformer._isBlockElement(node) && !justAddedManualNewline && cursor - 1 >= cursorEnd) ||
+      // (isManualLineBreak(node) && cursor === cursorEnd))
+    ) {
+      // call range to set end
+      let innerOffset = cursorEnd - startOffset;
+      // if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
+      //   innerOffset = 0;
+      // }
+      window.getSelection()!.extend(node, innerOffset);
+
+      shouldBreak = true;
+    }
+    return shouldBreak;
+  }
+
   private static _isBlockElement(node: Node): boolean {
     return ["P", "DIV"].includes((node as HTMLElement).tagName);
   }
@@ -37,7 +108,12 @@ export default class Transformer {
   // Given a target element and optional selection range, returns the text
   // content for the parent contenteditable (anchor). If optional selection
   // range, stops returning at the start of the cursor.
-  private static _getTextContent(target: HTMLElement | Text, range?: Range): string | null {
+  private static _getTextContent(
+    target: HTMLElement | Text,
+    range?: Range,
+    cursorStart?: number,
+    cursorEnd?: number
+  ): string | null {
     const anchor = Transformer._getAnchor(target);
     if (anchor === null || !(anchor instanceof HTMLElement)) {
       return null;
@@ -80,6 +156,10 @@ export default class Transformer {
         if (range && selected && node === selected) {
           content = content.concat(node.textContent!.substring(0, range.startOffset));
           shouldBreak = true;
+        }
+
+        if (cursorStart !== undefined || cursorEnd !== undefined) {
+          shouldBreak = Transformer._trySetCursor(node, content.length, cursorStart, cursorEnd);
         }
 
         if (shouldBreak) {
@@ -150,117 +230,7 @@ export default class Transformer {
       return;
     }
 
-    const anchor = Transformer._getAnchor(target);
-    if (anchor === null || !(anchor instanceof HTMLElement)) {
-      return;
-    }
-
-    const isManualLineBreak = (node: Node): boolean => {
-      return ["BR"].includes((node as HTMLElement).tagName);
-    };
-
-    // two consecutive block elements shouldn't have two newlines added
-    let justAddedManualNewline = true;
-
-    let shouldBreak = false;
-    let startSet = false;
-
-    let cursor = 0;
-
-    // look at parent, each child, then parent (so we can add newlines properly)
-    const visit = (anchor: Node) => {
-      for (let i = 0; i < anchor.childNodes.length; i++) {
-        const node = anchor.childNodes.item(i);
-
-        if (Transformer._isBlockElement(node) && !justAddedManualNewline) {
-          cursor += 1; // for newline before
-        }
-        if (isManualLineBreak(node)) {
-          cursor += 1; // for newline
-        }
-
-        if (
-          ((node.nodeType === Node.TEXT_NODE &&
-            node.textContent &&
-            node.textContent.length + cursor > offset) ||
-            (Transformer._isBlockElement(node) &&
-              !justAddedManualNewline &&
-              cursor - 1 === offset) ||
-            (isManualLineBreak(node) && cursor === offset)) &&
-          !startSet
-        ) {
-          // call range to set start
-          let innerOffset = offset - cursor;
-          let startNode = node;
-          if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
-            innerOffset = 0;
-            // select the start of the next node if there is one
-            if (i + 1 < anchor.childNodes.length) {
-              // startNode = anchor.childNodes.item(i + 1);
-            }
-          }
-          if (window.getSelection()!.rangeCount) {
-            window.getSelection()!.empty();
-          }
-          // console.log(
-          //   "start",
-          //   startNode.nodeType,
-          //   startNode.textContent,
-          //   innerOffset,
-          //   offset,
-          //   cursor
-          // );
-          window.getSelection()!.collapse(startNode, innerOffset);
-          startSet = true;
-
-          if (cursorEnd === undefined) {
-            shouldBreak = true;
-          }
-        }
-
-        if (
-          cursorEnd &&
-          !shouldBreak &&
-          ((node.nodeType === Node.TEXT_NODE &&
-            node.textContent &&
-            node.textContent.length + cursor >= cursorEnd) ||
-            (Transformer._isBlockElement(node) &&
-              !justAddedManualNewline &&
-              cursor - 1 >= cursorEnd) ||
-            (isManualLineBreak(node) && cursor === cursorEnd))
-        ) {
-          // call range to set end
-          let innerOffset = cursorEnd - cursor;
-          if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
-            innerOffset = 0;
-          }
-          window.getSelection()!.extend(node, innerOffset);
-
-          shouldBreak = true;
-        }
-
-        if (shouldBreak) {
-          break;
-        }
-
-        // get contents of each child
-        visit(node);
-
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          if (Transformer._isBlockElement(node) && !justAddedManualNewline) {
-            cursor += 1; // for newline
-            justAddedManualNewline = true;
-          }
-        } else {
-          cursor += node.textContent!.length;
-          justAddedManualNewline = false;
-        }
-      }
-    };
-
-    visit(anchor);
-
-    return;
+    return Transformer._getTextContent(target, undefined, offset, cursorEnd);
   }
 
   // Returns the cursor position as seen by the user.
