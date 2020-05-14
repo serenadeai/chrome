@@ -26,6 +26,14 @@ export default class Transformer {
     return editable;
   }
 
+  private static _isBlockElement(node: Node): boolean {
+    return ["P", "DIV"].includes((node as HTMLElement).tagName);
+  }
+
+  private static _isManualLineBreak(node: Node): boolean {
+    return ["BR"].includes((node as HTMLElement).tagName);
+  }
+
   // Given a target element and optional selection range, returns the text
   // content for the parent contenteditable (anchor). If optional selection
   // range, stops returning at the start of the cursor.
@@ -37,28 +45,36 @@ export default class Transformer {
 
     const selected = range ? range.startContainer : null;
 
-    const isBlockElement = (node: Node): boolean => {
-      return ["P", "DIV"].includes((node as HTMLElement).tagName);
-    };
-
-    const isManualLineBreak = (node: Node): boolean => {
-      return ["BR"].includes((node as HTMLElement).tagName);
-    };
-
     // two consecutive block elements shouldn't have two newlines added
-    let justAddedManualNewline = true;
+    let justAddedBlockNewline = true;
+    let justAddedManualNewline = false;
 
     let shouldBreak = false;
 
     let content = "";
+
+    let lastNode = anchor.childNodes.item(anchor.childNodes.length - 1);
 
     // look at parent, each child, then parent (so we can add newlines properly)
     const visit = (anchor: Node) => {
       for (let i = 0; i < anchor.childNodes.length; i++) {
         const node = anchor.childNodes.item(i);
 
-        if (isBlockElement(node) && !justAddedManualNewline) {
+        // console.log(
+        //   node.nodeType,
+        //   (node as HTMLElement).tagName,
+        //   node.textContent,
+        //   justAddedBlockNewline,
+        //   justAddedManualNewline
+        // );
+
+        if (
+          Transformer._isBlockElement(node) &&
+          !justAddedBlockNewline &&
+          !justAddedManualNewline
+        ) {
           content = content.concat("\n");
+          justAddedBlockNewline = true;
         }
 
         if (range && selected && node === selected) {
@@ -73,15 +89,41 @@ export default class Transformer {
         // get contents of each child
         visit(node);
 
+        // console.log(
+        //   node.nodeType,
+        //   (node as HTMLElement).tagName,
+        //   node.textContent,
+        //   justAddedBlockNewline,
+        //   justAddedManualNewline
+        // );
+
+        let lastElement = node === lastNode;
+        // or if we're the last sibling in our parent element that's the last node
+        if (!lastElement) {
+          let pointer: Node | null = node;
+          while (pointer && pointer.nextSibling === null) {
+            if (pointer.parentElement === lastNode) {
+              lastElement = true;
+            }
+            pointer = pointer.parentElement;
+          }
+        }
+
         if (node.nodeType === Node.ELEMENT_NODE) {
-          if (isBlockElement(node) && !justAddedManualNewline) {
-            content = content.concat("\n");
-            justAddedManualNewline = true;
-          } else if (isManualLineBreak(node)) {
-            content = content.concat("\n");
+          if (Transformer._isBlockElement(node)) {
+            if (!justAddedBlockNewline && !lastElement && !justAddedManualNewline) {
+              content = content.concat("\n");
+              justAddedBlockNewline = true;
+            }
+          } else if (Transformer._isManualLineBreak(node)) {
+            if (!lastElement) {
+              content = content.concat("\n");
+              justAddedManualNewline = true;
+            }
           }
         } else {
           content = content.concat(node.textContent!);
+          justAddedBlockNewline = false;
           justAddedManualNewline = false;
         }
       }
@@ -113,10 +155,6 @@ export default class Transformer {
       return;
     }
 
-    const isBlockElement = (node: Node): boolean => {
-      return ["P", "DIV"].includes((node as HTMLElement).tagName);
-    };
-
     const isManualLineBreak = (node: Node): boolean => {
       return ["BR"].includes((node as HTMLElement).tagName);
     };
@@ -134,7 +172,7 @@ export default class Transformer {
       for (let i = 0; i < anchor.childNodes.length; i++) {
         const node = anchor.childNodes.item(i);
 
-        if (isBlockElement(node) && !justAddedManualNewline) {
+        if (Transformer._isBlockElement(node) && !justAddedManualNewline) {
           cursor += 1; // for newline before
         }
         if (isManualLineBreak(node)) {
@@ -145,19 +183,34 @@ export default class Transformer {
           ((node.nodeType === Node.TEXT_NODE &&
             node.textContent &&
             node.textContent.length + cursor > offset) ||
-            (isBlockElement(node) && !justAddedManualNewline && cursor - 1 === offset) ||
+            (Transformer._isBlockElement(node) &&
+              !justAddedManualNewline &&
+              cursor - 1 === offset) ||
             (isManualLineBreak(node) && cursor === offset)) &&
           !startSet
         ) {
           // call range to set start
           let innerOffset = offset - cursor;
-          if (isBlockElement(node) || isManualLineBreak(node)) {
+          let startNode = node;
+          if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
             innerOffset = 0;
+            // select the start of the next node if there is one
+            if (i + 1 < anchor.childNodes.length) {
+              // startNode = anchor.childNodes.item(i + 1);
+            }
           }
           if (window.getSelection()!.rangeCount) {
             window.getSelection()!.empty();
           }
-          window.getSelection()!.collapse(node, innerOffset);
+          // console.log(
+          //   "start",
+          //   startNode.nodeType,
+          //   startNode.textContent,
+          //   innerOffset,
+          //   offset,
+          //   cursor
+          // );
+          window.getSelection()!.collapse(startNode, innerOffset);
           startSet = true;
 
           if (cursorEnd === undefined) {
@@ -171,12 +224,14 @@ export default class Transformer {
           ((node.nodeType === Node.TEXT_NODE &&
             node.textContent &&
             node.textContent.length + cursor >= cursorEnd) ||
-            (isBlockElement(node) && !justAddedManualNewline && cursor - 1 >= cursorEnd) ||
+            (Transformer._isBlockElement(node) &&
+              !justAddedManualNewline &&
+              cursor - 1 >= cursorEnd) ||
             (isManualLineBreak(node) && cursor === cursorEnd))
         ) {
           // call range to set end
           let innerOffset = cursorEnd - cursor;
-          if (isBlockElement(node) || isManualLineBreak(node)) {
+          if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
             innerOffset = 0;
           }
           window.getSelection()!.extend(node, innerOffset);
@@ -192,7 +247,7 @@ export default class Transformer {
         visit(node);
 
         if (node.nodeType === Node.ELEMENT_NODE) {
-          if (isBlockElement(node) && !justAddedManualNewline) {
+          if (Transformer._isBlockElement(node) && !justAddedManualNewline) {
             cursor += 1; // for newline
             justAddedManualNewline = true;
           }
