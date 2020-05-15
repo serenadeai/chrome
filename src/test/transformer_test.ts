@@ -314,6 +314,16 @@ c`
     );
   });
 
+  it("multiple line breaks", function () {
+    setEditorHTML(`one<br><div><br></div><div>two</div>`);
+    assert.equal(
+      Transformer.getSource(target),
+      `one
+
+two`
+    );
+  });
+
   it("complex cursor case", function () {
     setEditorHTML(
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`

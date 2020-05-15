@@ -37,13 +37,21 @@ export default class Transformer {
   ) {
     let shouldBreak = false;
 
-    console.log(node.textContent, startOffset, cursorStart, cursorEnd);
+    // console.log(
+    //   node.nodeType,
+    //   (node as HTMLElement).tagName,
+    //   node.textContent,
+    //   startOffset,
+    //   cursorStart,
+    //   cursorEnd
+    // );
 
     if (
       cursorStart !== undefined &&
-      node.nodeType === Node.TEXT_NODE &&
-      node.textContent &&
-      node.textContent.length + startOffset > cursorStart &&
+      ((node.nodeType === Node.TEXT_NODE &&
+        node.textContent &&
+        node.textContent.length + startOffset > cursorStart) ||
+        (Transformer._isManualLineBreak(node) && startOffset === cursorStart)) &&
       startOffset <= cursorStart
       //   || (Transformer._isBlockElement(node) && !justAddedManualNewline && cursor - 1 === offset) ||
       //   (isManualLineBreak(node) && cursor === offset)) &&
@@ -61,14 +69,14 @@ export default class Transformer {
       if (window.getSelection()!.rangeCount) {
         window.getSelection()!.empty();
       }
-      console.log(
-        "start",
-        startNode.nodeType,
-        startNode.textContent,
-        innerOffset,
-        startOffset,
-        cursorStart
-      );
+      // console.log(
+      //   "start",
+      //   startNode.nodeType,
+      //   startNode.textContent,
+      //   innerOffset,
+      //   startOffset,
+      //   cursorStart
+      // );
       window.getSelection()!.collapse(startNode, innerOffset);
 
       if (cursorEnd === undefined) {
@@ -136,12 +144,25 @@ export default class Transformer {
       for (let i = 0; i < anchor.childNodes.length; i++) {
         const node = anchor.childNodes.item(i);
 
+        let lastElement = node === lastNode;
+        // or if we're the last sibling in our parent element that's the last node
+        if (!lastElement) {
+          let pointer: Node | null = node;
+          while (pointer && pointer.nextSibling === null) {
+            if (pointer.parentElement === lastNode) {
+              lastElement = true;
+            }
+            pointer = pointer.parentElement;
+          }
+        }
+
         // console.log(
         //   node.nodeType,
         //   (node as HTMLElement).tagName,
         //   node.textContent,
         //   justAddedBlockNewline,
-        //   justAddedManualNewline
+        //   justAddedManualNewline,
+        //   content.length
         // );
 
         if (
@@ -151,6 +172,13 @@ export default class Transformer {
         ) {
           content = content.concat("\n");
           justAddedBlockNewline = true;
+        }
+
+        if (Transformer._isManualLineBreak(node)) {
+          if (!lastElement) {
+            content = content.concat("\n");
+            justAddedManualNewline = true;
+          }
         }
 
         if (range && selected && node === selected) {
@@ -177,28 +205,11 @@ export default class Transformer {
         //   justAddedManualNewline
         // );
 
-        let lastElement = node === lastNode;
-        // or if we're the last sibling in our parent element that's the last node
-        if (!lastElement) {
-          let pointer: Node | null = node;
-          while (pointer && pointer.nextSibling === null) {
-            if (pointer.parentElement === lastNode) {
-              lastElement = true;
-            }
-            pointer = pointer.parentElement;
-          }
-        }
-
         if (node.nodeType === Node.ELEMENT_NODE) {
           if (Transformer._isBlockElement(node)) {
             if (!justAddedBlockNewline && !lastElement && !justAddedManualNewline) {
               content = content.concat("\n");
               justAddedBlockNewline = true;
-            }
-          } else if (Transformer._isManualLineBreak(node)) {
-            if (!lastElement) {
-              content = content.concat("\n");
-              justAddedManualNewline = true;
             }
           }
         } else {
