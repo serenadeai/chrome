@@ -61,6 +61,15 @@ describe("setCursor()", function () {
     assertRange(a, 0, c, 1);
   });
 
+  it("abc past end", function () {
+    setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
+    Transformer.setCursor(0, 4);
+
+    const a = selectTextElement("span", 0);
+    const c = selectTextElement("span", 2);
+    assertRange(a, 0, c, 1);
+  });
+
   it("abc with line break", function () {
     setEditorHTML(`<span>a</span><span>b</span><br><span>c</span>`);
     Transformer.setCursor(0, 3);

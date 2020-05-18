@@ -85,7 +85,7 @@ export default class Transformer {
     ) {
       // call range to set end
       let innerOffset = cursorEnd - startOffset;
-      // console.log("end", node.nodeType, node.textContent, innerOffset, startOffset, cursorStart);
+      // console.log("end", node.nodeType, node.textContent, innerOffset, startOffset, cursorEnd);
       window.getSelection()!.extend(node, innerOffset);
 
       shouldBreak = true;
@@ -122,6 +122,7 @@ export default class Transformer {
     let justAddedManualNewline = false;
 
     let shouldBreak = false;
+    let shouldAddContent = false;
 
     let content = "";
 
@@ -163,6 +164,7 @@ export default class Transformer {
 
         if (cursorStart !== undefined || cursorEnd !== undefined) {
           shouldBreak = Transformer._trySetCursor(node, content.length, cursorStart, cursorEnd);
+          shouldAddContent = true;
         }
 
         if (
@@ -186,12 +188,10 @@ export default class Transformer {
           shouldBreak = true;
         }
 
-        if (shouldBreak) {
-          break;
-        }
-
         // get contents of each child
-        visit(node);
+        if (!shouldBreak) {
+          visit(node);
+        }
 
         // console.log(
         //   node.nodeType,
@@ -200,6 +200,10 @@ export default class Transformer {
         //   justAddedBlockNewline,
         //   justAddedManualNewline
         // );
+
+        if (shouldBreak && !shouldAddContent) {
+          break;
+        }
 
         if (node.nodeType === Node.ELEMENT_NODE) {
           if (Transformer._isBlockElement(node)) {
@@ -214,11 +218,28 @@ export default class Transformer {
           justAddedManualNewline = false;
         }
 
+        if (shouldBreak) {
+          break;
+        }
+
         // console.log(content);
       }
     };
 
     visit(anchor);
+
+    if (cursorEnd && cursorEnd > content.length) {
+      let lastElement = lastNode;
+      // find the last inner element in the last node
+      while (lastElement && lastElement.hasChildNodes()) {
+        lastElement = lastElement.lastChild!;
+      }
+
+      // console.log("end", lastElement.nodeType, lastElement.textContent, cursorEnd);
+      window
+        .getSelection()!
+        .extend(lastElement, lastElement.textContent ? lastElement.textContent.length : 0);
+    }
 
     return content;
   }
