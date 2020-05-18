@@ -53,19 +53,10 @@ export default class Transformer {
         node.textContent.length + startOffset > cursorStart) ||
         (Transformer._isManualLineBreak(node) && startOffset === cursorStart)) &&
       startOffset <= cursorStart
-      //   || (Transformer._isBlockElement(node) && !justAddedManualNewline && cursor - 1 === offset) ||
-      //   (isManualLineBreak(node) && cursor === offset)) &&
     ) {
       // call range to set start
       let innerOffset = cursorStart - startOffset;
       let startNode = node;
-      // if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
-      //   innerOffset = 0;
-      //   // select the start of the next node if there is one
-      //   if (i + 1 < anchor.childNodes.length) {
-      //     // startNode = anchor.childNodes.item(i + 1);
-      //   }
-      // }
       if (window.getSelection()!.rangeCount) {
         window.getSelection()!.empty();
       }
@@ -86,18 +77,15 @@ export default class Transformer {
 
     if (
       cursorEnd !== undefined &&
-      node.nodeType === Node.TEXT_NODE &&
-      node.textContent &&
-      node.textContent.length + startOffset >= cursorEnd &&
-      startOffset < cursorEnd
-      // || (Transformer._isBlockElement(node) && !justAddedManualNewline && cursor - 1 >= cursorEnd) ||
-      // (isManualLineBreak(node) && cursor === cursorEnd))
+      ((node.nodeType === Node.TEXT_NODE &&
+        node.textContent &&
+        node.textContent.length + startOffset >= cursorEnd) ||
+        (Transformer._isManualLineBreak(node) && startOffset === cursorEnd)) &&
+      startOffset <= cursorEnd
     ) {
       // call range to set end
       let innerOffset = cursorEnd - startOffset;
-      // if (Transformer._isBlockElement(node) || isManualLineBreak(node)) {
-      //   innerOffset = 0;
-      // }
+      // console.log("end", node.nodeType, node.textContent, innerOffset, startOffset, cursorStart);
       window.getSelection()!.extend(node, innerOffset);
 
       shouldBreak = true;
@@ -141,7 +129,15 @@ export default class Transformer {
 
     // look at parent, each child, then parent (so we can add newlines properly)
     const visit = (anchor: Node) => {
+      if (shouldBreak) {
+        return;
+      }
+
       for (let i = 0; i < anchor.childNodes.length; i++) {
+        if (shouldBreak) {
+          break;
+        }
+
         const node = anchor.childNodes.item(i);
 
         let lastElement = node === lastNode;
@@ -165,6 +161,10 @@ export default class Transformer {
         //   content.length
         // );
 
+        if (cursorStart !== undefined || cursorEnd !== undefined) {
+          shouldBreak = Transformer._trySetCursor(node, content.length, cursorStart, cursorEnd);
+        }
+
         if (
           Transformer._isBlockElement(node) &&
           !justAddedBlockNewline &&
@@ -184,10 +184,6 @@ export default class Transformer {
         if (range && selected && node === selected) {
           content = content.concat(node.textContent!.substring(0, range.startOffset));
           shouldBreak = true;
-        }
-
-        if (cursorStart !== undefined || cursorEnd !== undefined) {
-          shouldBreak = Transformer._trySetCursor(node, content.length, cursorStart, cursorEnd);
         }
 
         if (shouldBreak) {
@@ -217,6 +213,8 @@ export default class Transformer {
           justAddedBlockNewline = false;
           justAddedManualNewline = false;
         }
+
+        // console.log(content);
       }
     };
 

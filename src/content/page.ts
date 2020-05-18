@@ -32,6 +32,7 @@ chrome.runtime.onConnect.addListener((port) => {
       return port.postMessage({ activeElementCursor });
     } else if (msg.request === "selectActiveElement") {
       const data = msg.data;
+      // console.log(data);
       if (document.activeElement) {
         const element = document.activeElement as HTMLElement;
         const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;

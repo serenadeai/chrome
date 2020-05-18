@@ -111,7 +111,26 @@ describe("setCursor()", function () {
 
     Transformer.setCursor(4);
 
-    const br = window.document.getElementsByTagName("br")[0];
+    const br = window.document.getElementsByTagName("br")[1];
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+  });
+
+  it("multiple consecutive line breaks", function () {
+    setEditorHTML(`one<br><br><br><div><br></div><div>two</div>`);
+
+    const first = window.document.getElementsByTagName("div")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(4);
+
+    const br = window.document.getElementsByTagName("br")[1];
 
     assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
     assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
@@ -130,12 +149,88 @@ describe("setCursor()", function () {
 
     Transformer.setCursor(6);
 
-    const div = window.document.getElementsByTagName("div")[1];
+    const div = window.document.getElementsByTagName("div")[2].childNodes.item(0);
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, div);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 1);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, div);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+  });
+
+  it("two with line break", function () {
+    setEditorHTML(`one<br><div><br></div><div>two</div>`);
+
+    const first = window.document.getElementsByTagName("div")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(5, 8);
+
+    const div = window.document.getElementsByTagName("div")[2].childNodes.item(0);
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, div);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, div);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 3);
+  });
+
+  it("five with line break", function () {
+    setEditorHTML(`one<br><div>two</div><div>three</div><div>four</div><div>five</div>`);
+
+    const first = window.document.getElementsByTagName("div")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(8, 13);
+
+    const div = window.document.getElementsByTagName("div")[2].childNodes.item(0);
 
     // assert.equal(window.getSelection()!.getRangeAt(0).startContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 1);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
     // assert.equal(window.getSelection()!.getRangeAt(0).endContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 5);
+  });
+
+  it("select line break", function () {
+    setEditorHTML(`one<div><br><div>two</div><div>three</div><div>four</div><div>five</div></div>`);
+
+    const first = window.document.getElementsByTagName("div")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(4, 4);
+
+    const br = window.document.getElementsByTagName("br")[0];
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+  });
+
+  it("select up to line break", function () {
+    setEditorHTML(`one<div><br><div>two</div><div>three</div><div>four</div><div>five</div></div>`);
+
+    const first = window.document.getElementsByTagName("div")[0];
+    let range = window.document.createRange();
+    range.selectNodeContents(first);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+
+    Transformer.setCursor(0, 4);
+
+    const br = window.document.getElementsByTagName("br")[0];
+
+    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, first.childNodes.item(0));
+    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
+    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
+    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
   });
 
   it("complex case", function () {
