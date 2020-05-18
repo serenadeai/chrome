@@ -18,7 +18,8 @@
 Commands supported:
 
 - Editor state
-    - TODO: `COMMAND_TYPE_GET_EDITOR_STATE`
+    - `COMMAND_TYPE_GET_EDITOR_STATE`
+    - `COMMAND_TYPE_SELECT`
     - `type`
         - TODO: `COMMAND_TYPE_DIFF`
 - Navigation

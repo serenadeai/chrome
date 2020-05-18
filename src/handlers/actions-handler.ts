@@ -1,4 +1,4 @@
-import CommandHandler from "./command-handler";
+import CommandHandler from "../command-handler";
 
 /*
  * Handles commands from the client about actions, like clicks.
@@ -59,7 +59,9 @@ export default class ActionsHandler {
           overlay.style.textAlign = "center";
           overlay.style.color = "#e6ecf2";
           overlay.style.background = "#1c1c16";
+          overlay.style.border = "1px solid #e6ecf2";
           overlay.style.borderRadius = "3px";
+          overlay.style.opacity = "0.8";
           overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
 
           document.body.appendChild(overlay);

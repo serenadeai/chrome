@@ -1,7 +1,9 @@
-import ActionsHandler from "./actions-handler";
-import TabHandler from "./tab-handler";
-import NavigationHandler from "./navigation-handler";
-import EditorHandler from "./editor-handler";
+import ActionsHandler from "./handlers/actions-handler";
+import TabHandler from "./handlers/tab-handler";
+import NavigationHandler from "./handlers/navigation-handler";
+import EditorHandler from "./handlers/editor-handler";
+import IPC from "./shared/ipc";
+import Port = chrome.runtime.Port;
 
 /*
  * The CommandHandler class is a wrapper around other handlers
@@ -18,9 +20,73 @@ export interface CommandHandler
     TabHandler {}
 
 export class CommandHandler {
+  // We can use the extension's IPC to send messages back to the client if needed
+  ipc?: IPC;
+
+  ports: Map<number, Port>;
+
+  constructor() {
+    this.ports = new Map<number, Port>();
+  }
+
+  setIPC(ipc: IPC) {
+    this.ipc = ipc;
+  }
+
+  // Opens a connection to the active tab if one isn't opened already.
+  // https://developer.chrome.com/extensions/messaging#connect
+  connectToActiveTab(): Promise<Port> {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs[0].id;
+        if (tabId) {
+          // If we have one already, return it
+          if (this.ports.get(tabId)) {
+            resolve(this.ports.get(tabId));
+          }
+
+          // Connect and save the port, and make sure we remove on disconnect
+          // (navigation event in tab).
+          const port = chrome.tabs.connect(tabId, { name: tabId.toString() });
+          this.ports.set(tabId, port);
+          port.onDisconnect.addListener((port: Port) => {
+            this.ports.delete(parseInt(port.name, 10));
+          });
+
+          resolve(port);
+        }
+        reject();
+      });
+    });
+  }
+
+  async postAndWait(request: string, data?: any): Promise<any> {
+    const port = await this.connectToActiveTab!();
+
+    const sourcePromise = new Promise((resolve) => {
+      port.onMessage.addListener((msg) => {
+        resolve(msg);
+      });
+    });
+
+    port.postMessage({ request, data });
+
+    return sourcePromise;
+  }
+
   // Converts code to an anonymous function in a string so it can be called.
   static executeFunction(code: () => void, callback?: (data: any) => void) {
     CommandHandler.executeScript(`(${code.toString()})()`, callback);
+  }
+
+  // Pass an argument to the function.
+  // Warning: This only works if the argument is serializable!
+  static executeFunctionWithArg(
+    code: (arg: any) => void,
+    arg: any,
+    callback?: (data: any) => void
+  ) {
+    CommandHandler.executeScript(`(${code.toString()})(${JSON.stringify(arg)})`, callback);
   }
 
   // Helper to run code in the active tab.

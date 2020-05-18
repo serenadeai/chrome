@@ -1,4 +1,4 @@
-import CommandHandler from "./command-handler";
+import CommandHandler from "../command-handler";
 
 /*
  * Handles commands from the client about navigation.
@@ -89,7 +89,7 @@ export default class NavigationHandler {
         }, 2000);
       };
 
-      CommandHandler.executeScript(`(${findMatchAndScroll.toString()})("${data.path}")`);
+      CommandHandler.executeFunctionWithArg(findMatchAndScroll, data.path);
     }
   }
 }
