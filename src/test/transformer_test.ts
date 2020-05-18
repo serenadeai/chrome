@@ -13,224 +13,135 @@ window.document.body.innerHTML = `
 const target = window.document.getElementsByTagName("div")[0]!;
 const setEditorHTML = (content: string) => {
   target.innerHTML = content;
+  selectTarget();
+};
+
+const selectTarget = () => {
+  if (window.getSelection()!.rangeCount) {
+    window.getSelection()!.empty();
+  }
+  window.getSelection()!.collapse(target, 0);
+};
+
+const selectElement = (tagName: string, index: number) => {
+  return window.document.getElementsByTagName(tagName)[index];
+};
+
+const selectTextElement = (tagName: string, index: number) => {
+  return selectElement(tagName, index).childNodes.item(0);
+};
+
+const assertRange = (
+  startContainer: Node,
+  startOffset: number,
+  endContainer: Node,
+  endOffset: number
+) => {
+  assert.equal(window.getSelection()!.getRangeAt(0).startContainer, startContainer);
+  assert.equal(window.getSelection()!.getRangeAt(0).startOffset, startOffset);
+  assert.equal(window.getSelection()!.getRangeAt(0).endContainer, endContainer);
+  assert.equal(window.getSelection()!.getRangeAt(0).endOffset, endOffset);
 };
 
 describe("setCursor()", function () {
   it("abc", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-
-    const first = window.document.getElementsByTagName("span")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(2);
 
-    const c = window.document.getElementsByTagName("span")[2];
-    // The selection should be on the second span's Text element
-    const text = c.childNodes.item(0);
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, text);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, text);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const c = selectTextElement("span", 2);
+    assertRange(c, 0, c, 0);
   });
 
-  it("abc with end", function () {
+  it("abc to end", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-
-    const first = window.document.getElementsByTagName("span")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(0, 3);
 
-    const a = window.document.getElementsByTagName("span")[0];
-    const aText = a.childNodes.item(0);
-    const c = window.document.getElementsByTagName("span")[2];
-    const cText = c.childNodes.item(0);
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, aText);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, cText);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+    const a = selectTextElement("span", 0);
+    const c = selectTextElement("span", 2);
+    assertRange(a, 0, c, 1);
   });
 
   it("abc with line break", function () {
     setEditorHTML(`<span>a</span><span>b</span><br><span>c</span>`);
-
-    const first = window.document.getElementsByTagName("span")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(0, 3);
 
-    const a = window.document.getElementsByTagName("span")[0];
-    const aText = a.childNodes.item(0);
-    const br = window.document.getElementsByTagName("br")[0];
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, aText);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    // assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const a = selectTextElement("span", 0);
+    const c = selectTextElement("span", 2);
+    assertRange(a, 0, c, 0);
   });
 
   it("abc with line break at start", function () {
     setEditorHTML(`<span>a</span><span>b</span><br><p>c</p>`);
-
-    const first = window.document.getElementsByTagName("span")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(3, 4);
 
-    const c = window.document.getElementsByTagName("p")[0];
-    const cText = c.childNodes.item(0);
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, cText);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, cText);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+    const c = selectTextElement("p", 0);
+    assertRange(c, 0, c, 1);
   });
 
   it("multiple line breaks", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(4);
 
-    const br = window.document.getElementsByTagName("br")[1];
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const br = selectElement("br", 1);
+    assertRange(br, 0, br, 0);
   });
 
   it("multiple consecutive line breaks", function () {
     setEditorHTML(`one<br><br><br><div><br></div><div>two</div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(4);
 
-    const br = window.document.getElementsByTagName("br")[1];
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const br = selectElement("br", 1);
+    assertRange(br, 0, br, 0);
   });
 
   it("two with line break", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(6);
 
-    const div = window.document.getElementsByTagName("div")[2].childNodes.item(0);
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 1);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+    const two = selectTextElement("div", 2);
+    assertRange(two, 1, two, 1);
   });
 
-  it("two with line break", function () {
+  it("two after line break", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(5, 8);
 
-    const div = window.document.getElementsByTagName("div")[2].childNodes.item(0);
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 3);
+    const two = selectTextElement("div", 2);
+    assertRange(two, 0, two, 3);
   });
 
-  it("five with line break", function () {
+  it("two including line break", function () {
+    setEditorHTML(`one<br><div><br></div><div>two</div>`);
+    Transformer.setCursor(4, 8);
+
+    const br = selectElement("br", 1);
+    const two = selectTextElement("div", 2);
+    assertRange(br, 0, two, 3);
+  });
+
+  it("three with line break", function () {
     setEditorHTML(`one<br><div>two</div><div>three</div><div>four</div><div>five</div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(8, 13);
 
-    const div = window.document.getElementsByTagName("div")[2].childNodes.item(0);
-
-    // assert.equal(window.getSelection()!.getRangeAt(0).startContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    // assert.equal(window.getSelection()!.getRangeAt(0).endContainer, div);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 5);
+    const three = selectTextElement("div", 2);
+    assertRange(three, 0, three, 5);
   });
 
   it("select line break", function () {
     setEditorHTML(`one<div><br><div>two</div><div>three</div><div>four</div><div>five</div></div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(4, 4);
 
-    const br = window.document.getElementsByTagName("br")[0];
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const br = selectElement("br", 0);
+    assertRange(br, 0, br, 0);
   });
 
   it("select up to line break", function () {
     setEditorHTML(`one<div><br><div>two</div><div>three</div><div>four</div><div>five</div></div>`);
-
-    const first = window.document.getElementsByTagName("div")[0];
-    let range = window.document.createRange();
-    range.selectNodeContents(first);
-    window.getSelection()!.removeAllRanges();
-    window.getSelection()!.addRange(range);
-
     Transformer.setCursor(0, 4);
 
-    const br = window.document.getElementsByTagName("br")[0];
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, first.childNodes.item(0));
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, br);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const one = selectTextElement("div", 0);
+    const br = selectElement("br", 0);
+    assertRange(one, 0, br, 0);
   });
 
   it("complex case", function () {
@@ -243,20 +154,11 @@ describe("setCursor()", function () {
     setEditorHTML(
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
-
-    const d = window.document.getElementsByTagName("span")[1];
-    window.getSelection()!.collapse(d, 0);
-
     Transformer.setCursor(10);
 
-    const bold = window.document.getElementsByTagName("b")[0];
     // The selection should be on the bold element's Text element
-    const text = bold.childNodes.item(0);
-
-    // assert.equal(window.getSelection()!.getRangeAt(0).startContainer, text);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    // assert.equal(window.getSelection()!.getRangeAt(0).endContainer, text);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 0);
+    const bold = selectTextElement("b", 0);
+    assertRange(bold, 0, bold, 0);
   });
 
   it("complex case with end", function () {
@@ -269,24 +171,11 @@ describe("setCursor()", function () {
     setEditorHTML(
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
-
-    const d = window.document.getElementsByTagName("span")[1];
-    window.getSelection()!.collapse(d, 0);
-
     Transformer.setCursor(10, 12);
 
-    const bold = window.document.getElementsByTagName("b")[0];
-    // the selection should start on the bold element's Text element
-    const boldText = bold.childNodes.item(0);
-
-    const span = window.document.getElementsByTagName("span")[1];
-    // and end on the span element's Text element
-    const spanText = span.childNodes.item(0);
-
-    assert.equal(window.getSelection()!.getRangeAt(0).startContainer, boldText);
-    assert.equal(window.getSelection()!.getRangeAt(0).startOffset, 0);
-    assert.equal(window.getSelection()!.getRangeAt(0).endContainer, spanText);
-    assert.equal(window.getSelection()!.getRangeAt(0).endOffset, 1);
+    const bold = selectTextElement("b", 0);
+    const i = selectTextElement("span", 1);
+    assertRange(bold, 0, i, 1);
   });
 });
 
@@ -294,8 +183,8 @@ describe("getCursor()", function () {
   it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
 
-    const second = window.document.getElementsByTagName("span")[1];
-    window.getSelection()!.collapse(second, 0);
+    const b = selectTextElement("span", 1);
+    window.getSelection()!.collapse(b, 0);
 
     assert.equal(Transformer.getCursor(), 1);
   });
@@ -303,8 +192,8 @@ describe("getCursor()", function () {
   it("space case", function () {
     setEditorHTML(`<span>a&nbsp;&nbsp;</span><span>b</span><span>c</span>`);
 
-    const second = window.document.getElementsByTagName("span")[1];
-    window.getSelection()!.collapse(second, 0);
+    const b = selectTextElement("span", 1);
+    window.getSelection()!.collapse(b, 0);
 
     assert.equal(Transformer.getCursor(), 3);
   });
@@ -312,8 +201,8 @@ describe("getCursor()", function () {
   it("offset case", function () {
     setEditorHTML(`<span>a</span><span>bananas</span><span>c</span>`);
 
-    const second = window.document.getElementsByTagName("span")[1];
-    window.getSelection()!.collapse(second.childNodes.item(0), 2);
+    const b = selectTextElement("span", 1);
+    window.getSelection()!.collapse(b, 2);
 
     assert.equal(Transformer.getCursor(), 3);
   });
@@ -329,8 +218,8 @@ describe("getCursor()", function () {
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
 
-    const i = window.document.getElementsByTagName("span")[1];
-    window.getSelection()!.collapse(i, 0);
+    const d = selectTextElement("span", 1);
+    window.getSelection()!.collapse(d, 0);
 
     assert.equal(Transformer.getCursor(), 11);
   });
