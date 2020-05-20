@@ -46,8 +46,18 @@ export default class EditorHandler {
         // use the IPC to tell the client to simulate keypresses/deletes,
         // and then set the cursor again.
         if (!diffResponse.success) {
-          this.postMessage!("setCursor", data).then(() => {
-            this.ipc!.send("insertText", { text: "test string" });
+          const insertCursorStart = 2;
+          const insertCursorEnd = 30;
+          this.postMessage!("setCursor", { cursor: insertCursorStart }).then(() => {
+            resolve({
+              message: "insertText",
+              data: {
+                text: `test string`,
+              },
+            });
+            // this.postMessage!("setCursor", { cursor: insertCursorEnd }).then(() => {
+            //   resolve();
+            // });
           });
         } else {
           resolve();

@@ -69,6 +69,14 @@ const applyDiff = (port: Port, data: any) => {
   }
 };
 
+// Select the active element and set its
+const setCursor = (port: Port, data: { cursor: number }) => {
+  if (document.activeElement) {
+    Transformer.setCursor(data.cursor);
+  }
+  port.postMessage({ success: true });
+};
+
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     switch (msg.request) {
@@ -83,6 +91,9 @@ chrome.runtime.onConnect.addListener((port) => {
         break;
       case "applyDiff":
         applyDiff(port, msg.data);
+        break;
+      case "setCursor":
+        setCursor(port, msg.data);
         break;
       default:
         break;
