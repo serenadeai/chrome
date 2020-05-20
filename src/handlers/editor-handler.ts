@@ -43,21 +43,15 @@ export default class EditorHandler {
     return new Promise((resolve) => {
       this.postMessage!("applyDiff", data).then((diffResponse) => {
         // If we're in a ContentEditable, first set the cursor somewhere,
-        // use the IPC to tell the client to simulate keypresses/deletes,
-        // and then set the cursor again.
+        // use the IPC to tell the client to simulate keypresses/deletes.
         if (!diffResponse.success) {
-          const insertCursorStart = 2;
-          const insertCursorEnd = 30;
-          this.postMessage!("setCursor", { cursor: insertCursorStart }).then(() => {
+          this.postMessage!("setCursor", { cursor: data.cursor }).then(() => {
             resolve({
               message: "insertText",
               data: {
-                text: `test string`,
+                text: data.insertDiff,
               },
             });
-            // this.postMessage!("setCursor", { cursor: insertCursorEnd }).then(() => {
-            //   resolve();
-            // });
           });
         } else {
           resolve();
