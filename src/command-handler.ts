@@ -60,10 +60,12 @@ export class CommandHandler {
     });
   }
 
-  async postAndWait(request: string, data?: any): Promise<any> {
+  // Posts a message to the content script in the active tab, and waits for its response
+  // as a promise.
+  async postMessage(request: string, data?: any): Promise<any> {
     const port = await this.connectToActiveTab!();
 
-    const sourcePromise = new Promise((resolve) => {
+    const responsePromise = new Promise((resolve) => {
       port.onMessage.addListener((msg) => {
         resolve(msg);
       });
@@ -71,7 +73,7 @@ export class CommandHandler {
 
     port.postMessage({ request, data });
 
-    return sourcePromise;
+    return responsePromise;
   }
 
   // Converts code to an anonymous function in a string so it can be called.

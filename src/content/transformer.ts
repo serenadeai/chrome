@@ -1,6 +1,3 @@
-import IPC from "../shared/ipc";
-import { start } from "repl";
-
 export default class Transformer {
   // Given a node, traverse up the tree to find a contenteditable node, if exists
   private static _getAnchor(target: HTMLElement | Text): Node | null {
@@ -285,32 +282,9 @@ export default class Transformer {
     return textContent ? textContent.length : 0;
   }
 
-  // Returns the source text as seen by the user. We can't use the built-in
+  // Returns the source text as seen by the user. We can't use the native browser
   // textContent because it doesn't generate line breaks.
   static getSource(target: HTMLElement): string | null {
     return Transformer._getTextContent(target);
-  }
-
-  // Deletes the range of text at the cursor positions as seen by the user.
-  static deleteRange(ipc: IPC, start: number, stop: number) {
-    // Set the cursor to the element and offset that represents the stop,
-    // and simulate (stop - start) deletes.
-    Transformer.setCursor(stop);
-    const deleteCount = stop - start;
-    return ipc.send("simulateDelete", { deleteCount });
-  }
-
-  // Inserts text at the cursor position as seen by the user.
-  static insertText(ipc: IPC, start: number, text: string) {
-    // Set the cursor to the element and offset that represents the start,
-    // and simulate keypresses for text.
-    Transformer.setCursor(start);
-    return ipc.send("insertText", { text });
-  }
-
-  // Replaces the range of text at the cursors positions as seen by the user.
-  static replaceRange(ipc: IPC, start: number, stop: number, text: string) {
-    Transformer.deleteRange(ipc, start, stop);
-    Transformer.insertText(ipc, start, text);
   }
 }
