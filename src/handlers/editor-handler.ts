@@ -40,19 +40,34 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
+    console.log(data);
     return new Promise((resolve) => {
       this.postMessage!("applyDiff", data).then((diffResponse) => {
         // If we're in a ContentEditable, first set the cursor somewhere,
         // use the IPC to tell the client to simulate keypresses/deletes.
         if (!diffResponse.success) {
-          this.postMessage!("setCursor", { cursor: data.cursor }).then(() => {
-            resolve({
-              message: "insertText",
-              data: {
-                text: data.insertDiff,
-              },
+          // insert text if there's a diff
+          if (data.insertDiff !== undefined && data.insertDiff !== "") {
+            this.postMessage!("setCursor", { cursor: data.cursor }).then(() => {
+              resolve({
+                message: "insertText",
+                data: {
+                  text: data.insertDiff,
+                },
+              });
             });
-          });
+          }
+          // or delete text
+          else if (data.deleteEnd !== undefined && data.deleteStart !== undefined) {
+            this.postMessage!("setCursor", { cursor: data.deleteEnd }).then(() => {
+              resolve({
+                message: "deleteText",
+                data: {
+                  deleteCount: data.deleteEnd - data.deleteStart,
+                },
+              });
+            });
+          }
         } else {
           resolve();
         }
