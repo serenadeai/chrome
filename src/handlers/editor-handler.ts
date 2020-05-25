@@ -46,9 +46,25 @@ export default class EditorHandler {
         // If we're in a ContentEditable, first set the cursor somewhere,
         // use the IPC to tell the client to simulate keypresses/deletes.
         if (!diffResponse.success) {
-          // insert text if there's a diff
-          if (data.insertDiff !== undefined && data.insertDiff !== "") {
-            this.postMessage!("setCursor", { cursor: data.cursor }).then(() => {
+          // delete then insert text
+          if (
+            data.deleteEnd !== undefined &&
+            data.deleteStart !== undefined &&
+            data.deleteEnd - data.deleteStart > 0
+          ) {
+            this.postMessage!("setCursor", { cursor: data.deleteEnd }).then(() => {
+              resolve({
+                message: "deleteText",
+                data: {
+                  deleteCount: data.deleteEnd - data.deleteStart,
+                  text: data.insertDiff,
+                },
+              });
+            });
+          }
+          // or just insert text
+          else if (data.insertDiff !== undefined && data.insertDiff !== "") {
+            this.postMessage!("setCursor", { cursor: data.deleteEnd }).then(() => {
               resolve({
                 message: "insertText",
                 data: {
@@ -57,15 +73,10 @@ export default class EditorHandler {
               });
             });
           }
-          // or delete text
-          else if (data.deleteEnd !== undefined && data.deleteStart !== undefined) {
-            this.postMessage!("setCursor", { cursor: data.deleteEnd }).then(() => {
-              resolve({
-                message: "deleteText",
-                data: {
-                  deleteCount: data.deleteEnd - data.deleteStart,
-                },
-              });
+          // or just set the cursor
+          else {
+            this.postMessage!("setCursor", { cursor: data.cursor }).then(() => {
+              resolve();
             });
           }
         } else {

@@ -30,14 +30,20 @@ const selectTextElement = (tagName: string, index: number) => {
 };
 
 const assertRange = (
-  startContainer: Node,
+  _startContainer: Node,
   startOffset: number,
-  endContainer: Node,
+  _endContainer: Node,
   endOffset: number
 ) => {
-  assert.equal(window.getSelection()!.getRangeAt(0).startContainer, startContainer);
+  console.log(
+    window.getSelection()!.getRangeAt(0).startContainer.nodeType,
+    window.getSelection()!.getRangeAt(0).startContainer.textContent,
+    window.getSelection()!.getRangeAt(0).endContainer.nodeType,
+    window.getSelection()!.getRangeAt(0).endContainer.textContent
+  );
+  assert.equal(window.getSelection()!.getRangeAt(0).startContainer, _startContainer);
   assert.equal(window.getSelection()!.getRangeAt(0).startOffset, startOffset);
-  assert.equal(window.getSelection()!.getRangeAt(0).endContainer, endContainer);
+  assert.equal(window.getSelection()!.getRangeAt(0).endContainer, _endContainer);
   assert.equal(window.getSelection()!.getRangeAt(0).endOffset, endOffset);
 };
 
@@ -46,8 +52,16 @@ describe("setCursor()", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
     Transformer.setCursor(2);
 
+    const b = selectTextElement("span", 1);
+    assertRange(b, 1, b, 1);
+  });
+
+  it("abc at end", function () {
+    setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
+    Transformer.setCursor(3);
+
     const c = selectTextElement("span", 2);
-    assertRange(c, 0, c, 0);
+    assertRange(c, 1, c, 1);
   });
 
   it("abc to end", function () {
@@ -91,6 +105,14 @@ describe("setCursor()", function () {
 
     const br = selectElement("br", 1);
     assertRange(br, 0, br, 0);
+  });
+
+  it("multiple line breaks by block element", function () {
+    setEditorHTML(`<div>one</div><div><br></div><div>two</div>`);
+    Transformer.setCursor(3);
+
+    const div = selectTextElement("div", 1);
+    assertRange(div, 3, div, 3);
   });
 
   it("multiple consecutive line breaks", function () {
@@ -161,11 +183,11 @@ describe("setCursor()", function () {
     setEditorHTML(
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
-    Transformer.setCursor(10);
+    Transformer.setCursor(11);
 
     // The selection should be on the bold element's Text element
     const bold = selectTextElement("b", 0);
-    assertRange(bold, 0, bold, 0);
+    assertRange(bold, 1, bold, 1);
   });
 
   it("complex case with end", function () {

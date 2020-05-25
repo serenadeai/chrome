@@ -69,7 +69,7 @@ const applyDiff = (port: Port, data: any) => {
   }
 };
 
-// Select the active element and set its
+// Select the active element and set the cursor on it
 const setCursor = (port: Port, data: { cursor: number }) => {
   if (document.activeElement) {
     Transformer.setCursor(data.cursor);
