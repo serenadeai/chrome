@@ -77,6 +77,20 @@ const setCursor = (port: Port, data: { cursor: number }) => {
   port.postMessage({ success: true });
 };
 
+// Gets clipboard contents
+const getClipboard = (port: Port) => {
+  navigator.clipboard.readText().then((text) => {
+    port.postMessage({ text });
+  });
+};
+
+// Copies text to clipboard
+const copy = (port: Port, data: { text: string }) => {
+  navigator.clipboard.writeText(data.text).then(() => {
+    port.postMessage({ success: true });
+  });
+};
+
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     switch (msg.request) {
@@ -91,6 +105,12 @@ chrome.runtime.onConnect.addListener((port) => {
         break;
       case "applyDiff":
         applyDiff(port, msg.data);
+        break;
+      case "getClipboard":
+        getClipboard(port);
+        break;
+      case "copy":
+        copy(port, msg.data);
         break;
       case "setCursor":
         setCursor(port, msg.data);

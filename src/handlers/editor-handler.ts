@@ -39,6 +39,23 @@ export default class EditorHandler {
     });
   }
 
+  async COMMAND_TYPE_COPY(data: any): Promise<any> {
+    return this.postMessage!("copy", data);
+  }
+
+  async COMMAND_TYPE_PASTE(_data: any): Promise<any> {
+    return new Promise((resolve) => {
+      this.postMessage!("getClipboard").then((data) => {
+        resolve({
+          message: "insertText",
+          data: {
+            text: data.text,
+          },
+        });
+      });
+    });
+  }
+
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
     return new Promise((resolve) => {
       this.postMessage!("applyDiff", data).then((diffResponse) => {
