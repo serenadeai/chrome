@@ -40,7 +40,6 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    console.log(data);
     return new Promise((resolve) => {
       this.postMessage!("applyDiff", data).then((diffResponse) => {
         // If we're in a ContentEditable, first set the cursor somewhere,

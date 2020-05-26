@@ -35,12 +35,12 @@ const assertRange = (
   _endContainer: Node,
   endOffset: number
 ) => {
-  console.log(
-    window.getSelection()!.getRangeAt(0).startContainer.nodeType,
-    window.getSelection()!.getRangeAt(0).startContainer.textContent,
-    window.getSelection()!.getRangeAt(0).endContainer.nodeType,
-    window.getSelection()!.getRangeAt(0).endContainer.textContent
-  );
+  // console.log(
+  //   window.getSelection()!.getRangeAt(0).startContainer.nodeType,
+  //   window.getSelection()!.getRangeAt(0).startContainer.textContent,
+  //   window.getSelection()!.getRangeAt(0).endContainer.nodeType,
+  //   window.getSelection()!.getRangeAt(0).endContainer.textContent
+  // );
   assert.equal(window.getSelection()!.getRangeAt(0).startContainer, _startContainer);
   assert.equal(window.getSelection()!.getRangeAt(0).startOffset, startOffset);
   assert.equal(window.getSelection()!.getRangeAt(0).endContainer, _endContainer);
