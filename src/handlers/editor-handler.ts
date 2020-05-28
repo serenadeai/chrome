@@ -1,5 +1,3 @@
-import IPC from "../shared/ipc";
-
 /*
  * Handles commands from the client about the "editor" state.
  * In this case, the "editor" is the browser, but it may still
@@ -8,7 +6,6 @@ import IPC from "../shared/ipc";
 
 export default class EditorHandler {
   // These are declared by CommandHandler, which we extend
-  ipc?: IPC;
   postMessage?: (request: string, data?: any) => Promise<any>;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
