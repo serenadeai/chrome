@@ -20,14 +20,19 @@ Commands supported:
 - Editor state
     - `COMMAND_TYPE_GET_EDITOR_STATE`
     - `COMMAND_TYPE_SELECT`
-    - `type`
-        - TODO: `COMMAND_TYPE_DIFF`
+    - `COMMAND_TYPE_DIFF` for:
+      - `change`
+      - `copy/cut/paste <selector>`
+      - `delete <selector>`
+      - `line x`
+      - `type <text>`
 - Navigation
     - `back`
     - `forward`
     - `reload`
     - `scroll (left | right | up | down)`
     - `scroll to <text>`
+    - `go to` (navigates)
 - Tab management
     - `new tab`
         - `COMMAND_TYPE_CREATE_TAB`
@@ -44,7 +49,6 @@ Commands supported:
     
 TODO:    
 - improve click selectors
-- proper type/go to/select/copy/paste/change/delete
 - custom
     - go to tab
     - google search results
