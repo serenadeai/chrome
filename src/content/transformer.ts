@@ -1,5 +1,11 @@
-import IPC from "../shared/ipc";
-import { start } from "repl";
+// Change to true if debugging
+const DEBUG_LOG = false;
+
+function debug(...args: any[]) {
+  if (DEBUG_LOG) {
+    console.log(...args);
+  }
+}
 
 export default class Transformer {
   // Given a node, traverse up the tree to find a contenteditable node, if exists
@@ -37,20 +43,21 @@ export default class Transformer {
   ) {
     let shouldBreak = false;
 
-    // console.log(
-    //   node.nodeType,
-    //   (node as HTMLElement).tagName,
-    //   node.textContent,
-    //   startOffset,
-    //   cursorStart,
-    //   cursorEnd
-    // );
+    debug(
+      "Maybe setting cursor: ",
+      node.nodeType,
+      (node as HTMLElement).tagName,
+      node.textContent,
+      startOffset,
+      cursorStart,
+      cursorEnd
+    );
 
     if (
       cursorStart !== undefined &&
       ((node.nodeType === Node.TEXT_NODE &&
         node.textContent &&
-        node.textContent.length + startOffset > cursorStart) ||
+        node.textContent.length + startOffset >= cursorStart) ||
         (Transformer._isManualLineBreak(node) && startOffset === cursorStart)) &&
       startOffset <= cursorStart
     ) {
@@ -60,14 +67,14 @@ export default class Transformer {
       if (window.getSelection()!.rangeCount) {
         window.getSelection()!.empty();
       }
-      // console.log(
-      //   "start",
-      //   startNode.nodeType,
-      //   startNode.textContent,
-      //   innerOffset,
-      //   startOffset,
-      //   cursorStart
-      // );
+      debug(
+        "Setting start: ",
+        startNode.nodeType,
+        startNode.textContent,
+        innerOffset,
+        startOffset,
+        cursorStart
+      );
       window.getSelection()!.collapse(startNode, innerOffset);
 
       if (cursorEnd === undefined) {
@@ -85,7 +92,7 @@ export default class Transformer {
     ) {
       // call range to set end
       let innerOffset = cursorEnd - startOffset;
-      // console.log("end", node.nodeType, node.textContent, innerOffset, startOffset, cursorEnd);
+      debug("Setting end: ", node.nodeType, node.textContent, innerOffset, startOffset, cursorEnd);
       window.getSelection()!.extend(node, innerOffset);
 
       shouldBreak = true;
@@ -153,14 +160,15 @@ export default class Transformer {
           }
         }
 
-        // console.log(
-        //   node.nodeType,
-        //   (node as HTMLElement).tagName,
-        //   node.textContent,
-        //   justAddedBlockNewline,
-        //   justAddedManualNewline,
-        //   content.length
-        // );
+        debug(
+          "Visiting: ",
+          node.nodeType,
+          (node as HTMLElement).tagName,
+          node.textContent,
+          justAddedBlockNewline,
+          justAddedManualNewline,
+          content.length
+        );
 
         if (cursorStart !== undefined || cursorEnd !== undefined) {
           shouldBreak = Transformer._trySetCursor(node, content.length, cursorStart, cursorEnd);
@@ -193,13 +201,14 @@ export default class Transformer {
           visit(node);
         }
 
-        // console.log(
-        //   node.nodeType,
-        //   (node as HTMLElement).tagName,
-        //   node.textContent,
-        //   justAddedBlockNewline,
-        //   justAddedManualNewline
-        // );
+        debug(
+          "Visited: ",
+          node.nodeType,
+          (node as HTMLElement).tagName,
+          node.textContent,
+          justAddedBlockNewline,
+          justAddedManualNewline
+        );
 
         if (shouldBreak && !shouldAddContent) {
           break;
@@ -222,20 +231,32 @@ export default class Transformer {
           break;
         }
 
-        // console.log(content);
+        debug("Content: ", content);
       }
     };
 
     visit(anchor);
 
-    if (cursorEnd && cursorEnd > content.length) {
+    // if we're trying to select past the boundary, just move the cursor to the end
+    if (
+      (cursorStart !== undefined && cursorStart > content.length) ||
+      (cursorEnd !== undefined && cursorEnd > content.length)
+    ) {
+      debug("Extending selection: ", cursorStart, cursorEnd, content.length);
       let lastElement = lastNode;
       // find the last inner element in the last node
       while (lastElement && lastElement.hasChildNodes()) {
         lastElement = lastElement.lastChild!;
       }
 
-      // console.log("end", lastElement.nodeType, lastElement.textContent, cursorEnd);
+      if (cursorStart !== undefined && cursorStart > content.length) {
+        debug("Setting start: ", lastElement);
+        window
+          .getSelection()!
+          .collapse(lastElement, lastElement.textContent ? lastElement.textContent.length : 0);
+        return content;
+      }
+      debug("Setting end: ", lastElement);
       window
         .getSelection()!
         .extend(lastElement, lastElement.textContent ? lastElement.textContent.length : 0);
@@ -285,32 +306,9 @@ export default class Transformer {
     return textContent ? textContent.length : 0;
   }
 
-  // Returns the source text as seen by the user. We can't use the built-in
+  // Returns the source text as seen by the user. We can't use the native browser
   // textContent because it doesn't generate line breaks.
   static getSource(target: HTMLElement): string | null {
     return Transformer._getTextContent(target);
-  }
-
-  // Deletes the range of text at the cursor positions as seen by the user.
-  static deleteRange(ipc: IPC, start: number, stop: number) {
-    // Set the cursor to the element and offset that represents the stop,
-    // and simulate (stop - start) deletes.
-    Transformer.setCursor(stop);
-    const deleteCount = stop - start;
-    return ipc.send("simulateDelete", { deleteCount });
-  }
-
-  // Inserts text at the cursor position as seen by the user.
-  static insertText(ipc: IPC, start: number, text: string) {
-    // Set the cursor to the element and offset that represents the start,
-    // and simulate keypresses for text.
-    Transformer.setCursor(start);
-    return ipc.send("insertText", { text });
-  }
-
-  // Replaces the range of text at the cursors positions as seen by the user.
-  static replaceRange(ipc: IPC, start: number, stop: number, text: string) {
-    Transformer.deleteRange(ipc, start, stop);
-    Transformer.insertText(ipc, start, text);
   }
 }
