@@ -21,6 +21,8 @@ Commands supported:
     - `COMMAND_TYPE_GET_EDITOR_STATE`
     - `COMMAND_TYPE_SELECT`
     - `COMMAND_TYPE_DIFF` for:
+      - `change`
+      - `copy/cut/paste <selector>`
       - `delete <selector>`
       - `line x`
       - `type <text>`
@@ -47,7 +49,6 @@ Commands supported:
     
 TODO:    
 - improve click selectors
-- proper type/go to/select/copy/paste/change/delete
 - custom
     - go to tab
     - google search results
