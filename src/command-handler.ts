@@ -75,30 +75,6 @@ export class CommandHandler {
 
     return responsePromise;
   }
-
-  // Converts code to an anonymous function in a string so it can be called.
-  static executeFunction(code: () => void, callback?: (data: any) => void) {
-    CommandHandler.executeScript(`(${code.toString()})()`, callback);
-  }
-
-  // Pass an argument to the function.
-  // Warning: This only works if the argument is serializable!
-  static executeFunctionWithArg(
-    code: (arg: any) => void,
-    arg: any,
-    callback?: (data: any) => void
-  ) {
-    CommandHandler.executeScript(`(${code.toString()})(${JSON.stringify(arg)})`, callback);
-  }
-
-  // Helper to run code in the active tab.
-  static executeScript(code: string, callback?: (data: any) => void) {
-    if (callback) {
-      chrome.tabs.executeScript({ code }, (data) => callback(data));
-    } else {
-      chrome.tabs.executeScript({ code });
-    }
-  }
 }
 
 // From https://www.typescriptlang.org/docs/handbook/mixins.html

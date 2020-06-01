@@ -47,8 +47,7 @@ Commands supported:
     - `clear`
         - `COMMAND_TYPE_CANCEL`
     
-TODO:    
-- improve click selectors
+TODO:
 - custom
     - go to tab
     - google search results
