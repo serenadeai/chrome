@@ -9,7 +9,6 @@ const inViewport = (node: HTMLElement) => {
     !node.contains(document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)) &&
     !node.contains(document.elementFromPoint(bounding.right - 1, bounding.bottom - 1))
   ) {
-    console.log(node.innerText, document.elementFromPoint(bounding.left + 1, bounding.top + 1));
     return false;
   }
   return (
