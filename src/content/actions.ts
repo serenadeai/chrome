@@ -4,11 +4,12 @@ const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
 
   if (
-    document.elementFromPoint(bounding.left + 1, bounding.top + 1) !== node ||
-    document.elementFromPoint(bounding.right - 1, bounding.top + 1) !== node ||
-    document.elementFromPoint(bounding.left + 1, bounding.bottom - 1) !== node ||
-    document.elementFromPoint(bounding.right - 1, bounding.bottom - 1) !== node
+    !node.contains(document.elementFromPoint(bounding.left + 1, bounding.top + 1)) &&
+    !node.contains(document.elementFromPoint(bounding.right - 1, bounding.top + 1)) &&
+    !node.contains(document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)) &&
+    !node.contains(document.elementFromPoint(bounding.right - 1, bounding.bottom - 1))
   ) {
+    console.log(node.innerText, document.elementFromPoint(bounding.left + 1, bounding.top + 1));
     return false;
   }
   return (
@@ -25,7 +26,7 @@ const nodesMatching = (path?: string, overlayType?: string) => {
 
   if (path && path.length) {
     const snapshot = document.evaluate(
-      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]`,
+      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
       document,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
@@ -42,10 +43,8 @@ const nodesMatching = (path?: string, overlayType?: string) => {
       overlayType === "links" ? "a, button" : "input, textarea, div[contenteditable]"
     );
     for (let i = 0; i < elements.length; i++) {
-      if (overlayType !== "links" || !/^\s*$/.test(elements[i].innerHTML)) {
-        if (inViewport(elements[i] as HTMLElement)) {
-          result.push(elements[i]);
-        }
+      if (inViewport(elements[i] as HTMLElement)) {
+        result.push(elements[i]);
       }
     }
   }
@@ -106,24 +105,21 @@ export const showOverlay = (port: Port, data: { path: string; overlayType: strin
   return elements;
 };
 
-export const click = (port: Port, data: { path: string | number }, clickables: Node[]) => {
+export const click = (port: Port, data: { path: string }, clickables: Node[]) => {
+  clearOverlays(port);
   let nodes: Node[] = [];
-  if (clickables.length === 0) {
+  const pathNumber = parseInt(data.path, 10);
+  if (clickables.length === 0 || isNaN(pathNumber)) {
     nodes = showOverlayForPath(data.path as string);
     if (nodes.length === 1) {
+      (nodes[0] as HTMLElement).focus();
       (nodes[0] as HTMLElement).click();
+      nodes = [];
     }
   } else {
-    const node = clickables[(data.path as number) - 1];
-    if (
-      node instanceof HTMLInputElement ||
-      node instanceof HTMLTextAreaElement ||
-      node instanceof HTMLDivElement
-    ) {
-      node.focus();
-    } else if (node) {
-      (node as HTMLElement).click();
-    }
+    const node = clickables[pathNumber - 1];
+    (node as HTMLElement).focus();
+    (node as HTMLElement).click();
   }
   port.postMessage({ success: true });
   if (nodes.length === 0) {
