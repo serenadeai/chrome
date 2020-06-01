@@ -3,11 +3,20 @@ import Port = chrome.runtime.Port;
 const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
 
+  if (
+    document.elementFromPoint(bounding.left + 1, bounding.top + 1) !== node ||
+    document.elementFromPoint(bounding.right - 1, bounding.top + 1) !== node ||
+    document.elementFromPoint(bounding.left + 1, bounding.bottom - 1) !== node ||
+    document.elementFromPoint(bounding.right - 1, bounding.bottom - 1) !== node
+  ) {
+    return false;
+  }
   return (
     bounding.top > 0 &&
     bounding.top < window.innerHeight &&
     bounding.left > 0 &&
-    bounding.left < window.innerWidth
+    bounding.left < window.innerWidth &&
+    !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
   );
 };
 
@@ -64,7 +73,7 @@ export const clearOverlays = (port: Port) => {
 
 const showOverlayForPath = (path: string, overlayType?: string) => {
   let counter = 1;
-  const bodyRect = document.body.getBoundingClientRect();
+  const bodyRect = (document.body.parentNode! as HTMLElement).getBoundingClientRect();
   const elements = nodesMatching(path, overlayType);
   for (let i = 0; i < elements.length; i++) {
     const elementRect = (elements[i] as HTMLElement).getBoundingClientRect();
