@@ -3,9 +3,9 @@ import Port = chrome.runtime.Port;
 const nodesMatching = (path?: string, overlayType?: string) => {
   const result: Node[] = [];
 
-  if (path !== undefined) {
+  if (path && path.length) {
     const snapshot = document.evaluate(
-      ".//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]",
+      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]`,
       document,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
@@ -19,10 +19,10 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     }
   } else {
     const elements = document.querySelectorAll(
-      overlayType === "LINKS" ? "a, button" : "input, textarea, div[contenteditable]"
+      overlayType === "links" ? "a, button" : "input, textarea, div[contenteditable]"
     );
     for (let i = 0; i < elements.length; i++) {
-      if (overlayType !== "LINKS" || !/^\s*$/.test(elements[i].innerHTML)) {
+      if (overlayType !== "links" || !/^\s*$/.test(elements[i].innerHTML)) {
         result.push(elements[i]);
       }
     }
@@ -31,8 +31,14 @@ const nodesMatching = (path?: string, overlayType?: string) => {
   return result;
 };
 
-const findClickable = (port: Port, data: { path: string }) => {
-  port.postMessage({ length: nodesMatching(data.path).length });
+export const findClickable = (port: Port, data: { path: string }, clickables: Node[]) => {
+  if (clickables.length && parseInt(data.path, 10) < clickables.length) {
+    port.postMessage({ clickable: true });
+  } else if (nodesMatching(data.path).length) {
+    port.postMessage({ clickable: true });
+  } else {
+    port.postMessage({ clickable: false });
+  }
 };
 
 export const clearOverlays = (port: Port) => {
@@ -43,10 +49,7 @@ export const clearOverlays = (port: Port) => {
   port.postMessage({ success: true });
 };
 
-export const showOverlay = (
-  port: Port,
-  data: { path: string; text: string; overlayType: string }
-) => {
+export const showOverlay = (port: Port, data: { path: string; overlayType: string }) => {
   let counter = 1;
   const bodyRect = document.body.getBoundingClientRect();
   const elements = nodesMatching(data.path, data.overlayType);
@@ -73,23 +76,24 @@ export const showOverlay = (
     counter++;
   }
   port.postMessage({ success: true });
+  return elements;
 };
 
-const click = (
-  port: Port,
-  data: { path: string | number; overlayPath: string; overlayType: string }
-) => {
-  if (data.overlayType === "NONE") {
-    (nodesMatching(data.path as string)[0] as HTMLElement).click();
+export const click = (port: Port, data: { path: string | number }, clickables: Node[]) => {
+  if (clickables.length === 0) {
+    const nodes = nodesMatching(data.path as string);
+    if (nodes.length) {
+      (nodes[0] as HTMLElement).click();
+    }
   } else {
-    const node = nodesMatching(data.overlayPath)[(data.path as number) - 1];
+    const node = clickables[(data.path as number) - 1];
     if (
       node instanceof HTMLInputElement ||
       node instanceof HTMLTextAreaElement ||
       node instanceof HTMLDivElement
     ) {
       node.focus();
-    } else {
+    } else if (node) {
       (node as HTMLElement).click();
     }
   }
