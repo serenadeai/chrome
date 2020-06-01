@@ -3,6 +3,7 @@ import Port = chrome.runtime.Port;
 const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
 
+  // If all four of the corners are covered by another element, no need to show
   if (
     !node.contains(document.elementFromPoint(bounding.left + 1, bounding.top + 1)) &&
     !node.contains(document.elementFromPoint(bounding.right - 1, bounding.top + 1)) &&
@@ -11,6 +12,8 @@ const inViewport = (node: HTMLElement) => {
   ) {
     return false;
   }
+
+  // Check that this is in the viewport and has some dimensions
   return (
     bounding.top > 0 &&
     bounding.top < window.innerHeight &&
@@ -24,6 +27,8 @@ const nodesMatching = (path?: string, overlayType?: string) => {
   const result: Node[] = [];
 
   if (path && path.length) {
+    // Look for elements with matching containing text, input elements with matching placeholder text, or img elements
+    // with matching alt text.
     const snapshot = document.evaluate(
       `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
       document,
@@ -38,6 +43,7 @@ const nodesMatching = (path?: string, overlayType?: string) => {
       }
     }
   } else {
+    // If no path, then look for all clickable or input elements
     const elements = document.querySelectorAll(
       overlayType === "links" ? "a, button" : "input, textarea, div[contenteditable]"
     );
@@ -52,9 +58,12 @@ const nodesMatching = (path?: string, overlayType?: string) => {
 };
 
 export const findClickable = (port: Port, data: { path: string }, clickables: Node[]) => {
+  // If we have a list of clickable elements already and the path is a valid number
   if (clickables.length && parseInt(data.path, 10) < clickables.length) {
     port.postMessage({ clickable: true });
-  } else if (nodesMatching(data.path).length) {
+  }
+  // Otherwise, if we have a match for the path
+  else if (nodesMatching(data.path).length) {
     port.postMessage({ clickable: true });
   } else {
     port.postMessage({ clickable: false });
@@ -108,6 +117,7 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
   clearOverlays(port);
   let nodes: Node[] = [];
   const pathNumber = parseInt(data.path, 10);
+  // If we are clicking a text path
   if (clickables.length === 0 || isNaN(pathNumber)) {
     nodes = showOverlayForPath(data.path as string);
     if (nodes.length === 1) {
@@ -115,7 +125,9 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
       (nodes[0] as HTMLElement).click();
       nodes = [];
     }
-  } else {
+  }
+  // If we have a number that we can click
+  else {
     const node = clickables[pathNumber - 1];
     (node as HTMLElement).focus();
     (node as HTMLElement).click();

@@ -3,6 +3,7 @@ import * as editor from "./editor";
 import * as navigator from "./navigator";
 import { click } from "./actions";
 
+// Store list of clickable elements for `show links` and `click`.
 let clickables: Node[] = [];
 
 // Given a message, forward it to the appropriate content page handler.
