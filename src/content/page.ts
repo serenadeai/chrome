@@ -1,6 +1,7 @@
 import * as actions from "./actions";
 import * as editor from "./editor";
 import * as navigator from "./navigator";
+import { click } from "./actions";
 
 let clickables: Node[] = [];
 
@@ -56,8 +57,7 @@ chrome.runtime.onConnect.addListener((port) => {
         clickables = actions.showOverlay(port, msg.data);
         break;
       case "click":
-        actions.click(port, msg.data, clickables);
-        clickables = [];
+        clickables = actions.click(port, msg.data, clickables);
         break;
       case "findClickable":
         actions.findClickable(port, msg.data, clickables);

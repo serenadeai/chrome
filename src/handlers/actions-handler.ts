@@ -23,7 +23,6 @@ export default class ActionsHandler {
     await this.postMessage!("click", {
       path: data.path,
     });
-    await this.clearOverlays();
   }
 
   async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {

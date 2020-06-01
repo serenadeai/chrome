@@ -1,5 +1,16 @@
 import Port = chrome.runtime.Port;
 
+const inViewport = (node: HTMLElement) => {
+  const bounding = node.getBoundingClientRect();
+
+  return (
+    bounding.top > 0 &&
+    bounding.top < window.innerHeight &&
+    bounding.left > 0 &&
+    bounding.left < window.innerWidth
+  );
+};
+
 const nodesMatching = (path?: string, overlayType?: string) => {
   const result: Node[] = [];
 
@@ -13,7 +24,7 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     );
     for (let i = 0; i < snapshot.snapshotLength; i++) {
       const item = snapshot.snapshotItem(i);
-      if (item !== null) {
+      if (item !== null && inViewport(item as HTMLElement)) {
         result.push(item);
       }
     }
@@ -23,7 +34,9 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     );
     for (let i = 0; i < elements.length; i++) {
       if (overlayType !== "links" || !/^\s*$/.test(elements[i].innerHTML)) {
-        result.push(elements[i]);
+        if (inViewport(elements[i] as HTMLElement)) {
+          result.push(elements[i]);
+        }
       }
     }
   }
@@ -49,10 +62,10 @@ export const clearOverlays = (port: Port) => {
   port.postMessage({ success: true });
 };
 
-export const showOverlay = (port: Port, data: { path: string; overlayType: string }) => {
+const showOverlayForPath = (path: string, overlayType?: string) => {
   let counter = 1;
   const bodyRect = document.body.getBoundingClientRect();
-  const elements = nodesMatching(data.path, data.overlayType);
+  const elements = nodesMatching(path, overlayType);
   for (let i = 0; i < elements.length; i++) {
     const elementRect = (elements[i] as HTMLElement).getBoundingClientRect();
     const overlay = document.createElement("div");
@@ -75,14 +88,20 @@ export const showOverlay = (port: Port, data: { path: string; overlayType: strin
     document.body.appendChild(overlay);
     counter++;
   }
+  return elements;
+};
+
+export const showOverlay = (port: Port, data: { path: string; overlayType: string }) => {
+  const elements = showOverlayForPath(data.path, data.overlayType);
   port.postMessage({ success: true });
   return elements;
 };
 
 export const click = (port: Port, data: { path: string | number }, clickables: Node[]) => {
+  let nodes: Node[] = [];
   if (clickables.length === 0) {
-    const nodes = nodesMatching(data.path as string);
-    if (nodes.length) {
+    nodes = showOverlayForPath(data.path as string);
+    if (nodes.length === 1) {
       (nodes[0] as HTMLElement).click();
     }
   } else {
@@ -98,4 +117,8 @@ export const click = (port: Port, data: { path: string | number }, clickables: N
     }
   }
   port.postMessage({ success: true });
+  if (nodes.length === 0) {
+    clearOverlays(port);
+  }
+  return nodes;
 };
