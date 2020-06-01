@@ -1,3 +1,4 @@
+import * as actions from "./actions";
 import * as editor from "./editor";
 import * as navigator from "./navigator";
 
@@ -7,6 +8,7 @@ import * as navigator from "./navigator";
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     switch (msg.request) {
+      /* Editor */
       case "activeElementSource":
         editor.activeElementSource(port);
         break;
@@ -28,6 +30,7 @@ chrome.runtime.onConnect.addListener((port) => {
       case "setCursor":
         editor.setCursor(port, msg.data);
         break;
+      /* Navigator */
       case "scrollDirection":
         navigator.scrollDirection(port, msg.data);
         break;
@@ -41,6 +44,10 @@ chrome.runtime.onConnect.addListener((port) => {
       case "navigateForward":
         window.history.forward();
         port.postMessage({ success: true });
+        break;
+      /* Actions */
+      case "clearOverlays":
+        actions.clearOverlays(port);
         break;
       default:
         break;
