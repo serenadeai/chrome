@@ -44,9 +44,14 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     }
   } else {
     // If no path, then look for all clickable or input elements
-    const elements = document.querySelectorAll(
-      overlayType === "links" ? "a, button" : "input, textarea, div[contenteditable]"
-    );
+    let selectors = "input, textarea, div[contenteditable]";
+    if (overlayType === "links") {
+      selectors = "a, button";
+    } else if (overlayType === "code") {
+      selectors = "pre, code";
+    }
+
+    const elements = document.querySelectorAll(selectors);
     for (let i = 0; i < elements.length; i++) {
       if (inViewport(elements[i] as HTMLElement)) {
         result.push(elements[i]);
