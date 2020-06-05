@@ -38,22 +38,24 @@ export class CommandHandler {
   connectToActiveTab(): Promise<Port> {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tabId = tabs[0].id;
-        if (tabId) {
-          // If we have one already, return it
-          if (this.ports.get(tabId)) {
-            resolve(this.ports.get(tabId));
+        if (tabs.length) {
+          const tabId = tabs[0].id;
+          if (tabId) {
+            // If we have one already, return it
+            if (this.ports.get(tabId)) {
+              resolve(this.ports.get(tabId));
+            }
+
+            // Connect and save the port, and make sure we remove on disconnect
+            // (navigation event in tab).
+            const port = chrome.tabs.connect(tabId, { name: tabId.toString() });
+            this.ports.set(tabId, port);
+            port.onDisconnect.addListener((port: Port) => {
+              this.ports.delete(parseInt(port.name, 10));
+            });
+
+            resolve(port);
           }
-
-          // Connect and save the port, and make sure we remove on disconnect
-          // (navigation event in tab).
-          const port = chrome.tabs.connect(tabId, { name: tabId.toString() });
-          this.ports.set(tabId, port);
-          port.onDisconnect.addListener((port: Port) => {
-            this.ports.delete(parseInt(port.name, 10));
-          });
-
-          resolve(port);
         }
         reject();
       });
@@ -68,6 +70,9 @@ export class CommandHandler {
     const responsePromise = new Promise((resolve) => {
       port.onMessage.addListener((msg) => {
         resolve(msg);
+      });
+      port.onDisconnect.addListener((_port: Port) => {
+        resolve({ success: false });
       });
     });
 
