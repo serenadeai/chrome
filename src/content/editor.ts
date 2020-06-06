@@ -3,7 +3,7 @@ import Port = chrome.runtime.Port;
 
 // Finds the active element and gets its user-visible source in plaintext.
 export const activeElementSource = (port: Port) => {
-  let activeElementSource: string | null = null;
+  let activeElementSource: string = "";
   if (document.activeElement) {
     const element = document.activeElement as HTMLElement;
     if (element.tagName === "INPUT") {
@@ -11,7 +11,7 @@ export const activeElementSource = (port: Port) => {
     } else if (element.tagName === "TEXTAREA") {
       activeElementSource = (element as HTMLTextAreaElement).value;
     } else if (element.isContentEditable) {
-      activeElementSource = Transformer.getSource(element);
+      activeElementSource = Transformer.getSource(element) || "";
     }
   }
   port.postMessage({ activeElementSource });

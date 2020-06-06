@@ -10,10 +10,10 @@ export const scrollDirection = (port: Port, data: { direction: string }) => {
       direction = { left: window.innerWidth * 0.8 };
       break;
     case "up":
-      direction = { top: -window.innerWidth * 0.8 };
+      direction = { top: -window.innerHeight * 0.8 };
       break;
     case "down":
-      direction = { top: window.innerWidth * 0.8 };
+      direction = { top: window.innerHeight * 0.8 };
       break;
   }
   if (direction) {
