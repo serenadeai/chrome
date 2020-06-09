@@ -1,9 +1,16 @@
 import Transformer from "./transformer";
 import Port = chrome.runtime.Port;
 
+export const editorState = (port: Port, clickableCount: number) => {
+  const source = activeElementSource();
+  const cursor = activeElementCursor();
+
+  port.postMessage({ source, cursor, clickableCount });
+};
+
 // Finds the active element and gets its user-visible source in plaintext.
-export const activeElementSource = (port: Port) => {
-  let activeElementSource: string = "";
+const activeElementSource = () => {
+  let activeElementSource: string | null = null;
   if (document.activeElement) {
     const element = document.activeElement as HTMLElement;
     if (element.tagName === "INPUT") {
@@ -14,11 +21,11 @@ export const activeElementSource = (port: Port) => {
       activeElementSource = Transformer.getSource(element) || "";
     }
   }
-  port.postMessage({ activeElementSource });
+  return activeElementSource;
 };
 
 // Finds the active element and gets the cursor relative to user-visible source.
-export const activeElementCursor = (port: Port) => {
+const activeElementCursor = () => {
   let activeElementCursor = 0;
   if (document.activeElement) {
     const element = document.activeElement as HTMLElement;
@@ -30,7 +37,7 @@ export const activeElementCursor = (port: Port) => {
       activeElementCursor = Transformer.getCursor();
     }
   }
-  port.postMessage({ activeElementCursor });
+  return activeElementCursor;
 };
 
 // Select the active element based on cursor start and end relative to user-visible source.

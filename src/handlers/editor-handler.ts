@@ -10,28 +10,28 @@ export default class EditorHandler {
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("activeElementSource").then((sourceResponse) => {
-        this.postMessage!("activeElementCursor").then((cursorResponse) => {
-          if (sourceResponse === null) {
-            resolve({
-              message: "editorState",
-              data: {
-                useSystemInsert: true,
-              },
-            });
-          } else {
-            resolve({
-              message: "editorState",
-              data: {
-                source: sourceResponse.activeElementSource,
-                cursor: cursorResponse.activeElementCursor,
-                filename: "",
-                files: [],
-                roots: [],
-              },
-            });
-          }
-        });
+      this.postMessage!("editorState").then((response) => {
+        if (response.source === null) {
+          resolve({
+            message: "editorState",
+            data: {
+              useSystemInsert: true,
+              clickableCount: response.clickableCount,
+            },
+          });
+        } else {
+          resolve({
+            message: "editorState",
+            data: {
+              source: response.activeElementSource,
+              cursor: response.activeElementCursor,
+              clickableCount: response.clickableCount,
+              filename: "",
+              files: [],
+              roots: [],
+            },
+          });
+        }
       });
     });
   }

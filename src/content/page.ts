@@ -13,11 +13,8 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     switch (msg.request) {
       /* Editor */
-      case "activeElementSource":
-        editor.activeElementSource(port);
-        break;
-      case "activeElementCursor":
-        editor.activeElementCursor(port);
+      case "editorState":
+        editor.editorState(port, clickables.length);
         break;
       case "selectActiveElement":
         editor.selectActiveElement(port, msg.data);
