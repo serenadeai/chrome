@@ -88,7 +88,7 @@ const showOverlayForPath = (path: string, overlayType?: string) => {
     overlay.innerHTML = counter.toString();
     overlay.className = "serenade-overlay";
     overlay.style.position = "absolute";
-    overlay.style.zIndex = "999";
+    overlay.style.zIndex = "9999";
     overlay.style.top = elementRect.top - bodyRect.top + "px";
     overlay.style.left = elementRect.left - bodyRect.left + "px";
     overlay.style.padding = "3px";
@@ -104,6 +104,7 @@ const showOverlayForPath = (path: string, overlayType?: string) => {
     document.body.appendChild(overlay);
     counter++;
   }
+
   return elements;
 };
 
