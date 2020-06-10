@@ -1,7 +1,7 @@
 import * as actions from "./actions";
 import * as editor from "./editor";
 import * as navigator from "./navigator";
-import { click } from "./actions";
+import * as utilities from "./utilities";
 
 // Store list of clickable elements for `show links` and `click`.
 let clickables: Node[] = [];
@@ -59,6 +59,10 @@ chrome.runtime.onConnect.addListener((port) => {
         break;
       case "findClickable":
         actions.findClickable(port, msg.data, clickables);
+        break;
+      /* Utilities */
+      case "showNotification":
+        utilities.showNotification(port, msg.data);
         break;
       default:
         break;

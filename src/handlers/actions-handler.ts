@@ -6,26 +6,26 @@ export default class ActionsHandler {
   // These are declared by CommandHandler, which we extend
   postMessage?: (request: string, data?: any) => Promise<any>;
 
-  private async clearOverlays() {
-    await this.postMessage!("clearOverlays");
+  private clearOverlays(): Promise<any> {
+    return this.postMessage!("clearOverlays");
   }
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
     await this.clearOverlays();
 
-    await this.postMessage!("showOverlay", {
+    return this.postMessage!("showOverlay", {
       path: data.path,
       overlayType: data.text,
     });
   }
 
-  async COMMAND_TYPE_CLICK(data: any): Promise<any> {
-    await this.postMessage!("click", {
+  COMMAND_TYPE_CLICK(data: any): Promise<any> {
+    return this.postMessage!("click", {
       path: data.path,
     });
   }
 
-  async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
+  COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
     return new Promise((resolve) => {
       this.postMessage!("findClickable", {
         path: data.path,
@@ -38,7 +38,13 @@ export default class ActionsHandler {
     });
   }
 
-  async COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
-    await this.clearOverlays();
+  COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
+    return this.clearOverlays();
+  }
+
+  COMMAND_TYPE_USE(_data: any): Promise<any> {
+    return this.postMessage!("showNotification", {
+      text: `Copied ${_data.index}`,
+    });
   }
 }
