@@ -54,6 +54,15 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     const elements = document.querySelectorAll(selectors);
     for (let i = 0; i < elements.length; i++) {
       if (inViewport(elements[i] as HTMLElement)) {
+        // if the parent is a pre or code, don't add
+        if (
+          overlayType === "code" &&
+          elements[i].parentElement &&
+          ["PRE", "CODE"].includes(elements[i].parentElement!.tagName)
+        ) {
+          continue;
+        }
+
         result.push(elements[i]);
       }
     }
