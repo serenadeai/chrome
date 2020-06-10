@@ -63,15 +63,14 @@ const nodesMatching = (path?: string, overlayType?: string) => {
 };
 
 export const findClickable = (port: Port, data: { path: string }, clickables: Node[]) => {
-  // If we have a list of clickable elements already and the path is a valid number
-  if (clickables.length && parseInt(data.path, 10) < clickables.length) {
-    port.postMessage({ clickable: true });
+  // If the path is a number, check that it's valid
+  const path = parseInt(data.path, 10);
+  if (!isNaN(path)) {
+    port.postMessage({ clickable: path < clickables.length });
   }
-  // Otherwise, if we have a match for the path
-  else if (nodesMatching(data.path).length) {
-    port.postMessage({ clickable: true });
-  } else {
-    port.postMessage({ clickable: false });
+  // Otherwise, check if we have a match for the path
+  else {
+    port.postMessage({ clickable: nodesMatching(data.path).length });
   }
 };
 
