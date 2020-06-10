@@ -23,8 +23,8 @@ export default class EditorHandler {
           resolve({
             message: "editorState",
             data: {
-              source: response.activeElementSource,
-              cursor: response.activeElementCursor,
+              source: response.source,
+              cursor: response.cursor,
               clickableCount: response.clickableCount,
               filename: "",
               files: [],

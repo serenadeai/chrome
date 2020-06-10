@@ -4,7 +4,6 @@ import Port = chrome.runtime.Port;
 export const showNotification = (port: Port, data: { text: string }) => {
   const overlay = document.createElement("div");
   overlay.innerHTML = data.text;
-  overlay.className = "serenade-overlay";
   overlay.setAttribute(
     "style",
     `
@@ -36,7 +35,7 @@ export const showNotification = (port: Port, data: { text: string }) => {
   }, 2000);
 
   window.setTimeout(() => {
-    overlay.parentNode!.removeChild(overlay);
+    overlay.parentNode && overlay.parentNode.removeChild(overlay);
   }, 3000);
 
   port.postMessage({ success: true });
