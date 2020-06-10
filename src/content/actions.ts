@@ -1,4 +1,5 @@
 import Port = chrome.runtime.Port;
+import Transformer from "./transformer";
 
 const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
@@ -151,4 +152,20 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
     clearOverlays(port);
   }
   return nodes;
+};
+
+export const copyClickable = (port: Port, data: { index: number }, clickables: Node[]) => {
+  if (data.index >= clickables.length) {
+    port.postMessage({ success: false });
+    return;
+  }
+
+  const text = Transformer.getSource(clickables[data.index] as HTMLElement);
+  if (text === null) {
+    port.postMessage({ success: false });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      port.postMessage({ success: true });
+    });
+  }
 };

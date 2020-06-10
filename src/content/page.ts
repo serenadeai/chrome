@@ -60,6 +60,9 @@ chrome.runtime.onConnect.addListener((port) => {
       case "findClickable":
         actions.findClickable(port, msg.data, clickables);
         break;
+      case "copyClickable":
+        actions.copyClickable(port, msg.data, clickables);
+        break;
       /* Utilities */
       case "showNotification":
         utilities.showNotification(port, msg.data);

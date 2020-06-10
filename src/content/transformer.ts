@@ -26,7 +26,7 @@ export default class Transformer {
     }
 
     // if we didn't find one, return an empty list
-    if (!editable.hasAttribute("contenteditable")) {
+    if (!editable || !editable.hasAttribute("contenteditable")) {
       return null;
     }
 

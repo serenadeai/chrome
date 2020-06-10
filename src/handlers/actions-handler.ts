@@ -42,10 +42,18 @@ export default class ActionsHandler {
     return this.clearOverlays();
   }
 
-  async COMMAND_TYPE_USE(_data: any): Promise<any> {
-    await this.postMessage!("showNotification", {
-      text: `Copied ${_data.index}`,
+  async COMMAND_TYPE_USE(data: any): Promise<any> {
+    const response = await this.postMessage!("copyClickable", {
+      index: data.index,
     });
-    return this.clearOverlays();
+
+    if (response.success === true) {
+      await this.postMessage!("showNotification", {
+        text: `Copied ${data.index}`,
+      });
+      return this.clearOverlays();
+    }
+
+    return Promise.resolve();
   }
 }
