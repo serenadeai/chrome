@@ -67,12 +67,12 @@ export class CommandHandler {
   async postMessage(request: string, data?: any): Promise<any> {
     const port = await this.connectToActiveTab!();
 
-    const responsePromise = new Promise((resolve) => {
+    const responsePromise = new Promise((resolve, reject) => {
       port.onMessage.addListener((msg) => {
         resolve(msg);
       });
       port.onDisconnect.addListener((_port: Port) => {
-        resolve({ success: false });
+        reject();
       });
     });
 

@@ -26,15 +26,19 @@ export default class ActionsHandler {
   }
 
   COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.postMessage!("findClickable", {
         path: data.path,
-      }).then((data) => {
-        resolve({
-          message: "clickable",
-          data,
+      })
+        .then((data) => {
+          resolve({
+            message: "clickable",
+            data,
+          });
+        })
+        .catch(() => {
+          reject();
         });
-      });
     });
   }
 

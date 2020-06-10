@@ -155,12 +155,15 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
 };
 
 export const copyClickable = (port: Port, data: { index: number }, clickables: Node[]) => {
-  if (data.index >= clickables.length) {
+  // 0-index
+  const index = data.index - 1;
+
+  if (index >= clickables.length) {
     port.postMessage({ success: false });
     return;
   }
 
-  const text = Transformer.getSource(clickables[data.index] as HTMLElement);
+  const text = Transformer.getSource(clickables[index] as HTMLElement);
   if (text === null) {
     port.postMessage({ success: false });
   } else {

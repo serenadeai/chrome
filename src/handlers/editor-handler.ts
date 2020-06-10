@@ -10,29 +10,38 @@ export default class EditorHandler {
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("editorState").then((response) => {
-        if (response.source === null) {
+      this.postMessage!("editorState")
+        .then((response) => {
+          if (response.source === null) {
+            resolve({
+              message: "editorState",
+              data: {
+                useSystemInsert: true,
+                clickableCount: response.clickableCount,
+              },
+            });
+          } else {
+            resolve({
+              message: "editorState",
+              data: {
+                source: response.source,
+                cursor: response.cursor,
+                clickableCount: response.clickableCount,
+                filename: "",
+                files: [],
+                roots: [],
+              },
+            });
+          }
+        })
+        .catch(() =>
           resolve({
             message: "editorState",
             data: {
               useSystemInsert: true,
-              clickableCount: response.clickableCount,
             },
-          });
-        } else {
-          resolve({
-            message: "editorState",
-            data: {
-              source: response.source,
-              cursor: response.cursor,
-              clickableCount: response.clickableCount,
-              filename: "",
-              files: [],
-              roots: [],
-            },
-          });
-        }
-      });
+          })
+        );
     });
   }
 
@@ -42,14 +51,20 @@ export default class EditorHandler {
 
   async COMMAND_TYPE_PASTE(_data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("getClipboard").then((data) => {
-        resolve({
-          message: "insertText",
-          data: {
-            text: data.text,
-          },
-        });
-      });
+      this.postMessage!("getClipboard")
+        .then((data) => {
+          resolve({
+            message: "insertText",
+            data: {
+              text: data.text,
+            },
+          });
+        })
+        .catch(() =>
+          resolve({
+            message: "paste",
+          })
+        );
     });
   }
 
