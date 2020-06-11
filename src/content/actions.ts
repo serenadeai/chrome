@@ -1,5 +1,6 @@
 import Port = chrome.runtime.Port;
 import Transformer from "./transformer";
+import * as utilities from "./utilities";
 
 const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
@@ -76,7 +77,7 @@ export const findClickable = (port: Port, data: { path: string }, clickables: No
   // If the path is a number, check that it's valid
   const path = parseInt(data.path, 10);
   if (!isNaN(path)) {
-    port.postMessage({ clickable: path < clickables.length });
+    port.postMessage({ clickable: path - 1 < clickables.length });
   }
   // Otherwise, check if we have a match for the path
   else {
@@ -142,7 +143,7 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
     }
   }
   // If we have a number that we can click
-  else {
+  else if (pathNumber - 1 < clickables.length) {
     const node = clickables[pathNumber - 1];
     (node as HTMLElement).focus();
     (node as HTMLElement).click();
@@ -168,6 +169,8 @@ export const copyClickable = (port: Port, data: { index: number }, clickables: N
     port.postMessage({ success: false });
   } else {
     navigator.clipboard.writeText(text).then(() => {
+      utilities.showNotification(port, { text: `Copied ${data.index}` });
+      clearOverlays(port);
       port.postMessage({ success: true });
     });
   }
