@@ -35,20 +35,17 @@ Commands supported:
     - `go to` (navigates)
 - Tab management
     - `new tab`
-        - `COMMAND_TYPE_CREATE_TAB`
     - `close tab`
     - `next tab`, `previous tab`
     - `(first | second ...) tab`
-        - `COMMAND_TYPE_SWITCH_TAB`
 - Actions
-    - `show (links | inputs)`
-    - `click`
-    - `COMMAND_TYPE_CLICKABLE`
-    - `clear`
-        - `COMMAND_TYPE_CANCEL`
+    - `show (links | inputs | code)` to overlay clickable/copyable elements
+    - `click (text | number)` to click based on text or previous clickables
+    - `use number` to click or copy previous clickables
+    - `COMMAND_TYPE_CLICKABLE` to invalidate alternatives
+    - `clear` to reset overlays
     
 TODO:
 - custom
     - go to tab
-    - google search results
     - searching docs
