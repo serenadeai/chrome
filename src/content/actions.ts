@@ -1,4 +1,6 @@
 import Port = chrome.runtime.Port;
+import Transformer from "./transformer";
+import * as utilities from "./utilities";
 
 const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
@@ -44,11 +46,25 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     }
   } else {
     // If no path, then look for all clickable or input elements
-    const elements = document.querySelectorAll(
-      overlayType === "links" ? "a, button" : "input, textarea, div[contenteditable]"
-    );
+    let selectors = "input, textarea, div[contenteditable]";
+    if (overlayType === "links") {
+      selectors = "a, button";
+    } else if (overlayType === "code") {
+      selectors = "pre, code";
+    }
+
+    const elements = document.querySelectorAll(selectors);
     for (let i = 0; i < elements.length; i++) {
       if (inViewport(elements[i] as HTMLElement)) {
+        // if the parent is a pre or code, don't add
+        if (
+          overlayType === "code" &&
+          elements[i].parentElement &&
+          ["PRE", "CODE"].includes(elements[i].parentElement!.tagName)
+        ) {
+          continue;
+        }
+
         result.push(elements[i]);
       }
     }
@@ -58,15 +74,14 @@ const nodesMatching = (path?: string, overlayType?: string) => {
 };
 
 export const findClickable = (port: Port, data: { path: string }, clickables: Node[]) => {
-  // If we have a list of clickable elements already and the path is a valid number
-  if (clickables.length && parseInt(data.path, 10) < clickables.length) {
-    port.postMessage({ clickable: true });
+  // If the path is a number, check that it's valid
+  const path = parseInt(data.path, 10);
+  if (!isNaN(path)) {
+    port.postMessage({ clickable: path - 1 < clickables.length });
   }
-  // Otherwise, if we have a match for the path
-  else if (nodesMatching(data.path).length) {
-    port.postMessage({ clickable: true });
-  } else {
-    port.postMessage({ clickable: false });
+  // Otherwise, check if we have a match for the path
+  else {
+    port.postMessage({ clickable: nodesMatching(data.path).length });
   }
 };
 
@@ -128,7 +143,7 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
     }
   }
   // If we have a number that we can click
-  else {
+  else if (pathNumber - 1 < clickables.length) {
     const node = clickables[pathNumber - 1];
     (node as HTMLElement).focus();
     (node as HTMLElement).click();
@@ -138,4 +153,25 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
     clearOverlays(port);
   }
   return nodes;
+};
+
+export const copyClickable = (port: Port, data: { index: number }, clickables: Node[]) => {
+  // 0-index
+  const index = data.index - 1;
+
+  if (index >= clickables.length) {
+    port.postMessage({ success: false });
+    return;
+  }
+
+  const text = Transformer.getSource(clickables[index] as HTMLElement);
+  if (text === null) {
+    port.postMessage({ success: false });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      utilities.showNotification(port, { text: `Copied ${data.index}` });
+      clearOverlays(port);
+      port.postMessage({ success: true });
+    });
+  }
 };

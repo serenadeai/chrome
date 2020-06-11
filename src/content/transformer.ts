@@ -25,9 +25,9 @@ export default class Transformer {
       editable = editable.parentElement!;
     }
 
-    // if we didn't find one, return an empty list
-    if (!editable.hasAttribute("contenteditable")) {
-      return null;
+    // if we didn't find one, return the original target
+    if (!editable || !editable.hasAttribute("contenteditable")) {
+      return target;
     }
 
     return editable;
