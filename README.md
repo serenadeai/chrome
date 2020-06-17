@@ -12,6 +12,13 @@
 6. Open a new tab, and go to a website like GitHub.
     - The extension icon in the top right should turn from monochrome (disabled for certain pages) to orange and black.
     - If the client is also running, then it will also register the Chrome plugin as being installed in `~/.serenade/serenade.json`, where `"plugins"` now includes `"chrome"`.
+7. After iterating on the source, the refresh button at `chrome://extensions/` for the unpacked extension needs to be clicked, and the target tab needs to be reloaded for the new build to be used.
+    
+## Build
+
+1. Update the version number in `manifest.json`.
+2. Run `yarn dist`.
+3. Add `build`, `img`, and `manifest.json` to a new `build.zip`.   
     
 ## Commands
 

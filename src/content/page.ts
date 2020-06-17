@@ -66,6 +66,7 @@ chrome.runtime.onConnect.addListener((port) => {
       case "useClickable":
         if (clickables.length === 0) {
           port.postMessage({ success: true });
+          break;
         }
         if (clickableType === "copy") {
           actions.copyClickable(port, msg.data, clickables);
