@@ -76,6 +76,8 @@ export const applyDiff = (
       // ContentEditable elements have another flow
       port.postMessage({ success: false });
     }
+  } else {
+    port.postMessage({ success: false });
   }
 };
 
@@ -89,9 +91,14 @@ export const setCursor = (port: Port, data: { cursor: number }) => {
 
 // Gets clipboard contents
 export const getClipboard = (port: Port) => {
-  navigator.clipboard.readText().then((text) => {
-    port.postMessage({ text });
-  });
+  navigator.clipboard
+    .readText()
+    .then((text) => {
+      port.postMessage({ text });
+    })
+    .catch(() => {
+      port.postMessage({ success: false });
+    });
 };
 
 // Copies text to clipboard

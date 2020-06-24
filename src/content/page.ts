@@ -69,7 +69,7 @@ chrome.runtime.onConnect.addListener((port) => {
           break;
         }
         if (clickableType === "copy") {
-          actions.copyClickable(port, msg.data, clickables);
+          clickables = actions.copyClickable(port, msg.data, clickables);
         } else if (clickableType === "click") {
           clickables = actions.click(port, { path: msg.data.index }, clickables);
         } else {
