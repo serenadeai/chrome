@@ -5,28 +5,29 @@
 export default class ActionsHandler {
   // These are declared by CommandHandler, which we extend
   postMessage?: (request: string, data?: any) => Promise<any>;
+  resolvePostMessage?: (request: string, data?: any) => Promise<any>;
 
   private clearOverlays(): Promise<any> {
-    return this.postMessage!("clearOverlays");
+    return this.resolvePostMessage!("clearOverlays");
   }
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
     await this.clearOverlays();
 
-    return this.postMessage!("showOverlay", {
+    return this.resolvePostMessage!("showOverlay", {
       path: data.path,
       overlayType: data.text,
     });
   }
 
   COMMAND_TYPE_CLICK(data: any): Promise<any> {
-    return this.postMessage!("click", {
+    return this.resolvePostMessage!("click", {
       path: data.path,
     });
   }
 
   COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.postMessage!("findClickable", {
         path: data.path,
       })
@@ -37,7 +38,7 @@ export default class ActionsHandler {
           });
         })
         .catch(() => {
-          reject();
+          resolve();
         });
     });
   }
@@ -47,7 +48,7 @@ export default class ActionsHandler {
   }
 
   COMMAND_TYPE_USE(data: any): Promise<any> {
-    return this.postMessage!("useClickable", {
+    return this.resolvePostMessage!("useClickable", {
       index: data.index,
     });
   }

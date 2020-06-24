@@ -161,7 +161,7 @@ export const copyClickable = (port: Port, data: { index: number }, clickables: N
 
   if (index >= clickables.length) {
     port.postMessage({ success: false });
-    return;
+    return clickables;
   }
 
   const text = Transformer.getSource(clickables[index] as HTMLElement);
@@ -174,4 +174,6 @@ export const copyClickable = (port: Port, data: { index: number }, clickables: N
       port.postMessage({ success: true });
     });
   }
+
+  return [];
 };

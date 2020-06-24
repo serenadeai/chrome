@@ -7,6 +7,7 @@
 export default class EditorHandler {
   // These are declared by CommandHandler, which we extend
   postMessage?: (request: string, data?: any) => Promise<any>;
+  resolvePostMessage?: (request: string, data?: any) => Promise<any>;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     return new Promise((resolve) => {
@@ -46,25 +47,25 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_COPY(data: any): Promise<any> {
-    return this.postMessage!("copy", data);
+    return this.resolvePostMessage!("copy", data);
   }
 
   async COMMAND_TYPE_PASTE(_data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("getClipboard")
-        .then((data) => {
+      this.postMessage!("getClipboard").then((data) => {
+        if (!data.success) {
+          resolve({
+            message: "paste",
+          });
+        } else {
           resolve({
             message: "insertText",
             data: {
               text: data.text,
             },
           });
-        })
-        .catch(() =>
-          resolve({
-            message: "paste",
-          })
-        );
+        }
+      });
     });
   }
 
@@ -115,6 +116,6 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
-    return this.postMessage!("selectActiveElement", data);
+    return this.resolvePostMessage!("selectActiveElement", data);
   }
 }

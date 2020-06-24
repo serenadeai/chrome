@@ -80,6 +80,19 @@ export class CommandHandler {
 
     return responsePromise;
   }
+
+  // Posts a message and resolve even if it fails
+  async resolvePostMessage(request: string, data?: any): Promise<any> {
+    return new Promise((resolve) => {
+      this.postMessage!(request, data)
+        .then(() => {
+          resolve();
+        })
+        .catch(() => {
+          resolve();
+        });
+    });
+  }
 }
 
 // From https://www.typescriptlang.org/docs/handbook/mixins.html
