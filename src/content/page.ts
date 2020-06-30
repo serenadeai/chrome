@@ -59,6 +59,7 @@ chrome.runtime.onConnect.addListener((port) => {
         break;
       case "click":
         clickables = actions.click(port, msg.data, clickables);
+        clickableType = "click";
         break;
       case "findClickable":
         actions.findClickable(port, msg.data, clickables);
