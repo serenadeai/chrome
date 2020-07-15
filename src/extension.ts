@@ -32,6 +32,7 @@ chrome.runtime.onInstalled.addListener(() => {
   const commandHandler = new CommandHandler();
   ipc = new IPC(commandHandler, "chrome");
   commandHandler.setIPC(ipc);
+  setIcon();
   window.setInterval(setIcon, 1000);
 
   ipc.start();
