@@ -1,6 +1,7 @@
 import CommandHandler from "./command-handler";
 import IPC from "./shared/ipc";
 
+let commandHandler: CommandHandler;
 let ipc: IPC;
 
 function setIcon() {
@@ -29,7 +30,7 @@ function showLoadingIndicator() {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  const commandHandler = new CommandHandler();
+  commandHandler = new CommandHandler();
   ipc = new IPC(commandHandler, "chrome");
   commandHandler.setIPC(ipc);
   setIcon();
@@ -41,6 +42,13 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message === "reconnect") {
+    if (!ipc) {
+      if (!commandHandler) {
+        commandHandler = new CommandHandler();
+      }
+      ipc = new IPC(commandHandler, "chrome");
+      commandHandler.setIPC(ipc);
+    }
     ipc.ensureConnection();
     showLoadingIndicator();
   }
