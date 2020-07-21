@@ -1,24 +1,55 @@
 import CommandHandler from "./command-handler";
 import IPC from "./shared/ipc";
 
-chrome.runtime.onInstalled.addListener(() => {
-  const commandHandler = new CommandHandler();
-  const ipc = new IPC(commandHandler, "chrome");
-  commandHandler.setIPC(ipc);
-  ipc.start();
+let commandHandler: CommandHandler;
+let ipc: IPC;
 
-  // If disconnected, show red badge
-  window.setInterval(() => {
-    if (!ipc.isConnected()) {
-      chrome.browserAction.setBadgeText({ text: "X" });
-      chrome.browserAction.setBadgeBackgroundColor({ color: "#a13a3a" });
-    } else {
-      chrome.browserAction.setBadgeText({ text: "" });
-    }
-  }, 1000);
+function setIcon() {
+  const icon_dir = ipc.isConnected() ? "icon_default" : "icon_disconnected";
 
-  chrome.browserAction.onClicked.addListener(() => {
-    const chromeDocs = "https://serenade.ai/docs";
-    chrome.tabs.create({ url: chromeDocs });
+  chrome.browserAction.setIcon({
+    path: {
+      "16": `img/${icon_dir}/16x16.png`,
+      "32": `img/${icon_dir}/32x32.png`,
+      "48": `img/${icon_dir}/48x48.png`,
+      "128": `img/${icon_dir}/128x128.png`,
+    },
   });
+
+  if (ipc.isConnected()) {
+    chrome.browserAction.setBadgeText({ text: "" });
+  }
+}
+
+function showLoadingIndicator() {
+  chrome.browserAction.setBadgeText({ text: "•••" });
+  window.setTimeout(() => {
+    // if still disconnected after three seconds, clear loading dots
+    chrome.browserAction.setBadgeText({ text: "" });
+  }, 3000);
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  commandHandler = new CommandHandler();
+  ipc = new IPC(commandHandler, "chrome");
+  commandHandler.setIPC(ipc);
+  setIcon();
+  window.setInterval(setIcon, 1000);
+
+  ipc.start();
+  showLoadingIndicator();
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message === "reconnect") {
+    if (!ipc) {
+      if (!commandHandler) {
+        commandHandler = new CommandHandler();
+      }
+      ipc = new IPC(commandHandler, "chrome");
+      commandHandler.setIPC(ipc);
+    }
+    ipc.ensureConnection();
+    showLoadingIndicator();
+  }
 });

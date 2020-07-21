@@ -1,20 +1,22 @@
 {
   "manifest_version": 2,
   "name": "Serenade for Chrome",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Navigate the web with voice.",
   "icons": {
-    "16": "img/16x16.png",
-    "48": "img/48x48.png",
-    "128": "img/128x128.png"
+    "16": "img/icon_default/16x16.png",
+    "48": "img/icon_default/48x48.png",
+    "128": "img/icon_default/128x128.png"
   },
   "browser_action": {
     "default_icon": {
-      "16": "img/16x16.png",
-      "32": "img/32x32.png",
-      "48": "img/48x48.png",
-      "128": "img/128x128.png"
-    }
+      "16": "img/icon_default/16x16.png",
+      "32": "img/icon_default/32x32.png",
+      "48": "img/icon_default/48x48.png",
+      "128": "img/icon_default/128x128.png"
+    },
+    "default_title": "Serenade for Chrome",
+    "default_popup": "popup.html"
   },
   "background": {
     "scripts": ["build/extension.js"]
