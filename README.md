@@ -18,7 +18,7 @@
 
 1. Update the version number in `manifest.json`.
 2. Run `yarn dist`.
-3. Add `build`, `img`, and `manifest.json` to a new `build.zip`.   
+3. Add `build`, `img`, `popup.html`, `popup.js`, and `manifest.json` to a new `build.zip`.   
     
 ## Commands
 
