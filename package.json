@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "webpack --mode development",
-    "dist": "webpack --mode production",
+    "dist": "webpack --mode production && zip -r build.zip build img manifest.json popup.html popup.js",
     "watch": "webpack --mode development --watch",
     "test": "mocha --require ts-node/register --require jsdom-global/register --watch-files src/content/transformer.ts --watch-files src/test/*.ts --watch src/test/*.ts"
   },
