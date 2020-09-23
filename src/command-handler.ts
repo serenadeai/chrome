@@ -37,7 +37,7 @@ export class CommandHandler {
   // https://developer.chrome.com/extensions/messaging#connect
   connectToActiveTab(): Promise<Port> {
     return new Promise((resolve, reject) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
         if (tabs.length) {
           const tabId = tabs[0].id;
           if (tabId) {
@@ -65,7 +65,7 @@ export class CommandHandler {
   // Posts a message to the content script in the active tab, and waits for its response
   // as a promise.
   async postMessage(request: string, data?: any): Promise<any> {
-    const port = await this.connectToActiveTab!();
+    const port = await this.connectToActiveTab();
 
     const responsePromise = new Promise((resolve, reject) => {
       port.onMessage.addListener((msg) => {
