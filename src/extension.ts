@@ -5,7 +5,7 @@ let commandHandler: CommandHandler;
 let ipc: IPC;
 
 function setIcon() {
-  const icon_dir = ipc.isConnected() ? "icon_default" : "icon_disconnected";
+  const icon_dir = ipc?.isConnected() ? "icon_default" : "icon_disconnected";
 
   chrome.browserAction.setIcon({
     path: {
@@ -16,7 +16,7 @@ function setIcon() {
     },
   });
 
-  if (ipc.isConnected()) {
+  if (ipc?.isConnected()) {
     chrome.browserAction.setBadgeText({ text: "" });
   }
 }
@@ -29,27 +29,21 @@ function showLoadingIndicator() {
   }, 3000);
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+function resetAndConnect() {
   commandHandler = new CommandHandler();
   ipc = new IPC(commandHandler, "chrome");
   commandHandler.setIPC(ipc);
   setIcon();
-  window.setInterval(setIcon, 1000);
 
   ipc.start();
   showLoadingIndicator();
-});
+}
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message === "reconnect") {
-    if (!ipc) {
-      if (!commandHandler) {
-        commandHandler = new CommandHandler();
-      }
-      ipc = new IPC(commandHandler, "chrome");
-      commandHandler.setIPC(ipc);
-    }
-    ipc.ensureConnection();
-    showLoadingIndicator();
+    resetAndConnect();
   }
 });
+
+window.setInterval(setIcon, 1000);
+resetAndConnect();
