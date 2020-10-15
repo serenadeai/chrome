@@ -1,7 +1,7 @@
 import Port = chrome.runtime.Port;
 
 export const scrollDirection = (port: Port, data: { direction: string }) => {
-  let direction;
+  let direction: ScrollToOptions | null = null;
   switch (data.direction) {
     case "left":
       direction = { left: -window.innerWidth * 0.8 };

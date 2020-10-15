@@ -19,7 +19,7 @@
 1. Update the version number in `manifest.json`.
 2. Run `yarn dist`.
 3. If you've added new files, consider updating the `dist` command in `package.json` to include them, if `webpack` does not. To test, unzip `build.zip` into a new directory, like `build2`, and load it in Chrome.
-    
+
 ## Commands
 
 Commands supported:
