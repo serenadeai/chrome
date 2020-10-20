@@ -74,7 +74,9 @@ export default class EditorHandler {
       // First try to set the cursor ourselves,
       // then tell the client to simulate key presses if needed.
       const cursor =
-        data.deleteEnd && data.deleteStart && data.deleteEnd - data.deleteStart !== 0
+        data.deleteEnd !== undefined &&
+        data.deleteStart !== undefined &&
+        data.deleteEnd - data.deleteStart !== 0
           ? data.deleteEnd
           : data.cursor;
 
