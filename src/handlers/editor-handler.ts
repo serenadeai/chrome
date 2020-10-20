@@ -71,46 +71,22 @@ export default class EditorHandler {
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("applyDiff", data).then((diffResponse) => {
-        // If we're in a ContentEditable, first set the cursor somewhere,
-        // use the IPC to tell the client to simulate keypresses/deletes.
-        if (!diffResponse.success) {
-          // delete then insert text
-          if (
-            data.deleteEnd !== undefined &&
-            data.deleteStart !== undefined &&
-            data.deleteEnd - data.deleteStart > 0
-          ) {
-            this.postMessage!("setCursor", { cursor: data.deleteEnd }).then(() => {
-              resolve({
-                message: "deleteText",
-                data: {
-                  deleteCount: data.deleteEnd - data.deleteStart,
-                  text: data.insertDiff,
-                },
-              });
-            });
-          }
-          // or just insert text
-          else if (data.insertDiff !== undefined && data.insertDiff !== "") {
-            this.postMessage!("setCursor", { cursor: data.deleteEnd }).then(() => {
-              resolve({
-                message: "insertText",
-                data: {
-                  text: data.insertDiff,
-                },
-              });
-            });
-          }
-          // or just set the cursor
-          else {
-            this.postMessage!("setCursor", { cursor: data.cursor }).then(() => {
-              resolve();
-            });
-          }
-        } else {
-          resolve();
-        }
+      // First try to set the cursor ourselves,
+      // then tell the client to simulate key presses if needed.
+      const cursor =
+        data.deleteEnd && data.deleteStart && data.deleteEnd - data.deleteStart !== 0
+          ? data.deleteEnd
+          : data.cursor;
+
+      this.postMessage!("setCursor", { cursor }).then((cursorResponse) => {
+        resolve({
+          message: "applyDiff",
+          data: {
+            adjustCursor: cursorResponse.adjustCursor,
+            deleteCount: data.deleteEnd - data.deleteStart,
+            text: data.insertDiff,
+          },
+        });
       });
     });
   }

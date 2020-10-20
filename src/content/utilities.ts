@@ -1,5 +1,12 @@
 import Port = chrome.runtime.Port;
 
+// Check if editor DOM changes should be skipped, to prevent
+// any interactions with sites' own event listeners and handlers.
+export const shouldSkipEditorDomChanges = () => {
+  const skipList = ["colab.research.google.com"];
+  return skipList.indexOf(document.domain) > -1;
+};
+
 // Displays a notification
 export const showNotification = (port: Port, data: { text: string }) => {
   const overlay = document.createElement("div");
