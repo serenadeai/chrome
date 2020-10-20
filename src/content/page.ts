@@ -20,9 +20,6 @@ chrome.runtime.onConnect.addListener((port) => {
       case "selectActiveElement":
         editor.selectActiveElement(port, msg.data);
         break;
-      case "applyDiff":
-        editor.applyDiff(port, msg.data);
-        break;
       case "getClipboard":
         editor.getClipboard(port);
         break;
