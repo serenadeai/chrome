@@ -1,5 +1,13 @@
 import Port = chrome.runtime.Port;
 
+const canScrollHorizonally = (element: Element) => {
+  return element.scrollWidth > element.clientWidth;
+};
+
+const canScrollVertically = (element: Element) => {
+  return element.scrollHeight > element.clientHeight;
+};
+
 export const scrollDirection = (port: Port, data: { direction: string }) => {
   let direction: ScrollToOptions | null = null;
   switch (data.direction) {
@@ -17,7 +25,29 @@ export const scrollDirection = (port: Port, data: { direction: string }) => {
       break;
   }
   if (direction) {
-    window.scrollBy(Object.assign(direction, { behavior: "smooth" }));
+    const horizontal = data.direction === "left" || data.direction === "right";
+    const vertical = data.direction === "up" || data.direction === "down";
+    const scrollOptions = Object.assign(direction, { behavior: "smooth" });
+
+    // Get the last hovered element, which should be the childmost node
+    const elements = document.querySelectorAll("*:hover");
+    let element = elements.length ? elements[elements.length - 1] : null;
+    if (element === null) {
+      // Fall back to scrolling window-wide
+      window.scrollBy(Object.assign(direction, { behavior: "smooth" }));
+    }
+    // Otherwise, try to scroll if possible, going up recursively
+    while (element) {
+      if (
+        (horizontal && canScrollHorizonally(element)) ||
+        (vertical && canScrollVertically(element))
+      ) {
+        element.scrollBy(scrollOptions);
+        element = null;
+      } else {
+        element = element.parentElement;
+      }
+    }
   }
   port.postMessage({ success: true });
 };
