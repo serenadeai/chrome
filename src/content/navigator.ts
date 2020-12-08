@@ -77,7 +77,11 @@ export const scrollDirection = (port: Port, data: { direction: string }) => {
       window.scrollBy(scrollOptions(window, data.direction));
     }
   }
-  port.postMessage({ success: true });
+  // scrollBy isn't an asynchronous function, even though it behaves like one,
+  // so there needs to be a timeout to enable "scroll down two times"
+  setTimeout(() => {
+    port.postMessage({ success: true });
+  }, 300);
 };
 
 // Given a path to match on, scroll to it if found
