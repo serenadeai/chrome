@@ -42,8 +42,9 @@ export class CommandHandler {
           const tabId = tabs[0].id;
           if (tabId) {
             // If we have one already, return it
-            if (this.ports.get(tabId)) {
-              resolve(this.ports.get(tabId));
+            const existingPort = this.ports.get(tabId);
+            if (existingPort) {
+              resolve(existingPort);
             }
 
             // Connect and save the port, and make sure we remove on disconnect
