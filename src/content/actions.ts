@@ -5,22 +5,26 @@ import * as utilities from "./utilities";
 const inViewport = (node: HTMLElement) => {
   const bounding = node.getBoundingClientRect();
 
-  // If all four of the corners are covered by another element, no need to show
+  // If all four of the corners are covered by another element that's not a parent, no need to show
   if (
     !node.contains(document.elementFromPoint(bounding.left + 1, bounding.top + 1)) &&
     !node.contains(document.elementFromPoint(bounding.right - 1, bounding.top + 1)) &&
     !node.contains(document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)) &&
-    !node.contains(document.elementFromPoint(bounding.right - 1, bounding.bottom - 1))
+    !node.contains(document.elementFromPoint(bounding.right - 1, bounding.bottom - 1)) &&
+    !document.elementFromPoint(bounding.left + 1, bounding.top + 1)?.contains(node) &&
+    !document.elementFromPoint(bounding.right - 1, bounding.top + 1)?.contains(node) &&
+    !document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)?.contains(node) &&
+    !document.elementFromPoint(bounding.right - 1, bounding.bottom - 1)?.contains(node)
   ) {
     return false;
   }
 
   // Check that this is in the viewport and has some dimensions
   return (
-    bounding.top >= 0 &&
-    bounding.top <= window.innerHeight &&
-    bounding.left >= 0 &&
-    bounding.left <= window.innerWidth &&
+    ((bounding.top >= 0 && bounding.top <= window.innerHeight) ||
+      (bounding.bottom >= 0 && bounding.bottom <= window.innerHeight)) &&
+    ((bounding.left >= 0 && bounding.left <= window.innerWidth) ||
+      (bounding.right >= 0 && bounding.right <= window.innerWidth)) &&
     !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
   );
 };
