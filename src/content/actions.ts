@@ -17,10 +17,10 @@ const inViewport = (node: HTMLElement) => {
 
   // Check that this is in the viewport and has some dimensions
   return (
-    bounding.top > 0 &&
-    bounding.top < window.innerHeight &&
-    bounding.left > 0 &&
-    bounding.left < window.innerWidth &&
+    bounding.top >= 0 &&
+    bounding.top <= window.innerHeight &&
+    bounding.left >= 0 &&
+    bounding.left <= window.innerWidth &&
     !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
   );
 };
