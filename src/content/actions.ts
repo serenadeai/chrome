@@ -159,7 +159,7 @@ export const click = (port: Port, data: { path: string }, clickables: Node[]) =>
   return nodes;
 };
 
-export const copyClickable = (port: Port, data: { index: number }, clickables: Node[]) => {
+export const copyClickable = async (port: Port, data: { index: number }, clickables: Node[]) => {
   // 0-index
   const index = data.index - 1;
 
@@ -172,11 +172,21 @@ export const copyClickable = (port: Port, data: { index: number }, clickables: N
   if (text === null) {
     port.postMessage({ success: false });
   } else {
-    navigator.clipboard.writeText(text).then(() => {
-      utilities.showNotification(port, { text: `Copied ${data.index}` });
-      clearOverlays(port);
-      port.postMessage({ success: true });
-    });
+    return await navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        utilities.showNotification(port, { text: `Copied ${data.index}` });
+        clearOverlays(port);
+        port.postMessage({ success: true });
+        return [];
+      })
+      .catch(() => {
+        utilities.showNotification(port, {
+          text: `Failed to copy ${data.index}. Please focus Chrome.`,
+        });
+        port.postMessage({ success: true });
+        return clickables;
+      });
   }
 
   return [];

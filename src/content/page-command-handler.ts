@@ -11,7 +11,7 @@ let clickableType: "click" | "copy" | null = null;
 // CommandHandler.postMessage expects a message before resolving, so each
 // of these handlers MUST themselves call port.postMessage when complete.
 chrome.runtime.onConnect.addListener((port) => {
-  port.onMessage.addListener((msg) => {
+  port.onMessage.addListener(async (msg) => {
     switch (msg.request) {
       /* Editor */
       case "editorState":
@@ -67,7 +67,7 @@ chrome.runtime.onConnect.addListener((port) => {
           break;
         }
         if (clickableType === "copy") {
-          clickables = actions.copyClickable(port, msg.data, clickables);
+          clickables = await actions.copyClickable(port, msg.data, clickables);
         } else if (clickableType === "click") {
           clickables = actions.click(port, { path: msg.data.index }, clickables);
         } else {
