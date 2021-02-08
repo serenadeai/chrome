@@ -42,9 +42,15 @@ const nodesMatching = (path?: string, overlayType?: string) => {
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     );
+
+    const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
     for (let i = 0; i < snapshot.snapshotLength; i++) {
       const item = snapshot.snapshotItem(i);
-      if (item !== null && inViewport(item as HTMLElement)) {
+      if (
+        item !== null &&
+        inViewport(item as HTMLElement) &&
+        (item as HTMLElement).innerText.match(re)
+      ) {
         result.push(item);
       }
     }
