@@ -44,17 +44,13 @@ const activeElementSource = () => {
         activeElementSource = getTextFromCodeMirror(codeMirrorInstanceFromActive(element)!);
       }
     } else if (element.tagName === "INPUT") {
-      console.log("input");
       activeElementSource = (element as HTMLInputElement).value;
     } else if (element.tagName === "TEXTAREA") {
-      console.log("text area");
       activeElementSource = (element as HTMLTextAreaElement).value;
     } else if (element.isContentEditable) {
-      console.log("content editable");
       activeElementSource = Transformer.getSource(element) || "";
     }
   }
-  console.log(activeElementSource);
   return activeElementSource;
 };
 
