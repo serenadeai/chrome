@@ -9,19 +9,56 @@ export const editorState = (port: Port, clickableCount: number) => {
   port.postMessage({ source, cursor, clickableCount });
 };
 
+interface CodeMirrorHTMLElement extends HTMLElement {
+  CodeMirror: CodeMirror.Editor;
+}
+
+const codeMirrorInstanceFromActive = (activeElement: Element) => {
+  if (document) {
+    let codeMirrorInstances = document.getElementsByClassName("CodeMirror");
+    for (const instance of Array.from(codeMirrorInstances)) {
+      for (const childNode of Array.from(instance.childNodes)) {
+        if (childNode.contains(activeElement)) {
+          return instance;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const getTextFromCodeMirror = (instance: Element) => {
+  let output = "";
+  if (document) {
+    let codeLines = instance.getElementsByClassName("CodeMirror-line");
+    for (const line of Array.from(codeLines)) {
+      output += (line as HTMLElement).innerText + "\n"
+    }
+  }
+  return output;
+}
+
 // Finds the active element and gets its user-visible source in plaintext.
 const activeElementSource = () => {
   let activeElementSource: string | null = null;
   if (document.activeElement) {
     const element = document.activeElement as HTMLElement;
-    if (element.tagName === "INPUT") {
+    if (document.getElementsByClassName("CodeMirror-code")) {
+      if (codeMirrorInstanceFromActive(element)) {
+        activeElementSource = getTextFromCodeMirror(codeMirrorInstanceFromActive(element)!);
+      }
+    } else if (element.tagName === "INPUT") {
+      console.log("input");
       activeElementSource = (element as HTMLInputElement).value;
     } else if (element.tagName === "TEXTAREA") {
+      console.log("text area");
       activeElementSource = (element as HTMLTextAreaElement).value;
     } else if (element.isContentEditable) {
+      console.log("content editable");
       activeElementSource = Transformer.getSource(element) || "";
     }
   }
+  console.log(activeElementSource);
   return activeElementSource;
 };
 
