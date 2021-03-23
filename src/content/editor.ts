@@ -9,10 +9,6 @@ export const editorState = (port: Port, clickableCount: number) => {
   port.postMessage({ source, cursor, clickableCount });
 };
 
-interface CodeMirrorHTMLElement extends HTMLElement {
-  CodeMirror: CodeMirror.Editor;
-}
-
 const codeMirrorInstanceFromActive = (activeElement: Element) => {
   if (document) {
     let codeMirrorInstances = document.getElementsByClassName("CodeMirror");
