@@ -7,7 +7,9 @@ const config = {
   target: "web",
   entry: {
     extension: "./src/extension.ts",
-    page: "./src/content/page-command-handler.ts",
+    inject: "./src/inject.js",
+    content: "./src/content/page-command-handler.ts",
+    page: "./src/page.ts",
   },
   output: {
     path: path.resolve(__dirname, "build"),
@@ -30,7 +32,7 @@ const config = {
 
 module.exports = (env, argv) => {
   if (argv.mode === 'development') {
-    config.devtool = 'eval';
+    config.devtool = 'source-map';
   }
 
   return config;

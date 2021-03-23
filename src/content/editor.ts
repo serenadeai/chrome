@@ -11,6 +11,17 @@ export const editorState = (port: Port, clickableCount: number) => {
 
 // Finds the active element and gets its user-visible source in plaintext.
 const activeElementSource = () => {
+  document.addEventListener(
+    "serenade-chrome-send-codemirror",
+    (e) => {
+      console.log((e as any).detail);
+    },
+    {
+      once: true,
+    }
+  );
+  document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+
   let activeElementSource: string | null = null;
   if (document.activeElement) {
     const element = document.activeElement as HTMLElement;
