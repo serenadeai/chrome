@@ -82,14 +82,18 @@ export default class EditorHandler {
           : data.cursor;
 
       this.postMessage!("setCursor", { cursor }).then((cursorResponse) => {
-        resolve({
-          message: "applyDiff",
-          data: {
-            adjustCursor: cursorResponse.adjustCursor,
-            deleteCount: data.deleteEnd - data.deleteStart,
-            text: data.insertDiff,
-          },
-        });
+        if (cursorResponse.adjustCursor) {
+          resolve({
+            message: "applyDiff",
+            data: {
+              adjustCursor: cursorResponse.adjustCursor,
+              deleteCount: data.deleteEnd - data.deleteStart,
+              text: data.insertDiff,
+            },
+          });
+        } else {
+          this.postMessage!("applyDiff", { source: data.source, cursor: data.cursor, });
+        }
       });
     });
   }

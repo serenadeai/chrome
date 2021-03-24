@@ -9,37 +9,26 @@ export const editorState = (port: Port, clickableCount: number) => {
   port.postMessage({ source, cursor, clickableCount });
 };
 
-const codeMirrorInstanceFromActive = (activeElement: Element) => {
-  if (document) {
-    let codeMirrorInstances = document.getElementsByClassName("CodeMirror");
-    for (const instance of Array.from(codeMirrorInstances)) {
-      for (const childNode of Array.from(instance.childNodes)) {
-        if (childNode.contains(activeElement)) {
-          return instance;
-        }
-      }
+const activeElementIsCodeMirror = () => {
+  const codeMirrorNodes = (document.querySelectorAll(".CodeMirror"));
+  let isCodeMirror = false;
+  codeMirrorNodes.forEach(node => {
+    if (node.contains(document.activeElement)) {
+      isCodeMirror = true;
     }
-  }
-  return null;
-}
-
-const getTextFromCodeMirror = (instance: Element) => {
-  let output = "";
-  if (document) {
-    let codeLines = instance.getElementsByClassName("CodeMirror-line");
-    for (const line of Array.from(codeLines)) {
-      output += (line as HTMLElement).innerText + "\n"
-    }
-  }
-  return output;
+  });
+  return isCodeMirror;
 }
 
 // Finds the active element and gets its user-visible source in plaintext.
 const activeElementSource = () => {
+  let activeElementSource: string | null = null;
   document.addEventListener(
     "serenade-chrome-send-codemirror",
     (e) => {
-      console.log((e as any).detail);
+      if ((e as any).detail.codeMirrorValue) {
+        activeElementSource = (e as any).detail.codeMirrorValue;
+      }
     },
     {
       once: true,
@@ -47,14 +36,9 @@ const activeElementSource = () => {
   );
   document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
 
-  let activeElementSource: string | null = null;
-  if (document.activeElement) {
+  if (document.activeElement && activeElementSource === null) {
     const element = document.activeElement as HTMLElement;
-    if (document.getElementsByClassName("CodeMirror-code")) {
-      if (codeMirrorInstanceFromActive(element)) {
-        activeElementSource = getTextFromCodeMirror(codeMirrorInstanceFromActive(element)!);
-      }
-    } else if (element.tagName === "INPUT") {
+    if (element.tagName === "INPUT") {
       activeElementSource = (element as HTMLInputElement).value;
     } else if (element.tagName === "TEXTAREA") {
       activeElementSource = (element as HTMLTextAreaElement).value;
@@ -67,8 +51,21 @@ const activeElementSource = () => {
 
 // Finds the active element and gets the cursor relative to user-visible source.
 const activeElementCursor = () => {
-  let activeElementCursor = 0;
-  if (document.activeElement) {
+  let activeElementCursor: number | null = null;
+  document.addEventListener(
+    "serenade-chrome-send-codemirror",
+    (e) => {
+      if ((e as any).detail.codeMirrorCursor) {
+        activeElementCursor = (e as any).detail.codeMirrorCursor;
+      }
+    },
+    {
+      once: true,
+    }
+  );
+  document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+
+  if (document.activeElement && activeElementCursor === null) {
     const element = document.activeElement as HTMLElement;
     if (element.tagName === "INPUT") {
       activeElementCursor = (element as HTMLInputElement).selectionStart!;
@@ -78,20 +75,32 @@ const activeElementCursor = () => {
       activeElementCursor = Transformer.getCursor();
     }
   }
+  if (activeElementCursor === null) {
+    activeElementCursor = 0;
+  }
   return activeElementCursor;
 };
 
 // Select the active element based on cursor start and end relative to user-visible source.
 export const selectActiveElement = (port: Port, data: { cursor: number; cursorEnd: number }) => {
   if (document.activeElement) {
-    const element = document.activeElement as HTMLElement;
-    const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;
-    if (element.tagName === "INPUT") {
-      (element as HTMLInputElement).setSelectionRange(data.cursor, cursorEnd);
-    } else if (element.tagName === "TEXTAREA") {
-      (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
-    } else if (element.isContentEditable) {
-      Transformer.setCursor(data.cursor, cursorEnd);
+    if (activeElementIsCodeMirror()) {
+      document.dispatchEvent(new CustomEvent("serenade-chrome-set-codemirror-selection", {
+        detail: {
+          cursorStart: data.cursor,
+          cursorEnd: data.cursorEnd,
+        }
+      }));
+    } else {
+      const element = document.activeElement as HTMLElement;
+      const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;
+      if (element.tagName === "INPUT") {
+        (element as HTMLInputElement).setSelectionRange(data.cursor, cursorEnd);
+      } else if (element.tagName === "TEXTAREA") {
+        (element as HTMLTextAreaElement).setSelectionRange(data.cursor, cursorEnd);
+      } else if (element.isContentEditable) {
+        Transformer.setCursor(data.cursor, cursorEnd);
+      }
     }
   }
   port.postMessage({ success: true });
@@ -108,16 +117,24 @@ export const setCursor = (port: Port, data: { cursor: number }) => {
   }
 
   if (document.activeElement) {
-    const element = document.activeElement as HTMLElement;
-    if (element.tagName === "INPUT") {
-      (element as HTMLInputElement).setSelectionRange(data.cursor, data.cursor);
-    } else if (element.tagName === "TEXTAREA") {
-      (element as HTMLTextAreaElement).setSelectionRange(data.cursor, data.cursor);
-    } else if (element.isContentEditable) {
-      Transformer.setCursor(data.cursor);
+    if (activeElementIsCodeMirror()) {
+      document.dispatchEvent(new CustomEvent("serenade-chrome-set-codemirror-cursor", {
+        detail: {
+          cursor:data.cursor,
+        }
+      }));
+    } else {
+      const element = document.activeElement as HTMLElement;
+      if (element.tagName === "INPUT") {
+        (element as HTMLInputElement).setSelectionRange(data.cursor, data.cursor);
+      } else if (element.tagName === "TEXTAREA") {
+        (element as HTMLTextAreaElement).setSelectionRange(data.cursor, data.cursor);
+      } else if (element.isContentEditable) {
+        Transformer.setCursor(data.cursor);
+      }
     }
   }
-  port.postMessage({ success: true });
+  port.postMessage({ success: true, adjustCursor: null, });
 };
 
 // Gets clipboard contents
@@ -138,3 +155,29 @@ export const copy = (port: Port, data: { text: string }) => {
     port.postMessage({ success: true });
   });
 };
+
+// export const applyDiff = (port: Port, data: { 
+//   source: string,
+//   cursor: number,
+//   adjustCursor: number,
+//   deleteCount: number,
+//   text: string,
+// }) => {
+export const applyDiff = (port: Port, data: any) => {
+  console.log(data);
+  if (document.activeElement) {
+    if (activeElementIsCodeMirror()) {
+      document.dispatchEvent(new CustomEvent("serenade-chrome-set-codemirror-source-and-cursor", {
+        detail: {
+          cursor: data.cursor,
+          source: data.source,
+        }
+      }));
+      return port.postMessage({ success: true, text: "diff applied" });
+    }
+  }
+  return port.postMessage({
+      success: false,
+      adjustCursor: data.adjustCursor,
+    });
+}
