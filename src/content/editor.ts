@@ -156,15 +156,7 @@ export const copy = (port: Port, data: { text: string }) => {
   });
 };
 
-// export const applyDiff = (port: Port, data: { 
-//   source: string,
-//   cursor: number,
-//   adjustCursor: number,
-//   deleteCount: number,
-//   text: string,
-// }) => {
 export const applyDiff = (port: Port, data: any) => {
-  console.log(data);
   if (document.activeElement) {
     if (activeElementIsCodeMirror()) {
       document.dispatchEvent(new CustomEvent("serenade-chrome-set-codemirror-source-and-cursor", {

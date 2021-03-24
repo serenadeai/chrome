@@ -30,7 +30,6 @@ chrome.runtime.onConnect.addListener((port) => {
         editor.setCursor(port, msg.data);
         break;
       case "applyDiff":
-        console.log(msg.data);
         editor.applyDiff(port, msg.data);
         break;
       /* Navigator */

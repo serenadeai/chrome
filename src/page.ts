@@ -60,7 +60,6 @@ document.addEventListener("serenade-chrome-set-codemirror-cursor",
 
 document.addEventListener("serenade-chrome-set-codemirror-source-and-cursor",
   (e) => {
-    console.log((e as any).detail);
     let codeMirror = getCodeMirror();
     if ((e as any).detail.source && (e as any).detail.cursor !== null) {
       codeMirror?.setValue((e as any).detail.source);
