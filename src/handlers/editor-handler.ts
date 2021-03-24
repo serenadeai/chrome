@@ -70,29 +70,35 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
+    // Try to set the source directly using the CodeMirror APIs, otherwise
+    // fall back to setting the cursor ourselves and passing the remaining
+    // text to the client to simulate keypresses.
     return new Promise((resolve) => {
-      // First try to set the cursor ourselves,
-      // then tell the client to simulate key presses if needed.
-      const cursor =
-        (data.deleteEnd !== undefined &&
-          data.deleteStart !== undefined &&
-          data.deleteEnd - data.deleteStart !== 0) ||
-        (data.insertDiff !== undefined && data.insertDiff !== "")
-          ? data.deleteEnd
-          : data.cursor;
-
-      this.postMessage!("setCursor", { cursor }).then((cursorResponse) => {
-        if (cursorResponse.adjustCursor) {
-          resolve({
-            message: "applyDiff",
-            data: {
-              adjustCursor: cursorResponse.adjustCursor,
-              deleteCount: data.deleteEnd - data.deleteStart,
-              text: data.insertDiff,
-            },
-          });
+      this.postMessage!("applyDiff", {
+        source: data.source,
+        cursor: data.cursor,
+      }).then((applyDiffResponse) => {
+        if (applyDiffResponse.success) {
+          resolve(applyDiffResponse);
         } else {
-          this.postMessage!("applyDiff", { source: data.source, cursor: data.cursor, });
+          const cursor =
+            (data.deleteEnd !== undefined &&
+              data.deleteStart !== undefined &&
+              data.deleteEnd - data.deleteStart !== 0) ||
+            (data.insertDiff !== undefined && data.insertDiff !== "")
+              ? data.deleteEnd
+              : data.cursor;
+
+          this.postMessage!("setCursor", { cursor }).then((cursorResponse) => {
+            resolve({
+              message: "applySystemDiff",
+              data: {
+                adjustCursor: cursorResponse.adjustCursor,
+                deleteCount: data.deleteEnd - data.deleteStart,
+                text: data.insertDiff,
+              },
+            });
+          });
         }
       });
     });
