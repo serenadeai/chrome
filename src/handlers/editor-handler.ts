@@ -28,7 +28,7 @@ export default class EditorHandler {
                 source: response.source,
                 cursor: response.cursor,
                 clickableCount: response.clickableCount,
-                filename: "",
+                filename: response.filename,
                 files: [],
                 roots: [],
               },
