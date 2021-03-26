@@ -1,5 +1,13 @@
 const cmModes: { [key: string]: string[] } = {
-  Default: ["plaintext", "markdown", "gfm", "text/plain", "text/x-ipythongfm", "text/x-markdown"],
+  Default: [
+    "plaintext",
+    "markdown",
+    "ipythongfm",
+    "gfm",
+    "text/plain",
+    "text/x-ipythongfm",
+    "text/x-markdown",
+  ],
   Bash: ["text/x-sh", "bash"],
   "C/C++": ["c", "c++", "csrc", "c++src", "text/x-c", "text/x-c++", "text/x-csrc", "text/x-c++src"],
   "CSS/SCSS": [
@@ -33,7 +41,7 @@ const cmModes: { [key: string]: string[] } = {
     "text/typescript-jsx",
   ],
   Kotlin: ["kotlin", "text/x-kotlin"],
-  Python: ["text/x-python", "text/x-ipython"],
+  Python: ["text/x-python", "text/x-ipython", "ipython"],
 };
 
 const languageExtensions: { [key: string]: string[] } = {
