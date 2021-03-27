@@ -1,4 +1,4 @@
-const cmModes: { [key: string]: string[] } = {
+const langModes: { [key: string]: string[] } = {
   Default: [
     "plaintext",
     "markdown",
@@ -39,9 +39,10 @@ const cmModes: { [key: string]: string[] } = {
     "text/x-vue",
     "text/jsx",
     "text/typescript-jsx",
+    "replit-js-v1",
   ],
   Kotlin: ["kotlin", "text/x-kotlin"],
-  Python: ["text/x-python", "text/x-ipython", "ipython"],
+  Python: ["text/x-python", "text/x-ipython", "ipython", "replit-python-v3", "notebook-python"],
 };
 
 const languageExtensions: { [key: string]: string[] } = {
@@ -55,6 +56,24 @@ const languageExtensions: { [key: string]: string[] } = {
   JavaScript: ["tsx", "js", "jsx", "ts", "vue"],
   Kotlin: ["kt"],
   Python: ["py"],
+};
+
+var monacoEditors: any[] = [];
+
+window.onload = (we: any) => {
+  (window as any).monaco?.editor?.onDidCreateEditor((e: any) => {
+    monacoEditors.push(e);
+  });
+};
+
+const getMonaco = () => {
+  let focused: any | null = null;
+  monacoEditors.forEach((e) => {
+    if (e.hasTextFocus()) {
+      focused = e;
+    }
+  });
+  return focused;
 };
 
 const getCodeMirror = () => {
@@ -73,7 +92,7 @@ const getFilenameFromCodeMirror = (cm: any) => {
   if (typeof mode !== "string" && mode.name) {
     mode = mode.name;
   }
-  for (const [language, modes] of Object.entries(cmModes)) {
+  for (const [language, modes] of Object.entries(langModes)) {
     if (modes.includes(mode)) {
       return "chrome." + languageExtensions[language][0];
     }
@@ -81,20 +100,42 @@ const getFilenameFromCodeMirror = (cm: any) => {
   return "";
 };
 
-const cursorFromPosition = (position: CodeMirror.Position, source: string) => {
-  if (source) {
+const getFilenameFromMonaco = (model: any) => {
+  let mode = model?.getModeId();
+  for (const [language, modes] of Object.entries(langModes)) {
+    if (modes.includes(mode)) {
+      return "chrome." + languageExtensions[language][0];
+    }
+  }
+  return "";
+};
+
+const cursorFromPosition = (position: any, source: string, editor: string) => {
+  if (source && position) {
+    let line: number = 0;
+    let ch: number = 0;
+    if (editor === "codemirror") {
+      line = position.line;
+      ch = position.ch;
+    } else if (editor === "monaco") {
+      // monaco is 1-indexed
+      line = position.lineNumber - 1;
+      ch = position.column - 1;
+    } else {
+      return null;
+    }
     let absoluteCursor = 0;
     let sourceLines = source.split("\n");
-    for (let index = 0; index < position.line; index++) {
+    for (let index = 0; index < line; index++) {
       absoluteCursor += sourceLines[index].length + 1;
     }
-    absoluteCursor += position.ch;
+    absoluteCursor += ch;
     return absoluteCursor;
   }
   return null;
 };
 
-const positionFromCursor = (cursor: number, source: string) => {
+const positionFromCursor = (cursor: number, source: string, editor: string) => {
   if (source) {
     let line = 0;
     let ch = 0;
@@ -106,25 +147,73 @@ const positionFromCursor = (cursor: number, source: string) => {
         ch++;
       }
     }
-    return { line: line, ch: ch, sticky: null };
+    if (editor === "codemirror") {
+      return { line: line, ch: ch, sticky: null };
+    } else if (editor === "monaco") {
+      return { lineNumber: line + 1, column: ch + 1 };
+    }
   }
-  return { line: 0, ch: 0, sticky: null };
+  return null;
 };
 
 document.addEventListener("serenade-chrome-set-codemirror-selection", (e) => {
   let codeMirror = getCodeMirror();
   if ((e as any).detail.cursorStart !== null && (e as any).detail.cursorEnd !== null) {
-    let positionStart = positionFromCursor((e as any).detail.cursorStart, codeMirror?.getValue());
-    let positionEnd = positionFromCursor((e as any).detail.cursorEnd, codeMirror?.getValue());
+    let positionStart = positionFromCursor(
+      (e as any).detail.cursorStart,
+      codeMirror?.getValue(),
+      "codemirror"
+    );
+    let positionEnd = positionFromCursor(
+      (e as any).detail.cursorEnd,
+      codeMirror?.getValue(),
+      "codemirror"
+    );
     codeMirror?.setSelection(positionStart, positionEnd);
+  }
+});
+
+document.addEventListener("serenade-chrome-set-monaco-selection", (e) => {
+  let monacoEditor = getMonaco();
+  let monacoModel = monacoEditor?.getModel();
+  if ((e as any).detail.cursorStart !== null && (e as any).detail.cursorEnd !== null) {
+    let positionStart = positionFromCursor(
+      (e as any).detail.cursorStart,
+      monacoModel?.getValue(),
+      "monaco"
+    );
+    let positionEnd = positionFromCursor(
+      (e as any).detail.cursorEnd,
+      monacoModel?.getValue(),
+      "monaco"
+    );
+    monacoEditor?.setSelection({
+      startLineNumber: positionStart?.lineNumber,
+      startColumn: positionStart?.column,
+      endLineNumber: positionEnd?.lineNumber,
+      endColumn: positionEnd?.column,
+    });
   }
 });
 
 document.addEventListener("serenade-chrome-set-codemirror-cursor", (e) => {
   let codeMirror = getCodeMirror();
   if ((e as any).detail.cursor !== null) {
-    let position = positionFromCursor((e as any).detail.cursor, codeMirror?.getValue());
+    let position = positionFromCursor(
+      (e as any).detail.cursor,
+      codeMirror?.getValue(),
+      "codemirror"
+    );
     codeMirror?.setCursor(position);
+  }
+});
+
+document.addEventListener("serenade-chrome-set-monaco-cursor", (e) => {
+  let monacoEditor = getMonaco();
+  let monacoModel = monacoEditor?.getModel();
+  if ((e as any).detail.cursor !== null) {
+    let position = positionFromCursor((e as any).detail.cursor, monacoModel?.getValue(), "monaco");
+    monacoEditor?.setPosition(position);
   }
 });
 
@@ -132,8 +221,22 @@ document.addEventListener("serenade-chrome-set-codemirror-source-and-cursor", (e
   let codeMirror = getCodeMirror();
   if ((e as any).detail.source && (e as any).detail.cursor !== null) {
     codeMirror?.setValue((e as any).detail.source);
-    let position = positionFromCursor((e as any).detail.cursor, codeMirror?.getValue());
+    let position = positionFromCursor(
+      (e as any).detail.cursor,
+      codeMirror?.getValue(),
+      "codemirror"
+    );
     codeMirror?.setCursor(position);
+  }
+});
+
+document.addEventListener("serenade-chrome-set-monaco-source-and-cursor", (e) => {
+  let monacoEditor = getMonaco();
+  let monacoModel = monacoEditor?.getModel();
+  if ((e as any).detail.source && (e as any).detail.cursor !== null) {
+    monacoModel?.setValue((e as any).detail.source);
+    let position = positionFromCursor((e as any).detail.cursor, monacoModel?.getValue(), "monaco");
+    monacoEditor?.setPosition(position);
   }
 });
 
@@ -144,8 +247,28 @@ document.addEventListener("serenade-chrome-request-codemirror", () => {
       detail: {
         // codeMirror: codeMirror, // sending complex objects doesn't work because custom event data is read-only
         codeMirrorValue: codeMirror?.getValue() as string,
-        codeMirrorCursor: cursorFromPosition(codeMirror?.getCursor(), codeMirror?.getValue()),
+        codeMirrorCursor: cursorFromPosition(
+          codeMirror?.getCursor(),
+          codeMirror?.getValue(),
+          "codemirror"
+        ),
         codeMirrorFilename: codeMirror ? getFilenameFromCodeMirror(codeMirror) : null,
+      },
+    })
+  );
+});
+
+document.addEventListener("serenade-chrome-request-monaco", () => {
+  let monacoEditor = getMonaco();
+  let model = monacoEditor?.getModel();
+  let source = model?.getValue();
+  let filename = getFilenameFromMonaco(model);
+  document.dispatchEvent(
+    new CustomEvent("serenade-chrome-send-monaco", {
+      detail: {
+        monacoValue: source,
+        monacoCursor: cursorFromPosition(monacoEditor?.getPosition(), source, "monaco"),
+        monacoFilename: filename,
       },
     })
   );

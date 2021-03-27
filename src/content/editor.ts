@@ -6,6 +6,7 @@ export const editorState = (port: Port, clickableCount: number) => {
   const source = activeElementSource();
   const cursor = activeElementCursor();
   const filename = activeElementFilename();
+  console.log(source, cursor, filename);
 
   port.postMessage({ source, cursor, filename, clickableCount });
 };
@@ -19,6 +20,17 @@ const activeElementIsCodeMirror = () => {
     }
   });
   return isCodeMirror;
+};
+
+const activeElementIsMonaco = () => {
+  const monacoNodes = document.querySelectorAll(".monaco-editor");
+  let isMonaco = false;
+  monacoNodes.forEach((node) => {
+    if (node.contains(document.activeElement)) {
+      isMonaco = true;
+    }
+  });
+  return isMonaco;
 };
 
 // Finds the active element and gets its user-visible source in plaintext.
@@ -36,6 +48,18 @@ const activeElementSource = () => {
     }
   );
   document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+  document.addEventListener(
+    "serenade-chrome-send-monaco",
+    (e) => {
+      if ((e as any).detail.monacoValue) {
+        activeElementSource = (e as any).detail.monacoValue;
+      }
+    },
+    {
+      once: true,
+    }
+  );
+  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
 
   if (document.activeElement && activeElementSource === null) {
     const element = document.activeElement as HTMLElement;
@@ -65,6 +89,18 @@ const activeElementCursor = () => {
     }
   );
   document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+  document.addEventListener(
+    "serenade-chrome-send-monaco",
+    (e) => {
+      if ((e as any).detail.monacoCursor) {
+        activeElementCursor = (e as any).detail.monacoCursor;
+      }
+    },
+    {
+      once: true,
+    }
+  );
+  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
 
   if (document.activeElement && activeElementCursor === null) {
     const element = document.activeElement as HTMLElement;
@@ -97,6 +133,18 @@ const activeElementFilename = () => {
     }
   );
   document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+  document.addEventListener(
+    "serenade-chrome-send-monaco",
+    (e) => {
+      if ((e as any).detail.monacoFilename) {
+        activeElementFilename = (e as any).detail.monacoFilename;
+      }
+    },
+    {
+      once: true,
+    }
+  );
+  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
   return activeElementFilename;
 };
 
@@ -106,6 +154,15 @@ export const selectActiveElement = (port: Port, data: { cursor: number; cursorEn
     if (activeElementIsCodeMirror()) {
       document.dispatchEvent(
         new CustomEvent("serenade-chrome-set-codemirror-selection", {
+          detail: {
+            cursorStart: data.cursor,
+            cursorEnd: data.cursorEnd,
+          },
+        })
+      );
+    } else if (activeElementIsMonaco()) {
+      document.dispatchEvent(
+        new CustomEvent("serenade-chrome-set-monaco-selection", {
           detail: {
             cursorStart: data.cursor,
             cursorEnd: data.cursorEnd,
@@ -141,6 +198,14 @@ export const setCursor = (port: Port, data: { cursor: number }) => {
     if (activeElementIsCodeMirror()) {
       document.dispatchEvent(
         new CustomEvent("serenade-chrome-set-codemirror-cursor", {
+          detail: {
+            cursor: data.cursor,
+          },
+        })
+      );
+    } else if (activeElementIsMonaco()) {
+      document.dispatchEvent(
+        new CustomEvent("serenade-chrome-set-monaco-cursor", {
           detail: {
             cursor: data.cursor,
           },
@@ -183,6 +248,16 @@ export const applyDiff = (port: Port, data: any) => {
   if (activeElementIsCodeMirror()) {
     document.dispatchEvent(
       new CustomEvent("serenade-chrome-set-codemirror-source-and-cursor", {
+        detail: {
+          cursor: data.cursor,
+          source: data.source,
+        },
+      })
+    );
+    return port.postMessage({ success: true });
+  } else if (activeElementIsMonaco()) {
+    document.dispatchEvent(
+      new CustomEvent("serenade-chrome-set-monaco-source-and-cursor", {
         detail: {
           cursor: data.cursor,
           source: data.source,
