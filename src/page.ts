@@ -70,7 +70,7 @@ const getCodeMirror = () => {
 
 const getFilenameFromCodeMirror = (cm: any) => {
   let mode = cm.options.mode;
-  if (typeof mode !== "string" && mode.name) {
+  if (mode && typeof mode !== "string" && mode.name) {
     mode = mode.name;
   }
   for (const [language, modes] of Object.entries(cmModes)) {
@@ -81,7 +81,7 @@ const getFilenameFromCodeMirror = (cm: any) => {
   return "";
 };
 
-const cursorFromPosition = (position: CodeMirror.Position, source: string) => {
+const cursorFromPosition = (position: any, source: string) => {
   if (source) {
     let absoluteCursor = 0;
     let sourceLines = source.split("\n");
