@@ -89,7 +89,7 @@ const getCodeMirror = () => {
 
 const getFilenameFromCodeMirror = (cm: any) => {
   let mode = cm.options.mode;
-  if (typeof mode !== "string" && mode.name) {
+  if (mode && typeof mode !== "string" && mode.name) {
     mode = mode.name;
   }
   for (const [language, modes] of Object.entries(langModes)) {
