@@ -6,7 +6,6 @@ export const editorState = (port: Port, clickableCount: number) => {
   const source = activeElementSource();
   const cursor = activeElementCursor();
   const filename = activeElementFilename();
-  console.log(source, cursor, filename);
 
   port.postMessage({ source, cursor, filename, clickableCount });
 };

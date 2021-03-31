@@ -60,7 +60,7 @@ const languageExtensions: { [key: string]: string[] } = {
 
 var monacoEditors: any[] = [];
 
-window.onload = (we: any) => {
+window.onload = (_e: any) => {
   (window as any).monaco?.editor?.onDidCreateEditor((e: any) => {
     monacoEditors.push(e);
   });
