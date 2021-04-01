@@ -75,44 +75,44 @@ const activeElementSource = () => {
 
 // Finds the active element and gets the cursor relative to user-visible source.
 const activeElementCursor = () => {
-  let activeElementCursor: number | null = null;
-  document.addEventListener(
-    "serenade-chrome-send-codemirror",
-    (e) => {
-      if ((e as any).detail.codeMirrorCursor) {
-        activeElementCursor = (e as any).detail.codeMirrorCursor;
+  let activeElementCursor: number = 0;
+  if (document.activeElement) {
+    if (activeElementIsCodeMirror()) {
+      document.addEventListener(
+        "serenade-chrome-send-codemirror",
+        (e) => {
+          if ((e as any).detail.codeMirrorCursor) {
+            activeElementCursor = (e as any).detail.codeMirrorCursor;
+          }
+        },
+        {
+          once: true,
+        }
+      );
+      document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+    } else if (activeElementIsMonaco()) {
+      document.addEventListener(
+        "serenade-chrome-send-monaco",
+        (e) => {
+          if ((e as any).detail.monacoCursor) {
+            activeElementCursor = (e as any).detail.monacoCursor;
+          }
+        },
+        {
+          once: true,
+        }
+      );
+      document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+    } else {
+      const element = document.activeElement as HTMLElement;
+      if (element.tagName === "INPUT") {
+        activeElementCursor = (element as HTMLInputElement).selectionStart!;
+      } else if (element.tagName === "TEXTAREA") {
+        activeElementCursor = (element as HTMLTextAreaElement).selectionStart!;
+      } else if (element.isContentEditable) {
+        activeElementCursor = Transformer.getCursor();
       }
-    },
-    {
-      once: true,
     }
-  );
-  document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
-  document.addEventListener(
-    "serenade-chrome-send-monaco",
-    (e) => {
-      if ((e as any).detail.monacoCursor) {
-        activeElementCursor = (e as any).detail.monacoCursor;
-      }
-    },
-    {
-      once: true,
-    }
-  );
-  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
-
-  if (document.activeElement && activeElementCursor === null) {
-    const element = document.activeElement as HTMLElement;
-    if (element.tagName === "INPUT") {
-      activeElementCursor = (element as HTMLInputElement).selectionStart!;
-    } else if (element.tagName === "TEXTAREA") {
-      activeElementCursor = (element as HTMLTextAreaElement).selectionStart!;
-    } else if (element.isContentEditable) {
-      activeElementCursor = Transformer.getCursor();
-    }
-  }
-  if (activeElementCursor === null) {
-    activeElementCursor = 0;
   }
   return activeElementCursor;
 };
@@ -120,30 +120,33 @@ const activeElementCursor = () => {
 // Finds the active element and gets the cursor relative to user-visible source.
 const activeElementFilename = () => {
   let activeElementFilename: string = "";
-  document.addEventListener(
-    "serenade-chrome-send-codemirror",
-    (e) => {
-      if ((e as any).detail.codeMirrorFilename) {
-        activeElementFilename = (e as any).detail.codeMirrorFilename;
+  if (document.activeElement && activeElementIsCodeMirror()) {
+    document.addEventListener(
+      "serenade-chrome-send-codemirror",
+      (e) => {
+        if ((e as any).detail.codeMirrorFilename) {
+          activeElementFilename = (e as any).detail.codeMirrorFilename;
+        }
+      },
+      {
+        once: true,
       }
-    },
-    {
-      once: true,
-    }
-  );
-  document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
-  document.addEventListener(
-    "serenade-chrome-send-monaco",
-    (e) => {
-      if ((e as any).detail.monacoFilename) {
-        activeElementFilename = (e as any).detail.monacoFilename;
+    );
+    document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+  } else if (document.activeElement && activeElementIsMonaco()) {
+    document.addEventListener(
+      "serenade-chrome-send-monaco",
+      (e) => {
+        if ((e as any).detail.monacoFilename) {
+          activeElementFilename = (e as any).detail.monacoFilename;
+        }
+      },
+      {
+        once: true,
       }
-    },
-    {
-      once: true,
-    }
-  );
-  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+    );
+    document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+  }
   return activeElementFilename;
 };
 
