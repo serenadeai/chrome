@@ -233,10 +233,17 @@ document.addEventListener("serenade-chrome-set-codemirror-source-and-cursor", (e
 document.addEventListener("serenade-chrome-set-monaco-source-and-cursor", (e) => {
   let monacoEditor = getMonaco();
   let monacoModel = monacoEditor?.getModel();
-  if ((e as any).detail.source && (e as any).detail.cursor !== null) {
-    monacoModel?.setValue((e as any).detail.source);
-    let position = positionFromCursor((e as any).detail.cursor, monacoModel?.getValue(), "monaco");
+  if ((e as any).detail.source !== null && (e as any).detail.cursor !== null) {
+    monacoEditor?.executeEdits("update-value", [
+      {
+        range: monacoModel?.getFullModelRange(),
+        text: (e as any).detail.source,
+        forceMoveMarkers: true,
+      },
+    ]);
+    let position = positionFromCursor((e as any).detail.cursor, (e as any).detail.source, "monaco");
     monacoEditor?.setPosition(position);
+    monacoModel?.pushStackElement(); // needed to make sure changes are added to the undo/redo stack
   }
 });
 
