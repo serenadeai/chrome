@@ -266,6 +266,7 @@ document.addEventListener("serenade-chrome-request-codemirror", () => {
 });
 
 document.addEventListener("serenade-chrome-request-monaco", () => {
+  console.log("requested monaco");
   let monacoEditor = getMonaco();
   let model = monacoEditor?.getModel();
   let source = model?.getValue();

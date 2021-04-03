@@ -1,11 +1,14 @@
 import Transformer from "./transformer";
 import Port = chrome.runtime.Port;
 import { shouldSkipEditorDomChanges } from "./utilities";
+import { resolve } from "path";
 
-export const editorState = (port: Port, clickableCount: number) => {
-  const source = activeElementSource();
-  const cursor = activeElementCursor();
-  const filename = activeElementFilename();
+export const editorState = async (port: Port, clickableCount: number) => {
+  const source = await activeElementSource();
+  const cursor = await activeElementCursor();
+  const filename = await activeElementFilename();
+
+  console.log(source, cursor, filename);
 
   port.postMessage({ source, cursor, filename, clickableCount });
 };
@@ -32,77 +35,62 @@ const activeElementIsMonaco = () => {
   return isMonaco;
 };
 
-// Finds the active element and gets its user-visible source in plaintext.
-const activeElementSource = () => {
-  let activeElementSource: string | null = null;
-  document.addEventListener(
-    "serenade-chrome-send-codemirror",
-    (e) => {
-      if ((e as any).detail.codeMirrorValue) {
-        activeElementSource = (e as any).detail.codeMirrorValue;
-      }
-    },
-    {
-      once: true,
-    }
-  );
+const getCodeMirror = async (value: string) => {
+  const codeMirror = new Promise((resolve) => {
+    document.addEventListener(
+      "serenade-chrome-send-codemirror",
+      (e) => resolve((e as any).detail[value]),
+      { once: true }
+    );
+  });
   document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
-  document.addEventListener(
-    "serenade-chrome-send-monaco",
-    (e) => {
-      if ((e as any).detail.monacoValue) {
-        activeElementSource = (e as any).detail.monacoValue;
-      }
-    },
-    {
-      once: true,
-    }
-  );
-  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+  return codeMirror;
+};
 
-  if (document.activeElement && activeElementSource === null) {
-    const element = document.activeElement as HTMLElement;
-    if (element.tagName === "INPUT") {
-      activeElementSource = (element as HTMLInputElement).value;
-    } else if (element.tagName === "TEXTAREA") {
-      activeElementSource = (element as HTMLTextAreaElement).value;
-    } else if (element.isContentEditable) {
-      activeElementSource = Transformer.getSource(element) || "";
+const getMonaco = async (value: string) => {
+  const monaco = new Promise((resolve) => {
+    document.addEventListener(
+      "serenade-chrome-send-monaco",
+      (e) => resolve((e as any).detail[value]),
+      {
+        once: true,
+      }
+    );
+  });
+  document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+  return monaco;
+};
+
+// Finds the active element and gets its user-visible source in plaintext.
+const activeElementSource = async () => {
+  let activeElementSource: string | null = null;
+  if (document.activeElement) {
+    if (activeElementIsCodeMirror()) {
+      activeElementSource = (await getCodeMirror("codeMirrorValue")) as string;
+    } else if (activeElementIsMonaco()) {
+      activeElementSource = (await getMonaco("monacoValue")) as string;
+    } else {
+      const element = document.activeElement as HTMLElement;
+      if (element.tagName === "INPUT") {
+        activeElementSource = (element as HTMLInputElement).value;
+      } else if (element.tagName === "TEXTAREA") {
+        activeElementSource = (element as HTMLTextAreaElement).value;
+      } else if (element.isContentEditable) {
+        activeElementSource = Transformer.getSource(element) || "";
+      }
     }
   }
   return activeElementSource;
 };
 
 // Finds the active element and gets the cursor relative to user-visible source.
-const activeElementCursor = () => {
+const activeElementCursor = async () => {
   let activeElementCursor: number = 0;
   if (document.activeElement) {
     if (activeElementIsCodeMirror()) {
-      document.addEventListener(
-        "serenade-chrome-send-codemirror",
-        (e) => {
-          if ((e as any).detail.codeMirrorCursor) {
-            activeElementCursor = (e as any).detail.codeMirrorCursor;
-          }
-        },
-        {
-          once: true,
-        }
-      );
-      document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
+      activeElementCursor = (await getCodeMirror("codeMirrorCursor")) as number;
     } else if (activeElementIsMonaco()) {
-      document.addEventListener(
-        "serenade-chrome-send-monaco",
-        (e) => {
-          if ((e as any).detail.monacoCursor) {
-            activeElementCursor = (e as any).detail.monacoCursor;
-          }
-        },
-        {
-          once: true,
-        }
-      );
-      document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+      activeElementCursor = (await getMonaco("monacoCursor")) as number;
     } else {
       const element = document.activeElement as HTMLElement;
       if (element.tagName === "INPUT") {
@@ -118,34 +106,14 @@ const activeElementCursor = () => {
 };
 
 // Finds the active element and gets the cursor relative to user-visible source.
-const activeElementFilename = () => {
+const activeElementFilename = async () => {
   let activeElementFilename: string = "";
-  if (document.activeElement && activeElementIsCodeMirror()) {
-    document.addEventListener(
-      "serenade-chrome-send-codemirror",
-      (e) => {
-        if ((e as any).detail.codeMirrorFilename) {
-          activeElementFilename = (e as any).detail.codeMirrorFilename;
-        }
-      },
-      {
-        once: true,
-      }
-    );
-    document.dispatchEvent(new CustomEvent("serenade-chrome-request-codemirror"));
-  } else if (document.activeElement && activeElementIsMonaco()) {
-    document.addEventListener(
-      "serenade-chrome-send-monaco",
-      (e) => {
-        if ((e as any).detail.monacoFilename) {
-          activeElementFilename = (e as any).detail.monacoFilename;
-        }
-      },
-      {
-        once: true,
-      }
-    );
-    document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
+  if (document.activeElement) {
+    if (activeElementIsCodeMirror()) {
+      activeElementFilename = (await getCodeMirror("codeMirrorFilename")) as string;
+    } else if (document.activeElement && activeElementIsMonaco()) {
+      activeElementFilename = (await getMonaco("monacoFilename")) as string;
+    }
   }
   return activeElementFilename;
 };
@@ -187,12 +155,12 @@ export const selectActiveElement = (port: Port, data: { cursor: number; cursorEn
 };
 
 // Select the active element and set the cursor on it
-export const setCursor = (port: Port, data: { cursor: number }) => {
+export const setCursor = async (port: Port, data: { cursor: number }) => {
   if (shouldSkipEditorDomChanges()) {
     // send through system flow
     return port.postMessage({
       success: false,
-      adjustCursor: data.cursor - activeElementCursor(),
+      adjustCursor: data.cursor - (await activeElementCursor()),
     });
   }
 
