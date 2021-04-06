@@ -78,28 +78,7 @@ export default class EditorHandler {
         source: data.source,
         cursor: data.cursor,
       }).then((applyDiffResponse) => {
-        if (applyDiffResponse.success) {
-          resolve(applyDiffResponse);
-        } else {
-          const cursor =
-            (data.deleteEnd !== undefined &&
-              data.deleteStart !== undefined &&
-              data.deleteEnd - data.deleteStart !== 0) ||
-            (data.insertDiff !== undefined && data.insertDiff !== "")
-              ? data.deleteEnd
-              : data.cursor;
-
-          this.postMessage!("setCursor", { cursor }).then((cursorResponse) => {
-            resolve({
-              message: "applySystemDiff",
-              data: {
-                adjustCursor: cursorResponse.adjustCursor,
-                deleteCount: data.deleteEnd - data.deleteStart,
-                text: data.insertDiff,
-              },
-            });
-          });
-        }
+        resolve(applyDiffResponse);
       });
     });
   }

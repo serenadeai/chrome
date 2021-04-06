@@ -9,7 +9,20 @@ const langModes: { [key: string]: string[] } = {
     "text/x-markdown",
   ],
   Bash: ["text/x-sh", "bash"],
-  "C/C++": ["c", "c++", "csrc", "c++src", "text/x-c", "text/x-c++", "text/x-csrc", "text/x-c++src"],
+  "C/C++": [
+    "c",
+    "c++",
+    "cpp",
+    "csrc",
+    "c++src",
+    "cppsrc",
+    "text/x-c",
+    "text/x-c++",
+    "text/x-cppsrc",
+    "text/x-csrc",
+    "text/x-c++src",
+    "text/x-cppsrc",
+  ],
   "CSS/SCSS": [
     "css",
     "less",
@@ -42,7 +55,14 @@ const langModes: { [key: string]: string[] } = {
     "replit-js-v1",
   ],
   Kotlin: ["kotlin", "text/x-kotlin"],
-  Python: ["text/x-python", "text/x-ipython", "ipython", "replit-python-v3", "notebook-python"],
+  Python: [
+    "python",
+    "text/x-python",
+    "text/x-ipython",
+    "ipython",
+    "replit-python-v3",
+    "notebook-python",
+  ],
 };
 
 const languageExtensions: { [key: string]: string[] } = {
@@ -63,7 +83,6 @@ var monacoEditors: any[] = [];
 function monacoListener() {
   (window as any).monaco?.editor?.onDidCreateEditor((e: any) => {
     monacoEditors.push(e);
-    console.log(monacoEditors);
   });
 }
 
@@ -170,6 +189,9 @@ const positionFromCursor = (cursor: number, source: string, editor: string) => {
 
 document.addEventListener("serenade-chrome-set-codemirror-selection", (e) => {
   let codeMirror = getCodeMirror();
+  if (!codeMirror) {
+    document.dispatchEvent(new CustomEvent("set-selection-status", { detail: { success: false } }));
+  }
   if ((e as any).detail.cursorStart !== null && (e as any).detail.cursorEnd !== null) {
     let positionStart = positionFromCursor(
       (e as any).detail.cursorStart,
@@ -182,12 +204,16 @@ document.addEventListener("serenade-chrome-set-codemirror-selection", (e) => {
       "codemirror"
     );
     codeMirror?.setSelection(positionStart, positionEnd);
+    document.dispatchEvent(new CustomEvent("set-selection-status", { detail: { success: true } }));
   }
 });
 
 document.addEventListener("serenade-chrome-set-monaco-selection", (e) => {
   let monacoEditor = getMonaco();
   let monacoModel = monacoEditor?.getModel();
+  if (!monacoEditor || !monacoModel) {
+    document.dispatchEvent(new CustomEvent("set-selection-status", { detail: { success: false } }));
+  }
   if ((e as any).detail.cursorStart !== null && (e as any).detail.cursorEnd !== null) {
     let positionStart = positionFromCursor(
       (e as any).detail.cursorStart,
@@ -205,11 +231,15 @@ document.addEventListener("serenade-chrome-set-monaco-selection", (e) => {
       endLineNumber: positionEnd?.lineNumber,
       endColumn: positionEnd?.column,
     });
+    document.dispatchEvent(new CustomEvent("set-selection-status", { detail: { success: true } }));
   }
 });
 
 document.addEventListener("serenade-chrome-set-codemirror-cursor", (e) => {
   let codeMirror = getCodeMirror();
+  if (!codeMirror) {
+    document.dispatchEvent(new CustomEvent("set-cursor-status", { detail: { success: false } }));
+  }
   if ((e as any).detail.cursor !== null) {
     let position = positionFromCursor(
       (e as any).detail.cursor,
@@ -217,20 +247,28 @@ document.addEventListener("serenade-chrome-set-codemirror-cursor", (e) => {
       "codemirror"
     );
     codeMirror?.setCursor(position);
+    document.dispatchEvent(new CustomEvent("set-cursor-status", { detail: { success: true } }));
   }
 });
 
 document.addEventListener("serenade-chrome-set-monaco-cursor", (e) => {
   let monacoEditor = getMonaco();
   let monacoModel = monacoEditor?.getModel();
+  if (!monacoEditor || !monacoModel) {
+    document.dispatchEvent(new CustomEvent("set-cursor-status", { detail: { success: false } }));
+  }
   if ((e as any).detail.cursor !== null) {
     let position = positionFromCursor((e as any).detail.cursor, monacoModel?.getValue(), "monaco");
     monacoEditor?.setPosition(position);
+    document.dispatchEvent(new CustomEvent("set-cursor-status", { detail: { success: true } }));
   }
 });
 
 document.addEventListener("serenade-chrome-set-codemirror-source-and-cursor", (e) => {
   let codeMirror = getCodeMirror();
+  if (!codeMirror) {
+    document.dispatchEvent(new CustomEvent("set-source-status", { detail: { success: false } }));
+  }
   if ((e as any).detail.source && (e as any).detail.cursor !== null) {
     codeMirror?.setValue((e as any).detail.source);
     let position = positionFromCursor(
@@ -239,12 +277,16 @@ document.addEventListener("serenade-chrome-set-codemirror-source-and-cursor", (e
       "codemirror"
     );
     codeMirror?.setCursor(position);
+    document.dispatchEvent(new CustomEvent("set-source-status", { detail: { success: true } }));
   }
 });
 
 document.addEventListener("serenade-chrome-set-monaco-source-and-cursor", (e) => {
   let monacoEditor = getMonaco();
   let monacoModel = monacoEditor?.getModel();
+  if (!monacoEditor || !monacoModel) {
+    document.dispatchEvent(new CustomEvent("set-source-status", { detail: { success: false } }));
+  }
   if ((e as any).detail.source !== null && (e as any).detail.cursor !== null) {
     monacoEditor?.executeEdits("update-value", [
       {
@@ -256,6 +298,7 @@ document.addEventListener("serenade-chrome-set-monaco-source-and-cursor", (e) =>
     let position = positionFromCursor((e as any).detail.cursor, (e as any).detail.source, "monaco");
     monacoEditor?.setPosition(position);
     monacoModel?.pushStackElement(); // needed to make sure changes are added to the undo/redo stack
+    document.dispatchEvent(new CustomEvent("set-source-status", { detail: { success: true } }));
   }
 });
 
@@ -280,13 +323,14 @@ document.addEventListener("serenade-chrome-request-codemirror", () => {
 document.addEventListener("serenade-chrome-request-monaco", () => {
   let monacoEditor = getMonaco();
   let model = monacoEditor?.getModel();
-  let source = model?.getValue();
-  let filename = getFilenameFromMonaco(model);
+  let source = model?.getValue() || null;
+  let cursor = cursorFromPosition(monacoEditor?.getPosition(), source, "monaco") || null;
+  let filename = getFilenameFromMonaco(model) || "";
   document.dispatchEvent(
     new CustomEvent("serenade-chrome-send-monaco", {
       detail: {
         monacoValue: source,
-        monacoCursor: cursorFromPosition(monacoEditor?.getPosition(), source, "monaco"),
+        monacoCursor: cursor,
         monacoFilename: filename,
       },
     })

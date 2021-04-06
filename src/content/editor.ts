@@ -69,7 +69,8 @@ const activeElementSource = async () => {
       activeElementSource = (await getCodeMirror("codeMirrorValue")) as string;
     } else if (activeElementIsMonaco()) {
       activeElementSource = (await getMonaco("monacoValue")) as string;
-    } else {
+    }
+    if (activeElementSource === null) {
       const element = document.activeElement as HTMLElement;
       if (element.tagName === "INPUT") {
         activeElementSource = (element as HTMLInputElement).value;
@@ -85,13 +86,14 @@ const activeElementSource = async () => {
 
 // Finds the active element and gets the cursor relative to user-visible source.
 const activeElementCursor = async () => {
-  let activeElementCursor: number = 0;
+  let activeElementCursor: number | null = null;
   if (document.activeElement) {
     if (activeElementIsCodeMirror()) {
       activeElementCursor = (await getCodeMirror("codeMirrorCursor")) as number;
     } else if (activeElementIsMonaco()) {
       activeElementCursor = (await getMonaco("monacoCursor")) as number;
-    } else {
+    }
+    if (activeElementCursor === null) {
       const element = document.activeElement as HTMLElement;
       if (element.tagName === "INPUT") {
         activeElementCursor = (element as HTMLInputElement).selectionStart!;
@@ -111,7 +113,7 @@ const activeElementFilename = async () => {
   if (document.activeElement) {
     if (activeElementIsCodeMirror()) {
       activeElementFilename = (await getCodeMirror("codeMirrorFilename")) as string;
-    } else if (document.activeElement && activeElementIsMonaco()) {
+    } else if (activeElementIsMonaco()) {
       activeElementFilename = (await getMonaco("monacoFilename")) as string;
     }
   }
@@ -119,8 +121,21 @@ const activeElementFilename = async () => {
 };
 
 // Select the active element based on cursor start and end relative to user-visible source.
-export const selectActiveElement = (port: Port, data: { cursor: number; cursorEnd: number }) => {
+export const selectActiveElement = async (
+  port: Port,
+  data: { cursor: number; cursorEnd: number }
+) => {
   if (document.activeElement) {
+    let success = false;
+    let status = new Promise((resolve) => {
+      document.addEventListener(
+        "set-selection-status",
+        (e) => {
+          resolve((e as any).detail.success);
+        },
+        { once: true }
+      );
+    });
     if (activeElementIsCodeMirror()) {
       document.dispatchEvent(
         new CustomEvent("serenade-chrome-set-codemirror-selection", {
@@ -130,6 +145,7 @@ export const selectActiveElement = (port: Port, data: { cursor: number; cursorEn
           },
         })
       );
+      success = (await status) as boolean;
     } else if (activeElementIsMonaco()) {
       document.dispatchEvent(
         new CustomEvent("serenade-chrome-set-monaco-selection", {
@@ -139,7 +155,9 @@ export const selectActiveElement = (port: Port, data: { cursor: number; cursorEn
           },
         })
       );
-    } else {
+      success = (await status) as boolean;
+    }
+    if (!success) {
       const element = document.activeElement as HTMLElement;
       const cursorEnd = data.cursorEnd < data.cursor ? data.cursor : data.cursorEnd;
       if (element.tagName === "INPUT") {
@@ -156,15 +174,17 @@ export const selectActiveElement = (port: Port, data: { cursor: number; cursorEn
 
 // Select the active element and set the cursor on it
 export const setCursor = async (port: Port, data: { cursor: number }) => {
-  if (shouldSkipEditorDomChanges()) {
-    // send through system flow
-    return port.postMessage({
-      success: false,
-      adjustCursor: data.cursor - (await activeElementCursor()),
-    });
-  }
-
   if (document.activeElement) {
+    let success = false;
+    let status = new Promise((resolve) => {
+      document.addEventListener(
+        "set-selection-status",
+        (e) => {
+          resolve((e as any).detail.success);
+        },
+        { once: true }
+      );
+    });
     if (activeElementIsCodeMirror()) {
       document.dispatchEvent(
         new CustomEvent("serenade-chrome-set-codemirror-cursor", {
@@ -173,6 +193,7 @@ export const setCursor = async (port: Port, data: { cursor: number }) => {
           },
         })
       );
+      success = (await status) as boolean;
     } else if (activeElementIsMonaco()) {
       document.dispatchEvent(
         new CustomEvent("serenade-chrome-set-monaco-cursor", {
@@ -181,7 +202,9 @@ export const setCursor = async (port: Port, data: { cursor: number }) => {
           },
         })
       );
-    } else {
+      success = (await status) as boolean;
+    }
+    if (!success) {
       const element = document.activeElement as HTMLElement;
       if (element.tagName === "INPUT") {
         (element as HTMLInputElement).setSelectionRange(data.cursor, data.cursor);
@@ -214,7 +237,17 @@ export const copy = (port: Port, data: { text: string }) => {
   });
 };
 
-export const applyDiff = (port: Port, data: any) => {
+export const applyDiff = async (port: Port, data: any) => {
+  let success = false;
+  let status = new Promise((resolve) => {
+    document.addEventListener(
+      "set-source-status",
+      (e) => {
+        resolve((e as any).detail.success);
+      },
+      { once: true }
+    );
+  });
   if (activeElementIsCodeMirror()) {
     document.dispatchEvent(
       new CustomEvent("serenade-chrome-set-codemirror-source-and-cursor", {
@@ -224,7 +257,7 @@ export const applyDiff = (port: Port, data: any) => {
         },
       })
     );
-    return port.postMessage({ success: true });
+    success = (await status) as boolean;
   } else if (activeElementIsMonaco()) {
     document.dispatchEvent(
       new CustomEvent("serenade-chrome-set-monaco-source-and-cursor", {
@@ -234,7 +267,7 @@ export const applyDiff = (port: Port, data: any) => {
         },
       })
     );
-    return port.postMessage({ success: true });
+    success = (await status) as boolean;
   }
-  return port.postMessage({ success: false });
+  return port.postMessage({ success: success });
 };
