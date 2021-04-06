@@ -60,10 +60,22 @@ const languageExtensions: { [key: string]: string[] } = {
 
 var monacoEditors: any[] = [];
 
-window.onload = (_e: any) => {
+function monacoListener() {
   (window as any).monaco?.editor?.onDidCreateEditor((e: any) => {
     monacoEditors.push(e);
+    console.log(monacoEditors);
   });
+}
+
+// Check for loaded monaco instances at different points in the page load and add a listener for new editor instances
+monacoListener();
+
+document.addEventListener("DOMContentLoaded", (_e: any) => {
+  monacoListener();
+});
+
+window.onload = (_e: any) => {
+  monacoListener();
 };
 
 const getMonaco = () => {
@@ -266,7 +278,6 @@ document.addEventListener("serenade-chrome-request-codemirror", () => {
 });
 
 document.addEventListener("serenade-chrome-request-monaco", () => {
-  console.log("requested monaco");
   let monacoEditor = getMonaco();
   let model = monacoEditor?.getModel();
   let source = model?.getValue();

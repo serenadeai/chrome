@@ -24,11 +24,10 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
+      "run_at": "document_start",
       "js": ["build/content.js", "build/inject.js"]
     }
   ],
-  "web_accessible_resources": [
-    "build/page.js"
-  ],
+  "web_accessible_resources": ["build/page.js"],
   "permissions": ["tabs", "*://*/*"]
 }
