@@ -11,38 +11,20 @@ export default class EditorHandler {
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("editorState")
-        .then((response) => {
-          if (response.source === null) {
-            resolve({
-              message: "editorState",
-              data: {
-                useSystemInsert: true,
-                clickableCount: response.clickableCount,
-              },
-            });
-          } else {
-            resolve({
-              message: "editorState",
-              data: {
-                source: response.source,
-                cursor: response.cursor,
-                clickableCount: response.clickableCount,
-                filename: response.filename,
-                files: [],
-                roots: [],
-              },
-            });
-          }
-        })
-        .catch(() =>
-          resolve({
-            message: "editorState",
-            data: {
-              useSystemInsert: true,
-            },
-          })
-        );
+      this.postMessage!("editorState").then((response) => {
+        console.log(response);
+        resolve({
+          message: "editorState",
+          data: {
+            source: response.source,
+            cursor: response.cursor,
+            clickableCount: response.clickableCount,
+            filename: response.filename,
+            files: [],
+            roots: [],
+          },
+        });
+      });
     });
   }
 

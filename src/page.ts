@@ -138,7 +138,7 @@ const getFilenameFromMonaco = (model: any) => {
       return "chrome." + languageExtensions[language][0];
     }
   }
-  return "";
+  return "chrome." + mode;
 };
 
 const cursorFromPosition = (position: any, source: string, editor: string) => {
@@ -307,7 +307,6 @@ document.addEventListener("serenade-chrome-request-codemirror", () => {
   document.dispatchEvent(
     new CustomEvent("serenade-chrome-send-codemirror", {
       detail: {
-        // codeMirror: codeMirror, // sending complex objects doesn't work because custom event data is read-only
         codeMirrorValue: codeMirror?.getValue() as string,
         codeMirrorCursor: cursorFromPosition(
           codeMirror?.getCursor(),
