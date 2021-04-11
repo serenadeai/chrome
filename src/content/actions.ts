@@ -56,9 +56,9 @@ const nodesMatching = (path?: string, overlayType?: string) => {
     }
   } else {
     // If no path, then look for all clickable or input elements
-    let selectors = "input, textarea, div[contenteditable]";
+    let selectors = "input, textarea, div[contenteditable], [role=\"checkbox\"], [role=\"radio\"]";
     if (overlayType === "links") {
-      selectors = "a, button";
+      selectors = "a, button, [role=\"link\"], [role=\"button\"]";
     } else if (overlayType === "code") {
       selectors = "pre, code";
     }
