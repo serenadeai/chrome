@@ -8,8 +8,6 @@ export const editorState = async (port: Port, clickableCount: number) => {
   const cursor = await activeElementCursor();
   const filename = await activeElementFilename();
 
-  console.log(source, cursor, filename);
-
   port.postMessage({ source, cursor, filename, clickableCount });
 };
 

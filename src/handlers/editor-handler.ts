@@ -4,6 +4,8 @@
  * have an input selected.
  */
 
+import { resolve } from "path";
+
 export default class EditorHandler {
   // These are declared by CommandHandler, which we extend
   postMessage?: (request: string, data?: any) => Promise<any>;
@@ -11,20 +13,29 @@ export default class EditorHandler {
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     return new Promise((resolve) => {
-      this.postMessage!("editorState").then((response) => {
-        console.log(response);
-        resolve({
-          message: "editorState",
-          data: {
-            source: response.source,
-            cursor: response.cursor,
-            clickableCount: response.clickableCount,
-            filename: response.filename,
-            files: [],
-            roots: [],
-          },
-        });
-      });
+      this.postMessage!("editorState")
+        .then((response) => {
+          console.log(response);
+          resolve({
+            message: "editorState",
+            data: {
+              source: response.source,
+              cursor: response.cursor,
+              clickableCount: response.clickableCount,
+              filename: response.filename,
+              files: [],
+              roots: [],
+            },
+          });
+        })
+        .catch(() =>
+          resolve({
+            message: "editorState",
+            data: {
+              useSystemInsert: true,
+            },
+          })
+        );
     });
   }
 
