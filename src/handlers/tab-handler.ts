@@ -7,6 +7,23 @@ export default class TabHandler {
     chrome.tabs.create({});
   }
 
+  async COMMAND_TYPE_DUPLICATE_TAB(_data: any): Promise<any> {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (activeTab) => {
+        if (!activeTab || activeTab.length === 0) {
+          resolve();
+        }
+
+        chrome.tabs.create(
+          {
+            url: activeTab[0].url,
+          },
+          resolve
+        );
+      });
+    });
+  }
+
   async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<any> {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
