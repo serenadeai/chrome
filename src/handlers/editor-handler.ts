@@ -15,7 +15,6 @@ export default class EditorHandler {
     return new Promise((resolve) => {
       this.postMessage!("editorState")
         .then((response) => {
-          console.log(response);
           resolve({
             message: "editorState",
             data: {
