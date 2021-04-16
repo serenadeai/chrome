@@ -4,6 +4,8 @@
  * have an input selected.
  */
 
+import { resolve } from "path";
+
 export default class EditorHandler {
   // These are declared by CommandHandler, which we extend
   postMessage?: (request: string, data?: any) => Promise<any>;
@@ -13,27 +15,17 @@ export default class EditorHandler {
     return new Promise((resolve) => {
       this.postMessage!("editorState")
         .then((response) => {
-          if (response.source === null) {
-            resolve({
-              message: "editorState",
-              data: {
-                useSystemInsert: true,
-                clickableCount: response.clickableCount,
-              },
-            });
-          } else {
-            resolve({
-              message: "editorState",
-              data: {
-                source: response.source,
-                cursor: response.cursor,
-                clickableCount: response.clickableCount,
-                filename: "",
-                files: [],
-                roots: [],
-              },
-            });
-          }
+          resolve({
+            message: "editorState",
+            data: {
+              source: response.source,
+              cursor: response.cursor,
+              clickableCount: response.clickableCount,
+              filename: response.filename,
+              files: [],
+              roots: [],
+            },
+          });
         })
         .catch(() =>
           resolve({
@@ -70,26 +62,15 @@ export default class EditorHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
+    // Try to set the source directly using the CodeMirror APIs, otherwise
+    // fall back to setting the cursor ourselves and passing the remaining
+    // text to the client to simulate keypresses.
     return new Promise((resolve) => {
-      // First try to set the cursor ourselves,
-      // then tell the client to simulate key presses if needed.
-      const cursor =
-        (data.deleteEnd !== undefined &&
-          data.deleteStart !== undefined &&
-          data.deleteEnd - data.deleteStart !== 0) ||
-        (data.insertDiff !== undefined && data.insertDiff !== "")
-          ? data.deleteEnd
-          : data.cursor;
-
-      this.postMessage!("setCursor", { cursor }).then((cursorResponse) => {
-        resolve({
-          message: "applyDiff",
-          data: {
-            adjustCursor: cursorResponse.adjustCursor,
-            deleteCount: data.deleteEnd - data.deleteStart,
-            text: data.insertDiff,
-          },
-        });
+      this.postMessage!("applyDiff", {
+        source: data.source,
+        cursor: data.cursor,
+      }).then((applyDiffResponse) => {
+        resolve(applyDiffResponse);
       });
     });
   }

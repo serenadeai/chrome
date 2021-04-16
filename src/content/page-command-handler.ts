@@ -15,7 +15,7 @@ chrome.runtime.onConnect.addListener((port) => {
     switch (msg.request) {
       /* Editor */
       case "editorState":
-        editor.editorState(port, clickables.length);
+        await editor.editorState(port, clickables.length);
         break;
       case "selectActiveElement":
         editor.selectActiveElement(port, msg.data);
@@ -28,6 +28,9 @@ chrome.runtime.onConnect.addListener((port) => {
         break;
       case "setCursor":
         editor.setCursor(port, msg.data);
+        break;
+      case "applyDiff":
+        editor.applyDiff(port, msg.data);
         break;
       /* Navigator */
       case "scrollDirection":

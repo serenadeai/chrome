@@ -7,7 +7,9 @@ const config = {
   target: "web",
   entry: {
     extension: "./src/extension.ts",
-    page: "./src/content/page-command-handler.ts",
+    inject: "./src/inject.js",
+    content: "./src/content/page-command-handler.ts",
+    page: "./src/page.ts",
   },
   output: {
     path: path.resolve(__dirname, "build"),
