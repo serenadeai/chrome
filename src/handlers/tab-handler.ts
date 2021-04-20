@@ -13,13 +13,7 @@ export default class TabHandler {
         if (!activeTab || activeTab.length === 0) {
           resolve();
         }
-
-        chrome.tabs.create(
-          {
-            url: activeTab[0].url,
-          },
-          resolve
-        );
+        chrome.tabs.duplicate(activeTab[0].id!, resolve);
       });
     });
   }
