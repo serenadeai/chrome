@@ -93,9 +93,9 @@ document.addEventListener("DOMContentLoaded", (_e: any) => {
   monacoListener();
 });
 
-window.onload = (_e: any) => {
+window.addEventListener("load", (_e: any) => {
   monacoListener();
-};
+});
 
 const getMonaco = () => {
   let focused: any | null = null;
