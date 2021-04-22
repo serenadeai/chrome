@@ -45,6 +45,7 @@ Commands supported:
     - `close tab`
     - `next tab`, `previous tab`
     - `(first | second ...) tab`
+    - `duplicate tab`
 - Actions
     - `show (links | inputs | code)` to overlay clickable/copyable elements
     - `click (text | number)` to click based on text or previous clickables
