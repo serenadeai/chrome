@@ -8,7 +8,7 @@ const config = {
   entry: {
     extension: "./src/extension.ts",
     inject: "./src/inject.js",
-    content: "./src/content/page-command-handler.ts",
+    content: "./src/content/tab.ts",
     page: "./src/page.ts",
   },
   output: {

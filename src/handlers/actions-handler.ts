@@ -27,7 +27,13 @@ export default class ActionsHandler {
   }
 
   COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
+
     return new Promise((resolve) => {
+      if (!data.path) {
+        // no-op on "click" by itself.
+        resolve(null);
+        return;
+      }
       this.postMessage!("findClickable", {
         path: data.path,
       })
@@ -38,7 +44,7 @@ export default class ActionsHandler {
           });
         })
         .catch(() => {
-          resolve();
+          resolve(null);
         });
     });
   }
