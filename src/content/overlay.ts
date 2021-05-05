@@ -3,7 +3,7 @@ import Tab from "./tab";
 export default class Overlay {
   clickables: Node[] = [];
   clickableType: "click" | "copy" | null = null;
-  
+
   inViewport(node: HTMLElement): boolean {
     const bounding = node.getBoundingClientRect();
 
@@ -29,7 +29,7 @@ export default class Overlay {
         (bounding.right >= 0 && bounding.right <= window.innerWidth)) &&
       !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
     );
-  };
+  }
 
   public nodesMatching(path?: string, overlayType?: string): Node[] {
     const result: Node[] = [];
@@ -59,7 +59,7 @@ export default class Overlay {
       // If no path, then look for all clickable or input elements
       let selectors = 'input, textarea, div[contenteditable], [role="checkbox"], [role="radio"]';
       if (overlayType === "links") {
-        selectors = 'a, button, [role="link"], [role="button"]';
+        selectors = 'a, button, summary, [role="link"], [role="button"]';
       } else if (overlayType === "code") {
         selectors = "pre, code";
       }
@@ -80,7 +80,7 @@ export default class Overlay {
       }
     }
     return result;
-  };
+  }
 
   public clearOverlays() {
     const overlays = document.getElementsByClassName("serenade-overlay");
@@ -89,7 +89,7 @@ export default class Overlay {
     }
     this.clickables = [];
     this.clickableType = null;
-  };
+  }
 
   public showOverlay(path: string, overlayType?: string) {
     this.showOverlayForPath(path, overlayType);
@@ -121,7 +121,7 @@ export default class Overlay {
 
       document.body.appendChild(overlay);
     }
-  };
+  }
 
   public click(path: string) {
     const pathNumber = parseInt(path, 10);
@@ -147,7 +147,7 @@ export default class Overlay {
       (node as HTMLElement).click();
     }
     this.clearOverlays();
-  };
+  }
 
   public async copyClickable(index: number): Promise<boolean> {
     // 0-index
@@ -168,9 +168,9 @@ export default class Overlay {
           return true;
         })
         .catch(() => {
-          Tab.notifications.show(`Failed to copy ${index}. Please focus Chrome.`,);
+          Tab.notifications.show(`Failed to copy ${index}. Please focus Chrome.`);
           return true;
         });
     }
   }
-};
+}
