@@ -3,5 +3,4 @@ build
 .DS_Store
 *.log
 .idea
-test
 package-lock.json

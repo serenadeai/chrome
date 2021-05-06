@@ -1,0 +1,50 @@
+body {
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva,
+    Verdana, sans-serif;
+}
+#container {
+  height: 400px;
+}
+
+.language {
+  display: inline-block;
+}
+
+/* Dropdown Button */
+.dropbtn {
+  border: none;
+  float: right;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  min-width: 160px;
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  min-width: 160px;
+  z-index: 10;
+}
+
+/* Links inside the dropdown */
+.dropdown-content button {
+  min-width: 160px;
+  display: block;
+  border: none;
+  text-align: left;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content button:hover {
+  background-color: #ddd;
+}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {
+  display: block;
+}
