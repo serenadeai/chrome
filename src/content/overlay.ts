@@ -57,7 +57,8 @@ export default class Overlay {
       }
     } else {
       // If no path, then look for all clickable or input elements
-      let selectors = 'input, textarea, div[contenteditable], [role="checkbox"], [role="radio"]';
+      let selectors =
+        'input, textarea, div[contenteditable], [role="checkbox"], [role="radio"], .CodeMirror';
       if (overlayType === "links") {
         selectors = 'a, button, summary, [role="link"], [role="button"]';
       } else if (overlayType === "code") {
@@ -130,8 +131,14 @@ export default class Overlay {
       this.showOverlayForPath(path);
       // auto-execute
       if (this.clickables.length === 1) {
-        (this.clickables[0] as HTMLElement).focus();
-        (this.clickables[0] as HTMLElement).click();
+        const node = this.clickables[0];
+        if ((node as HTMLElement).className.includes("CodeMirror")) {
+          (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
+          (node as HTMLElement).getElementsByTagName("textarea")[0].click();
+        } else {
+          (node as HTMLElement).focus();
+          (node as HTMLElement).click();
+        }
         this.clearOverlays();
         return;
       } else {
@@ -143,8 +150,13 @@ export default class Overlay {
     // If we have a number that we can click
     if (pathNumber - 1 < this.clickables.length) {
       const node = this.clickables[pathNumber - 1];
-      (node as HTMLElement).focus();
-      (node as HTMLElement).click();
+      if ((node as HTMLElement).className.includes("CodeMirror")) {
+        (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
+        (node as HTMLElement).getElementsByTagName("textarea")[0].click();
+      } else {
+        (node as HTMLElement).focus();
+        (node as HTMLElement).click();
+      }
     }
     this.clearOverlays();
   }
