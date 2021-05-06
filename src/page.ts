@@ -128,7 +128,7 @@ const getFilenameFromCodeMirror = (cm: any) => {
       return "chrome." + languageExtensions[language][0];
     }
   }
-  return "";
+  return "chrome." + mode;
 };
 
 const getFilenameFromMonaco = (model: any) => {
