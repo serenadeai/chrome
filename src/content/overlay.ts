@@ -36,24 +36,28 @@ export default class Overlay {
     if (path && path.length) {
       // Look for elements with matching containing text, input elements with matching placeholder text, or img elements
       // with matching alt text.
-      const snapshot = document.evaluate(
-        `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
-        document,
-        null,
-        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        null
-      );
+      try {
+        const snapshot = document.evaluate(
+          `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
+          document,
+          null,
+          XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+          null
+        );
 
-      const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
-      for (let i = 0; i < snapshot.snapshotLength; i++) {
-        const item = snapshot.snapshotItem(i);
-        if (
-          item !== null &&
-          this.inViewport(item as HTMLElement) &&
-          (item as HTMLElement).innerText.match(re)
-        ) {
-          result.push(item);
+        const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
+        for (let i = 0; i < snapshot.snapshotLength; i++) {
+          const item = snapshot.snapshotItem(i);
+          if (
+            item !== null &&
+            this.inViewport(item as HTMLElement) &&
+            (item as HTMLElement).innerText.match(re)
+          ) {
+            result.push(item);
+          }
         }
+      } catch {
+        return result;
       }
     } else {
       // If no path, then look for all clickable or input elements
