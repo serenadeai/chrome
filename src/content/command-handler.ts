@@ -2,36 +2,58 @@ import Tab from "./tab";
 import Port = chrome.runtime.Port;
 
 export default class CommandHandler {
-  public async applyDiff(data: { source: string, cursor: number }): Promise<any> {
+  focus: boolean;
+
+  constructor() {
+    this.focus = true;
+  }
+
+  public async applyDiff(data: { source: string; cursor: number }): Promise<any> {
     return { success: await Tab.editor.applyDiff(data.source, data.cursor) };
   }
 
   public async editorState(): Promise<any> {
-    const source = await Tab.editor.activeElementSource();
-    const cursor = await Tab.editor.activeElementCursor();
-    const filename = await Tab.editor.activeElementFilename();
-    const clickableCount = Tab.overlay.clickables.length;
-    return { source, cursor, filename, clickableCount };
-  };
+    window.addEventListener(
+      "focusout",
+      (_e) => {
+        this.focus = false;
+      },
+      { once: true }
+    );
+    window.addEventListener(
+      "focusin",
+      (_e) => {
+        this.focus = true;
+      },
+      { once: true }
+    );
+    if (this.focus) {
+      const source = await Tab.editor.activeElementSource();
+      const cursor = await Tab.editor.activeElementCursor();
+      const filename = await Tab.editor.activeElementFilename();
+      const clickableCount = Tab.overlay.clickables.length;
+      return { source, cursor, filename, clickableCount };
+    } else {
+      return { source: null, cursor: null, filename: null, clickableCount: 0 };
+    }
+  }
 
   // Gets clipboard contents
   public async getClipboard() {
     try {
-      return { text : await navigator.clipboard.readText() };
+      return { text: await navigator.clipboard.readText() };
     } catch {
       return { success: false };
     }
-  };
+  }
 
   // Copies text to clipboard
   public async copy(data: { text: string }) {
     await navigator.clipboard.writeText(data.text);
     return { success: true };
-  };
+  }
 
-  public async selectActiveElement(
-    data: { cursor: number, cursorEnd: number }
-  ): Promise<any> {
+  public async selectActiveElement(data: { cursor: number; cursorEnd: number }): Promise<any> {
     return { success: await Tab.editor.selectActiveElement(data.cursor, data.cursorEnd) };
   }
 
@@ -96,7 +118,7 @@ export default class CommandHandler {
     else {
       return { clickable: Tab.overlay.nodesMatching(data.path).length };
     }
-  };
+  }
 
   public showNotification(data: { text: string }) {
     Tab.notifications.show(data.text);
