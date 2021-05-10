@@ -61,7 +61,9 @@ export default class CommandHandler {
   }
 
   public async click(data: any): Promise<any> {
-    Tab.overlay.click(data.path);
+    if (data.path) {
+      Tab.overlay.click(data.path);
+    }
     return { success: true };
   }
 

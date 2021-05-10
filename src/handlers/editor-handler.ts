@@ -42,36 +42,13 @@ export default class EditorHandler {
     return this.resolvePostMessage!("copy", data);
   }
 
-  async COMMAND_TYPE_PASTE(_data: any): Promise<any> {
-    return new Promise((resolve) => {
-      this.postMessage!("getClipboard").then((data) => {
-        if (!data.success) {
-          resolve({
-            message: "paste",
-          });
-        } else {
-          resolve({
-            message: "insertText",
-            data: {
-              text: data.text,
-            },
-          });
-        }
-      });
-    });
-  }
-
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
     // Try to set the source directly using the CodeMirror APIs, otherwise
     // fall back to setting the cursor ourselves and passing the remaining
     // text to the client to simulate keypresses.
-    return new Promise((resolve) => {
-      this.postMessage!("applyDiff", {
-        source: data.source,
-        cursor: data.cursor,
-      }).then((applyDiffResponse) => {
-        resolve(applyDiffResponse);
-      });
+    return await this.postMessage!("applyDiff", {
+      source: data.source,
+      cursor: data.cursor,
     });
   }
 

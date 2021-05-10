@@ -26,28 +26,21 @@ export default class ActionsHandler {
     });
   }
 
-  COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
-
-    return new Promise((resolve) => {
-      if (!data.path) {
-        // no-op on "click" by itself.
-        resolve(null);
-        return;
+  async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
+    const emptyResponse = {message: "clickable", data: []};
+    try {
+      const ret: any = await this.postMessage!("findClickable", {path: data.path});  
+      if (!ret) {
+        return emptyResponse;
       }
-      this.postMessage!("findClickable", {
-        path: data.path,
-      })
-        .then((data) => {
-          resolve({
-            message: "clickable",
-            data,
-          });
-        })
-        .catch(() => {
-          resolve(null);
-        });
-    });
-  }
+      return {
+        message: "clickable",
+        data: ret,
+      };
+    } catch (e) {
+      return emptyResponse;
+    }
+}
 
   COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
     return this.clearOverlays();
