@@ -2,32 +2,15 @@ import Tab from "./tab";
 import Port = chrome.runtime.Port;
 
 export default class CommandHandler {
-  focus: boolean;
-
-  constructor() {
-    this.focus = true;
-  }
-
-  public async applyDiff(data: { source: string; cursor: number }): Promise<any> {
+  public async applyDiff(data: {
+    source: string;
+    cursor: number;
+  }): Promise<any> {
     return { success: await Tab.editor.applyDiff(data.source, data.cursor) };
   }
 
   public async editorState(): Promise<any> {
-    window.addEventListener(
-      "focusout",
-      (_e) => {
-        this.focus = false;
-      },
-      { once: true }
-    );
-    window.addEventListener(
-      "focusin",
-      (_e) => {
-        this.focus = true;
-      },
-      { once: true }
-    );
-    if (this.focus) {
+    if (document.hasFocus()) {
       const source = await Tab.editor.activeElementSource();
       const cursor = await Tab.editor.activeElementCursor();
       const filename = await Tab.editor.activeElementFilename();
@@ -53,8 +36,16 @@ export default class CommandHandler {
     return { success: true };
   }
 
-  public async selectActiveElement(data: { cursor: number; cursorEnd: number }): Promise<any> {
-    return { success: await Tab.editor.selectActiveElement(data.cursor, data.cursorEnd) };
+  public async selectActiveElement(data: {
+    cursor: number;
+    cursorEnd: number;
+  }): Promise<any> {
+    return {
+      success: await Tab.editor.selectActiveElement(
+        data.cursor,
+        data.cursorEnd
+      ),
+    };
   }
 
   public async setCursor(data: { cursor: number }): Promise<any> {
