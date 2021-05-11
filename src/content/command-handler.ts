@@ -2,10 +2,7 @@ import Tab from "./tab";
 import Port = chrome.runtime.Port;
 
 export default class CommandHandler {
-  public async applyDiff(data: {
-    source: string;
-    cursor: number;
-  }): Promise<any> {
+  public async applyDiff(data: { source: string; cursor: number }): Promise<any> {
     return { success: await Tab.editor.applyDiff(data.source, data.cursor) };
   }
 
@@ -15,9 +12,10 @@ export default class CommandHandler {
       const cursor = await Tab.editor.activeElementCursor();
       const filename = await Tab.editor.activeElementFilename();
       const clickableCount = Tab.overlay.clickables.length;
-      return { source, cursor, filename, clickableCount };
+      const error = source == null;
+      return { source, cursor, filename, clickableCount, error };
     } else {
-      return { source: null, cursor: null, filename: null, clickableCount: 0 };
+      return { filename: "serenade-chrome-address-bar", error: true };
     }
   }
 
@@ -36,15 +34,9 @@ export default class CommandHandler {
     return { success: true };
   }
 
-  public async selectActiveElement(data: {
-    cursor: number;
-    cursorEnd: number;
-  }): Promise<any> {
+  public async selectActiveElement(data: { cursor: number; cursorEnd: number }): Promise<any> {
     return {
-      success: await Tab.editor.selectActiveElement(
-        data.cursor,
-        data.cursorEnd
-      ),
+      success: await Tab.editor.selectActiveElement(data.cursor, data.cursorEnd),
     };
   }
 

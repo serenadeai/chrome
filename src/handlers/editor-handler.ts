@@ -22,6 +22,7 @@ export default class EditorHandler {
               cursor: response.cursor,
               clickableCount: response.clickableCount,
               filename: response.filename,
+              error: response.error,
               files: [],
               roots: [],
             },
@@ -32,6 +33,7 @@ export default class EditorHandler {
             message: "editorState",
             data: {
               useSystemInsert: true,
+              error: true,
             },
           })
         );
