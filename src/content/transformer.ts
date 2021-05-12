@@ -9,7 +9,7 @@ function debug(...args: any[]) {
 
 export default class Transformer {
   // Given a node, traverse up the tree to find a contenteditable node, if exists
-  private static _getAnchor(target: HTMLElement | Text): Node | null {
+  private _getAnchor(target: HTMLElement | Text): Node | null {
     let editable;
     if (target instanceof Text) {
       editable = target.parentElement!;
@@ -35,7 +35,7 @@ export default class Transformer {
 
   // Given a node, its offset from the start, and a cursorStart and cursorEnd,
   // set the cursor in the node.
-  private static _trySetCursor(
+  private _trySetCursor(
     node: Node,
     startOffset: number,
     cursorStart?: number,
@@ -58,7 +58,7 @@ export default class Transformer {
       ((node.nodeType === Node.TEXT_NODE &&
         node.textContent &&
         node.textContent.length + startOffset >= cursorStart) ||
-        (Transformer._isManualLineBreak(node) && startOffset === cursorStart)) &&
+        (this._isManualLineBreak(node) && startOffset === cursorStart)) &&
       startOffset <= cursorStart
     ) {
       // call range to set start
@@ -87,7 +87,7 @@ export default class Transformer {
       ((node.nodeType === Node.TEXT_NODE &&
         node.textContent &&
         node.textContent.length + startOffset >= cursorEnd) ||
-        (Transformer._isManualLineBreak(node) && startOffset === cursorEnd)) &&
+        (this._isManualLineBreak(node) && startOffset === cursorEnd)) &&
       startOffset <= cursorEnd
     ) {
       // call range to set end
@@ -100,24 +100,24 @@ export default class Transformer {
     return shouldBreak;
   }
 
-  private static _isBlockElement(node: Node): boolean {
+  private _isBlockElement(node: Node): boolean {
     return ["P", "DIV"].includes((node as HTMLElement).tagName);
   }
 
-  private static _isManualLineBreak(node: Node): boolean {
+  private _isManualLineBreak(node: Node): boolean {
     return ["BR"].includes((node as HTMLElement).tagName);
   }
 
   // Given a target element and optional selection range, returns the text
   // content for the parent contenteditable (anchor). If optional selection
   // range, stops returning at the start of the cursor.
-  private static _getTextContent(
+  private _getTextContent(
     target: HTMLElement | Text,
     range?: Range,
     cursorStart?: number,
     cursorEnd?: number
   ): string | null {
-    const anchor = Transformer._getAnchor(target);
+    const anchor = this._getAnchor(target);
     if (anchor === null || !(anchor instanceof HTMLElement)) {
       return null;
     }
@@ -171,12 +171,12 @@ export default class Transformer {
         );
 
         if (cursorStart !== undefined || cursorEnd !== undefined) {
-          shouldBreak = Transformer._trySetCursor(node, content.length, cursorStart, cursorEnd);
+          shouldBreak = this._trySetCursor(node, content.length, cursorStart, cursorEnd);
           shouldAddContent = true;
         }
 
         if (
-          Transformer._isBlockElement(node) &&
+          this._isBlockElement(node) &&
           !justAddedBlockNewline &&
           !justAddedManualNewline
         ) {
@@ -184,7 +184,7 @@ export default class Transformer {
           justAddedBlockNewline = true;
         }
 
-        if (Transformer._isManualLineBreak(node)) {
+        if (this._isManualLineBreak(node)) {
           if (!lastElement) {
             content = content.concat("\n");
             justAddedManualNewline = true;
@@ -215,7 +215,7 @@ export default class Transformer {
         }
 
         if (node.nodeType === Node.ELEMENT_NODE) {
-          if (Transformer._isBlockElement(node)) {
+          if (this._isBlockElement(node)) {
             if (!justAddedBlockNewline && !lastElement && !justAddedManualNewline) {
               content = content.concat("\n");
               justAddedBlockNewline = true;
@@ -265,7 +265,7 @@ export default class Transformer {
     return content;
   }
 
-  static setCursor(offset: number, cursorEnd?: number) {
+  setCursor(offset: number, cursorEnd?: number) {
     const selected = window.getSelection();
     if (selected === null || selected.rangeCount < 1) {
       return;
@@ -281,11 +281,11 @@ export default class Transformer {
       return;
     }
 
-    return Transformer._getTextContent(target, undefined, offset, cursorEnd);
+    return this._getTextContent(target, undefined, offset, cursorEnd);
   }
 
   // Returns the cursor position as seen by the user.
-  static getCursor(): number {
+  getCursor(): number {
     const selected = window.getSelection();
     if (selected === null || selected.rangeCount < 1) {
       return 0;
@@ -301,14 +301,14 @@ export default class Transformer {
       return 0;
     }
 
-    const textContent = Transformer._getTextContent(target, range);
+    const textContent = this._getTextContent(target, range);
 
     return textContent ? textContent.length : 0;
   }
 
   // Returns the source text as seen by the user. We can't use the native browser
   // textContent because it doesn't generate line breaks.
-  static getSource(target: HTMLElement): string | null {
-    return Transformer._getTextContent(target);
+  getSource(target: HTMLElement): string | null {
+    return this._getTextContent(target);
   }
 }
