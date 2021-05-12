@@ -12,32 +12,33 @@ export default class EditorHandler {
   resolvePostMessage?: (request: string, data?: any) => Promise<any>;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
-    return new Promise((resolve) => {
-      this.postMessage!("editorState")
-        .then((response) => {
-          resolve({
-            message: "editorState",
-            data: {
-              source: response.source,
-              cursor: response.cursor,
-              clickableCount: response.clickableCount,
-              filename: response.filename,
-              error: response.error,
-              files: [],
-              roots: [],
-            },
-          });
-        })
-        .catch(() =>
-          resolve({
-            message: "editorState",
-            data: {
-              useSystemInsert: true,
-              error: true,
-            },
-          })
-        );
-    });
+    const errorResponse = {
+      message: "editorState",
+      data: {
+        useSystemInsert: true,
+        error: true,
+      },
+    };
+    try {
+      const response = await this.postMessage!("editorState");
+      if (!response) {
+        return errorResponse;
+      }
+      return {
+        message: "editorState",
+        data: {
+          source: response.source,
+          cursor: response.cursor,
+          clickableCount: response.clickableCount,
+          filename: response.filename,
+          error: response.error,
+          files: [],
+          roots: [],
+        },
+      };
+    } catch (e) {
+      return errorResponse;
+    }
   }
 
   async COMMAND_TYPE_COPY(data: any): Promise<any> {
