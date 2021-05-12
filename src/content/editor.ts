@@ -1,7 +1,6 @@
 import Tab from "./tab";
 
 export default class Editor {
-
   activeElementIsCodeMirror(): boolean {
     const codeMirrorNodes = document.querySelectorAll(".CodeMirror");
     let isCodeMirror = false;
@@ -11,7 +10,7 @@ export default class Editor {
       }
     });
     return isCodeMirror;
-  };
+  }
 
   activeElementIsMonaco = () => {
     const monacoNodes = document.querySelectorAll(".monaco-editor");
@@ -48,7 +47,7 @@ export default class Editor {
     });
     document.dispatchEvent(new CustomEvent("serenade-chrome-request-monaco"));
     return monaco;
-  };
+  }
 
   // Finds the active element and gets its user-visible source in plaintext.
   async activeElementSource() {
@@ -66,12 +65,12 @@ export default class Editor {
         } else if (element.tagName === "TEXTAREA") {
           activeElementSource = (element as HTMLTextAreaElement).value;
         } else if (element.isContentEditable) {
-          activeElementSource = Tab.transformer.getSource(element) || "";
+          activeElementSource = Tab.transformer.getSource(element);
         }
       }
     }
     return activeElementSource;
-  };
+  }
 
   // Finds the active element and gets the cursor relative to user-visible source.
   async activeElementCursor(): Promise<number | null> {
@@ -94,7 +93,7 @@ export default class Editor {
       }
     }
     return activeElementCursor;
-  };
+  }
 
   // Finds the active element and gets the cursor relative to user-visible source.
   async activeElementFilename(): Promise<string> {
@@ -107,12 +106,10 @@ export default class Editor {
       }
     }
     return activeElementFilename;
-  };
+  }
 
   // Select the active element based on cursor start and end relative to user-visible source.
-  public async selectActiveElement(
-    cursorStart: number, cursorEnd: number
-  ): Promise<boolean> {
+  public async selectActiveElement(cursorStart: number, cursorEnd: number): Promise<boolean> {
     if (document.activeElement) {
       let success = false;
       let status = new Promise((resolve) => {
@@ -158,7 +155,7 @@ export default class Editor {
       }
     }
     return true;
-  };
+  }
 
   // Select the active element and set the cursor on it
   public async setCursor(cursor: number): Promise<void> {
@@ -203,7 +200,7 @@ export default class Editor {
         }
       }
     }
-  };
+  }
 
   public async applyDiff(source: string, cursor: number) {
     let success = false;
@@ -238,5 +235,5 @@ export default class Editor {
       success = (await status) as boolean;
     }
     return success;
-  };
+  }
 }
