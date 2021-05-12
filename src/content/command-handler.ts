@@ -15,7 +15,7 @@ export default class CommandHandler {
       const error = source == null;
       return { source, cursor, filename, clickableCount, error };
     } else {
-      return { filename: "serenade-chrome-address-bar", error: true };
+      return { filename: "", error: true };
     }
   }
 
