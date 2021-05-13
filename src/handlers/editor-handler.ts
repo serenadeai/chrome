@@ -12,66 +12,46 @@ export default class EditorHandler {
   resolvePostMessage?: (request: string, data?: any) => Promise<any>;
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
-    return new Promise((resolve) => {
-      this.postMessage!("editorState")
-        .then((response) => {
-          resolve({
-            message: "editorState",
-            data: {
-              source: response.source,
-              cursor: response.cursor,
-              clickableCount: response.clickableCount,
-              filename: response.filename,
-              files: [],
-              roots: [],
-            },
-          });
-        })
-        .catch(() =>
-          resolve({
-            message: "editorState",
-            data: {
-              useSystemInsert: true,
-            },
-          })
-        );
-    });
+    const errorResponse = {
+      message: "editorState",
+      data: {
+        useSystemInsert: true,
+        error: true,
+      },
+    };
+    try {
+      const response = await this.postMessage!("editorState");
+      if (!response) {
+        return errorResponse;
+      }
+      return {
+        message: "editorState",
+        data: {
+          source: response.source,
+          cursor: response.cursor,
+          clickableCount: response.clickableCount,
+          filename: response.filename,
+          error: response.error,
+          files: [],
+          roots: [],
+        },
+      };
+    } catch (e) {
+      return errorResponse;
+    }
   }
 
   async COMMAND_TYPE_COPY(data: any): Promise<any> {
     return this.resolvePostMessage!("copy", data);
   }
 
-  async COMMAND_TYPE_PASTE(_data: any): Promise<any> {
-    return new Promise((resolve) => {
-      this.postMessage!("getClipboard").then((data) => {
-        if (!data.success) {
-          resolve({
-            message: "paste",
-          });
-        } else {
-          resolve({
-            message: "insertText",
-            data: {
-              text: data.text,
-            },
-          });
-        }
-      });
-    });
-  }
-
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
     // Try to set the source directly using the CodeMirror APIs, otherwise
     // fall back to setting the cursor ourselves and passing the remaining
     // text to the client to simulate keypresses.
-    return new Promise((resolve) => {
-      this.postMessage!("applyDiff", {
-        source: data.source,
-        cursor: data.cursor,
-      }).then((applyDiffResponse) => {
-        resolve(applyDiffResponse);
-      });
+    return await this.postMessage!("applyDiff", {
+      source: data.source,
+      cursor: data.cursor,
     });
   }
 

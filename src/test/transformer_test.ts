@@ -1,6 +1,8 @@
 import { assert } from "chai";
 import Transformer from "../content/transformer";
 
+const transformer = new Transformer();
+
 // Make a contenteditable div in our global document
 window.document.body.innerHTML = `
   <!DOCTYPE html>
@@ -35,12 +37,6 @@ const assertRange = (
   _endContainer: Node,
   endOffset: number
 ) => {
-  // console.log(
-  //   window.getSelection()!.getRangeAt(0).startContainer.nodeType,
-  //   window.getSelection()!.getRangeAt(0).startContainer.textContent,
-  //   window.getSelection()!.getRangeAt(0).endContainer.nodeType,
-  //   window.getSelection()!.getRangeAt(0).endContainer.textContent
-  // );
   assert.equal(window.getSelection()!.getRangeAt(0).startContainer, _startContainer);
   assert.equal(window.getSelection()!.getRangeAt(0).startOffset, startOffset);
   assert.equal(window.getSelection()!.getRangeAt(0).endContainer, _endContainer);
@@ -50,7 +46,7 @@ const assertRange = (
 describe("setCursor()", function () {
   it("abc", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-    Transformer.setCursor(2);
+    transformer.setCursor(2);
 
     const b = selectTextElement("span", 1);
     assertRange(b, 1, b, 1);
@@ -58,7 +54,7 @@ describe("setCursor()", function () {
 
   it("abc at end", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-    Transformer.setCursor(3);
+    transformer.setCursor(3);
 
     const c = selectTextElement("span", 2);
     assertRange(c, 1, c, 1);
@@ -66,7 +62,7 @@ describe("setCursor()", function () {
 
   it("abc to end", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-    Transformer.setCursor(0, 3);
+    transformer.setCursor(0, 3);
 
     const a = selectTextElement("span", 0);
     const c = selectTextElement("span", 2);
@@ -75,7 +71,7 @@ describe("setCursor()", function () {
 
   it("abc past end", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-    Transformer.setCursor(0, 4);
+    transformer.setCursor(0, 4);
 
     const a = selectTextElement("span", 0);
     const c = selectTextElement("span", 2);
@@ -84,7 +80,7 @@ describe("setCursor()", function () {
 
   it("abc with line break", function () {
     setEditorHTML(`<span>a</span><span>b</span><br><span>c</span>`);
-    Transformer.setCursor(0, 3);
+    transformer.setCursor(0, 3);
 
     const a = selectTextElement("span", 0);
     const c = selectTextElement("span", 2);
@@ -93,7 +89,7 @@ describe("setCursor()", function () {
 
   it("abc with line break at start", function () {
     setEditorHTML(`<span>a</span><span>b</span><br><p>c</p>`);
-    Transformer.setCursor(3, 4);
+    transformer.setCursor(3, 4);
 
     const c = selectTextElement("p", 0);
     assertRange(c, 0, c, 1);
@@ -101,7 +97,7 @@ describe("setCursor()", function () {
 
   it("multiple line breaks", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-    Transformer.setCursor(4);
+    transformer.setCursor(4);
 
     const br = selectElement("br", 1);
     assertRange(br, 0, br, 0);
@@ -109,7 +105,7 @@ describe("setCursor()", function () {
 
   it("multiple line breaks by block element", function () {
     setEditorHTML(`<div>one</div><div><br></div><div>two</div>`);
-    Transformer.setCursor(3);
+    transformer.setCursor(3);
 
     const div = selectTextElement("div", 1);
     assertRange(div, 3, div, 3);
@@ -117,7 +113,7 @@ describe("setCursor()", function () {
 
   it("multiple consecutive line breaks", function () {
     setEditorHTML(`one<br><br><br><div><br></div><div>two</div>`);
-    Transformer.setCursor(4);
+    transformer.setCursor(4);
 
     const br = selectElement("br", 1);
     assertRange(br, 0, br, 0);
@@ -125,7 +121,7 @@ describe("setCursor()", function () {
 
   it("two with line break", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-    Transformer.setCursor(6);
+    transformer.setCursor(6);
 
     const two = selectTextElement("div", 2);
     assertRange(two, 1, two, 1);
@@ -133,7 +129,7 @@ describe("setCursor()", function () {
 
   it("two after line break", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-    Transformer.setCursor(5, 8);
+    transformer.setCursor(5, 8);
 
     const two = selectTextElement("div", 2);
     assertRange(two, 0, two, 3);
@@ -141,7 +137,7 @@ describe("setCursor()", function () {
 
   it("two including line break", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
-    Transformer.setCursor(4, 8);
+    transformer.setCursor(4, 8);
 
     const br = selectElement("br", 1);
     const two = selectTextElement("div", 2);
@@ -150,7 +146,7 @@ describe("setCursor()", function () {
 
   it("three with line break", function () {
     setEditorHTML(`one<br><div>two</div><div>three</div><div>four</div><div>five</div>`);
-    Transformer.setCursor(8, 13);
+    transformer.setCursor(8, 13);
 
     const three = selectTextElement("div", 2);
     assertRange(three, 0, three, 5);
@@ -158,7 +154,7 @@ describe("setCursor()", function () {
 
   it("select line break", function () {
     setEditorHTML(`one<div><br><div>two</div><div>three</div><div>four</div><div>five</div></div>`);
-    Transformer.setCursor(4, 4);
+    transformer.setCursor(4, 4);
 
     const br = selectElement("br", 0);
     assertRange(br, 0, br, 0);
@@ -166,7 +162,7 @@ describe("setCursor()", function () {
 
   it("select up to line break", function () {
     setEditorHTML(`one<div><br><div>two</div><div>three</div><div>four</div><div>five</div></div>`);
-    Transformer.setCursor(0, 4);
+    transformer.setCursor(0, 4);
 
     const one = selectTextElement("div", 0);
     const br = selectElement("br", 0);
@@ -183,7 +179,7 @@ describe("setCursor()", function () {
     setEditorHTML(
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
-    Transformer.setCursor(11);
+    transformer.setCursor(11);
 
     // The selection should be on the bold element's Text element
     const bold = selectTextElement("b", 0);
@@ -200,7 +196,7 @@ describe("setCursor()", function () {
     setEditorHTML(
       `<div><span>a</span>b<p>c<i>d</i>e</p></div><div>f<p>g<b>h</b><span>i</span></p></div>`
     );
-    Transformer.setCursor(10, 12);
+    transformer.setCursor(10, 12);
 
     const bold = selectTextElement("b", 0);
     const i = selectTextElement("span", 1);
@@ -215,7 +211,7 @@ describe("getCursor()", function () {
     const b = selectTextElement("span", 1);
     window.getSelection()!.collapse(b, 0);
 
-    assert.equal(Transformer.getCursor(), 1);
+    assert.equal(transformer.getCursor(), 1);
   });
 
   it("space case", function () {
@@ -224,7 +220,7 @@ describe("getCursor()", function () {
     const b = selectTextElement("span", 1);
     window.getSelection()!.collapse(b, 0);
 
-    assert.equal(Transformer.getCursor(), 3);
+    assert.equal(transformer.getCursor(), 3);
   });
 
   it("offset case", function () {
@@ -233,7 +229,7 @@ describe("getCursor()", function () {
     const b = selectTextElement("span", 1);
     window.getSelection()!.collapse(b, 2);
 
-    assert.equal(Transformer.getCursor(), 3);
+    assert.equal(transformer.getCursor(), 3);
   });
 
   it("complex case", function () {
@@ -250,21 +246,21 @@ describe("getCursor()", function () {
     const d = selectTextElement("span", 1);
     window.getSelection()!.collapse(d, 0);
 
-    assert.equal(Transformer.getCursor(), 11);
+    assert.equal(transformer.getCursor(), 11);
   });
 });
 
 describe("getSource()", function () {
   it("simple case", function () {
     setEditorHTML(`<span>a</span><span>b</span><span>c</span>`);
-    assert.equal(Transformer.getSource(target), `abc`);
+    assert.equal(transformer.getSource(target), `abc`);
   });
 
   it("space case", function () {
     setEditorHTML(`<p>a&nbsp;&nbsp;c</p><span>b</span>`);
     // The non-breaking space is Unicode 160, not a typed space, which is 32.
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a${String.fromCodePoint(160)}${String.fromCodePoint(160)}c
 b`
     );
@@ -273,7 +269,7 @@ b`
   it("newline br br", function () {
     setEditorHTML(`a<br><br><span>b</span>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 
 b`
@@ -283,7 +279,7 @@ b`
   it("newline br p", function () {
     setEditorHTML(`a<br><p>b</p>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 b`
     );
@@ -292,7 +288,7 @@ b`
   it("newline br div br", function () {
     setEditorHTML(`a<br><div><br></div><span>b</span>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 
 b`
@@ -302,7 +298,7 @@ b`
   it("newline p span", function () {
     setEditorHTML(`<p>a</p><span>b</span>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 b`
     );
@@ -311,7 +307,7 @@ b`
   it("newline span p", function () {
     setEditorHTML(`<span>a</span><p>b</p>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 b`
     );
@@ -320,7 +316,7 @@ b`
   it("newline span p span", function () {
     setEditorHTML(`<span>a</span><p>b</p><span>c</span>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 b
 c`
@@ -330,7 +326,7 @@ c`
   it("multiple line breaks", function () {
     setEditorHTML(`one<br><div><br></div><div>two</div>`);
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `one
 
 two`
@@ -343,7 +339,7 @@ two`
     );
 
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `ab
 cde
 f
@@ -356,7 +352,7 @@ ghi`
       `<p>a</p><div><div><p>b</p><p>c</p></div><br><p><span>e</span>c<span>d<i>f</i></span></p><span>h</span></div><p>g</p>`
     );
     assert.equal(
-      Transformer.getSource(target),
+      transformer.getSource(target),
       `a
 b
 c
