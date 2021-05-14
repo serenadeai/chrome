@@ -6,7 +6,7 @@ var me;
 var language = "text";
 
 window.addEventListener("load", (_e) => {
-  me = monaco.editor.create(document.getElementById("container"), {});
+  me = monaco.editor.create(document.getElementById("monaco-container"), {});
 });
 
 function showMonacoLanguages() {
@@ -17,16 +17,3 @@ function setMonacoLanguage(mode, language) {
   monaco.editor.setModelLanguage(me.getModel(), mode);
   document.getElementById("currentMonacoLanguage").textContent = language;
 }
-
-window.addEventListener("click", (event) => {
-  if (!event.target.matches(".dropbtn")) {
-    var dropdowns = document.getElementsByClassName("dropdown-content");
-    var i;
-    for (i = 0; i < dropdowns.length; i++) {
-      var openDropdown = dropdowns[i];
-      if (openDropdown.classList.contains("show")) {
-        openDropdown.classList.remove("show");
-      }
-    }
-  }
-});

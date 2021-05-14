@@ -6,6 +6,27 @@
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="shortcut icon" href="#" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
     <link rel="stylesheet" href="static/style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.min.js"></script>
     <link
@@ -22,52 +43,120 @@
     />
   </head>
   <body>
-    <h1>Inputs</h1>
-    <input type="checkbox" />Checkbox
-    <br />
-    <input type="radio" id="1" /><label for="1">Radio 1 </label>
-    <br />
-    <input type="radio" id="2" /><label for="2">Radio 2</label>
-    <h1>Text Input</h1>
-    <input />
-
-    <h1>Text Area</h1>
-    <textarea>Insert text here</textarea>
-
-    <h1>Content Editable</h1>
-    <div contenteditable="true">This text is editable</div>
-
-    <h1>CodeMirror</h1>
-    <div class="dropdown">
-      <div class="language" id="currentCodeMirrorLanguage">Text</div>
-      <button onclick="showCMLanguages()" class="dropbtn">▼</button>
-      <div id="codeMirrorLanguages" class="dropdown-content">
-        <button onclick="setCMLanguage('text', 'Text')">Text</button>
-        <button onclick="setCMLanguage('text/x-c++src', 'C++')">C++</button>
-        <button onclick="setCMLanguage('text/x-java', 'Java')">Java</button>
-        <button onclick="setCMLanguage('javascript', 'JavaScript')">JavaScript</button>
-        <button onclick="setCMLanguage('python', 'Python')">Python</button>
-      </div>
+    <div class="container">
+      <h1>Inputs</h1>
+      <input type="checkbox" />Checkbox
+      <br />
+      <input type="radio" id="1" /><label for="1">Radio 1 </label>
+      <br />
+      <input type="radio" id="2" /><label for="2">Radio 2</label>
+      <h1>Text Input</h1>
+      <input />
     </div>
     <br />
-    <br />
-    <textarea class="cm"></textarea>
 
-    <h1>Monaco Editor</h1>
-    <div class="dropdown">
-      <div class="language" id="currentMonacoLanguage">Text</div>
-      <button onclick="showMonacoLanguages()" class="dropbtn">▼</button>
-      <div id="monacoLanguages" class="dropdown-content">
-        <button onclick="setMonacoLanguage('text', 'Text')">Text</button>
-        <button onclick="setMonacoLanguage('cpp', 'C++')">C++</button>
-        <button onclick="setMonacoLanguage('java', 'Java')">Java</button>
-        <button onclick="setMonacoLanguage('javascript', 'JavaScript')">JavaScript</button>
-        <button onclick="setMonacoLanguage('python', 'Python')">Python</button>
-      </div>
+    <div class="container">
+      <h1>Text Area</h1>
+      <textarea>Insert text here</textarea>
     </div>
     <br />
+
+    <div class="container">
+      <h1>Content Editable</h1>
+      <div contenteditable="true">This text is editable</div>
+    </div>
     <br />
-    <div id="container"></div>
+
+    <div class="container">
+      <h1>CodeMirror</h1>
+      <div class="dropdown">
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="currentCodeMirrorLanguage"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Text
+        </button>
+        <div class="dropdown-menu" id="codeMirrorLanguages">
+          <button class="dropdown-item" type="button" onclick="setCMLanguage('text', 'Text')">
+            Text
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('text/x-c++src', 'C++')"
+          >
+            C++
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('text/x-java', 'Java')"
+          >
+            Java
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('javascript', 'JavaScript')"
+          >
+            JavaScript
+          </button>
+          <button class="dropdown-item" type="button" onclick="setCMLanguage('python', 'Python')">
+            Python
+          </button>
+        </div>
+      </div>
+      <br />
+      <textarea class="cm"></textarea>
+    </div>
+    <br />
+
+    <div class="container">
+      <h1>Monaco Editor</h1>
+      <div class="dropdown">
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="currentMonacoLanguage"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Text
+        </button>
+        <div class="dropdown-menu" id="monacoLanguages">
+          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('text', 'Text')">
+            Text
+          </button>
+          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('cpp', 'C++')">
+            C++
+          </button>
+          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('java', 'Java')">
+            Java
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('javascript', 'JavaScript')"
+          >
+            JavaScript
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('python', 'Python')"
+          >
+            Python
+          </button>
+        </div>
+      </div>
+      <br />
+      <div id="monaco-container"></div>
+    </div>
     <!-- Scripts -->
     <script src="static/js/codemirror.js"></script>
     <script>
