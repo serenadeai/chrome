@@ -66,7 +66,11 @@ export default class Overlay {
       }
       const elements = document.querySelectorAll(selectors);
       for (let i = 0; i < elements.length; i++) {
-        if (this.inViewport(elements[i] as HTMLElement)) {
+        let element = elements[i] as HTMLElement;
+        if (element.tagName == "A" && element.firstElementChild?.tagName == "DIV") {
+          element = element.firstElementChild as HTMLElement;
+        }
+        if (this.inViewport(element)) {
           // if the parent is a pre or code, don't add
           if (
             overlayType === "code" &&
@@ -76,7 +80,7 @@ export default class Overlay {
             continue;
           }
 
-          result.push(elements[i]);
+          result.push(element);
         }
       }
     }
