@@ -37,14 +37,20 @@ export default class Overlay {
       // Look for elements with matching containing text, input elements with matching placeholder text, or img elements
       // with matching alt text.
       const snapshot = document.evaluate(
-        `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
+        `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${path}")]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${path}")]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${path}")]`,
         document,
         null,
         XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
         null
       );
 
-      const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
+      const re = new RegExp(
+        path
+          .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+          .split(" ")
+          .join("\\s*\\b"),
+        "i"
+      );
       for (let i = 0; i < snapshot.snapshotLength; i++) {
         const item = snapshot.snapshotItem(i);
         if (
