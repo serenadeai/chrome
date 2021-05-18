@@ -36,28 +36,24 @@ export default class Overlay {
     if (path && path.length) {
       // Look for elements with matching containing text, input elements with matching placeholder text, or img elements
       // with matching alt text.
-      try {
-        const snapshot = document.evaluate(
-          `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
-          document,
-          null,
-          XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-          null
-        );
+      const snapshot = document.evaluate(
+        `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
+        document,
+        null,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        null
+      );
 
-        const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
-        for (let i = 0; i < snapshot.snapshotLength; i++) {
-          const item = snapshot.snapshotItem(i);
-          if (
-            item !== null &&
-            this.inViewport(item as HTMLElement) &&
-            (item as HTMLElement).innerText.match(re)
-          ) {
-            result.push(item);
-          }
+      const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
+      for (let i = 0; i < snapshot.snapshotLength; i++) {
+        const item = snapshot.snapshotItem(i);
+        if (
+          item !== null &&
+          this.inViewport(item as HTMLElement) &&
+          (item as HTMLElement).innerText.match(re)
+        ) {
+          result.push(item);
         }
-      } catch {
-        return result;
       }
     } else {
       // If no path, then look for all clickable or input elements
@@ -70,7 +66,15 @@ export default class Overlay {
       }
       const elements = document.querySelectorAll(selectors);
       for (let i = 0; i < elements.length; i++) {
+<<<<<<< HEAD
         if (this.inViewport(elements[i] as HTMLElement)) {
+=======
+        let element = elements[i] as HTMLElement;
+        if (element.tagName == "A" && element.firstElementChild?.tagName == "DIV") {
+          element = element.firstElementChild as HTMLElement;
+        }
+        if (this.inViewport(element)) {
+>>>>>>> 08077f7bfebada5b958bab00fda90ce9d76146bb
           // if the parent is a pre or code, don't add
           if (
             overlayType === "code" &&
@@ -80,7 +84,11 @@ export default class Overlay {
             continue;
           }
 
+<<<<<<< HEAD
           result.push(elements[i]);
+=======
+          result.push(element);
+>>>>>>> 08077f7bfebada5b958bab00fda90ce9d76146bb
         }
       }
     }
