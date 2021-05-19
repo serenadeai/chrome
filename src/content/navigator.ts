@@ -1,20 +1,19 @@
 import Tab from "./tab";
 
 export default class Navigator {
-
   canScrollHorizontally(element: Element): boolean {
     const overflow = window.getComputedStyle(element).overflowX;
     return (
       element.scrollWidth > element.clientWidth && (overflow === "scroll" || overflow === "auto")
     );
-  };
+  }
 
   canScrollVertically(element: Element): boolean {
     const overflow = window.getComputedStyle(element).overflowY;
     return (
       element.scrollHeight > element.clientHeight && (overflow === "scroll" || overflow === "auto")
     );
-  };
+  }
 
   scrollOptions(element: Element | Window, direction: string): ScrollOptions {
     let dir = {};
@@ -51,7 +50,7 @@ export default class Navigator {
     }
 
     return Object.assign(dir, { behavior: "smooth" }) as ScrollOptions;
-  };
+  }
 
   public scrollDirection = async (direction: string): Promise<boolean> => {
     const horizontal = direction === "left" || direction === "right";
@@ -81,17 +80,23 @@ export default class Navigator {
     }
     // scrollBy isn't an asynchronous function, even though it behaves like one,
     // so there needs to be a timeout to enable "scroll down two times"
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       setTimeout(resolve, 300);
-    })
+    });
     return true;
   };
+
+  public async scrollToTop(): Promise<boolean> {
+    const scrollToOptions: ScrollToOptions = { top: 0, left: 0, behavior: "smooth" };
+    window.scrollTo(scrollToOptions);
+    return true;
+  }
 
   // Given a path to match on, scroll to it if found
   public async findMatchAndScroll(path: string): Promise<boolean> {
     // Matches based on content ("path")
     const snapshot = document.evaluate(
-      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]`,
+      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${path}")]]`,
       document,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
@@ -135,6 +140,5 @@ export default class Navigator {
       (target as HTMLElement).style.backgroundColor = backgroundColor;
     }, 2000);
     return true;
-  };
-
+  }
 }
