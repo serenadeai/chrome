@@ -86,8 +86,18 @@ export default class Navigator {
     return true;
   };
 
+  public async scrollToBottom(): Promise<boolean> {
+    const scrollToOptions: ScrollToOptions = {
+      left: 0,
+      top: document.body.scrollHeight,
+      behavior: "smooth",
+    };
+    window.scrollTo(scrollToOptions);
+    return true;
+  }
+
   public async scrollToTop(): Promise<boolean> {
-    const scrollToOptions: ScrollToOptions = { top: 0, left: 0, behavior: "smooth" };
+    const scrollToOptions: ScrollToOptions = { left: 0, top: 0, behavior: "smooth" };
     window.scrollTo(scrollToOptions);
     return true;
   }
