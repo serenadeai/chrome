@@ -27,7 +27,13 @@ export default class NavigationHandler {
 
     // Scrolling to a path
     if (data.path) {
-      return this.resolvePostMessage!("findMatchAndScroll", { path: data.path });
+      if (data.path == "top") {
+        return this.resolvePostMessage!("scrollToTop", {});
+      } else if (data.path == "bottom") {
+        return this.resolvePostMessage!("scrollToBottom", {});
+      } else {
+        return this.resolvePostMessage!("findMatchAndScroll", { path: data.path });
+      }
     }
   }
 }

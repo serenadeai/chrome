@@ -89,6 +89,14 @@ export default class CommandHandler {
     return { success: await Tab.navigator.scrollDirection(data.direction) };
   }
 
+  public async scrollToBottom(): Promise<any> {
+    return { success: await Tab.navigator.scrollToBottom() };
+  }
+
+  public async scrollToTop(): Promise<any> {
+    return { success: await Tab.navigator.scrollToTop() };
+  }
+
   public async findMatchAndScroll(data: { path: string }) {
     return { success: await Tab.navigator.findMatchAndScroll(data.path) };
   }

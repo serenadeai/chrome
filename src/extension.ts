@@ -29,21 +29,12 @@ function showLoadingIndicator() {
   }, 3000);
 }
 
-function resetAndConnect() {
-  commandHandler = new CommandHandler();
-  ipc = new IPC(commandHandler, "chrome");
-  commandHandler.setIPC(ipc);
-  setIcon();
-
-  ipc.start();
-  showLoadingIndicator();
-}
-
-chrome.runtime.onMessage.addListener((message) => {
-  if (message === "reconnect") {
-    resetAndConnect();
-  }
-});
-
 window.setInterval(setIcon, 1000);
-resetAndConnect();
+
+commandHandler = new CommandHandler();
+ipc = new IPC(commandHandler, "chrome");
+commandHandler.setIPC(ipc);
+setIcon();
+
+ipc.start();
+showLoadingIndicator();
