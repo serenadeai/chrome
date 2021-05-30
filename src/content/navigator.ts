@@ -1,4 +1,4 @@
-import Tab from "./tab";
+import { xPathEscapeQuotes } from "./utils";
 
 export default class Navigator {
   canScrollHorizontally(element: Element): boolean {
@@ -105,8 +105,9 @@ export default class Navigator {
   // Given a path to match on, scroll to it if found
   public async findMatchAndScroll(path: string): Promise<boolean> {
     // Matches based on content ("path")
+    const escapedPath = xPathEscapeQuotes(path);
     const snapshot = document.evaluate(
-      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${path}")]]`,
+      `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::img)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), ${escapedPath})]]`,
       document,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
