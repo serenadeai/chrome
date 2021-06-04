@@ -13,7 +13,7 @@ export function xPathEscapeQuotes(path: string): string {
       currentSubstring = currentSubstring.concat(currentEnclosure);
       parts.push(currentSubstring);
       currentEnclosure = switchEnclosure[currentEnclosure];
-      currentSubstring = currentEnclosure + switchEnclosure[currentEnclosure];
+      currentSubstring = currentEnclosure + c;
     } else {
       // Otherwise continue adding to the current part
       currentSubstring = currentSubstring.concat(c);
