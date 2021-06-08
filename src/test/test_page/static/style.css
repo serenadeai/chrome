@@ -1,0 +1,13 @@
+body {
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva,
+    Verdana, sans-serif;
+}
+
+#monaco-container {
+  height: 400px;
+  overflow: auto;
+}
+
+.language {
+  display: inline-block;
+}
