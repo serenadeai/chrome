@@ -1,4 +1,5 @@
 import Tab from "./tab";
+import { xPathEscapeQuotes } from "./utils";
 
 export default class Overlay {
   clickables: Node[] = [];
@@ -36,15 +37,23 @@ export default class Overlay {
     if (path && path.length) {
       // Look for elements with matching containing text, input elements with matching placeholder text, or img elements
       // with matching alt text.
+      const escapedPath = xPathEscapeQuotes(path);
       const snapshot = document.evaluate(
-        `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${path}')]`,
+        `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)][text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), ${escapedPath})]]|//input[contains(translate(@placeholder, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), ${escapedPath})]|//img[contains(translate(@alt, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), ${escapedPath})]`,
         document,
         null,
         XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
         null
       );
 
-      const re = new RegExp("\\b" + path.split(" ").join("\\s*\\b") + "\\b", "i");
+      const re = new RegExp(
+        path
+          // See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711
+          .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+          .split(" ")
+          .join("\\s*\\b"),
+        "i"
+      );
       for (let i = 0; i < snapshot.snapshotLength; i++) {
         const item = snapshot.snapshotItem(i);
         if (

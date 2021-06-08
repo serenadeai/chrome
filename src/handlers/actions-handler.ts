@@ -27,9 +27,9 @@ export default class ActionsHandler {
   }
 
   async COMMAND_TYPE_CLICKABLE(data: any): Promise<any> {
-    const emptyResponse = {message: "clickable", data: []};
+    const emptyResponse = { message: "clickable", data: [] };
     try {
-      const ret: any = await this.postMessage!("findClickable", {path: data.path});  
+      const ret: any = await this.postMessage!("findClickable", { path: data.path });
       if (!ret) {
         return emptyResponse;
       }
@@ -40,7 +40,7 @@ export default class ActionsHandler {
     } catch (e) {
       return emptyResponse;
     }
-}
+  }
 
   COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
     return this.clearOverlays();
