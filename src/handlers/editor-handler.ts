@@ -34,6 +34,7 @@ export default class EditorHandler {
           error: response.error,
           files: [],
           roots: [],
+          url: response.url,
         },
       };
     } catch (e) {
