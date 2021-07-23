@@ -137,6 +137,16 @@ export default class Overlay {
     }
   }
 
+  private clickNode(node: Node) {
+    if ((node as HTMLElement).className.includes("CodeMirror")) {
+      (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
+      (node as HTMLElement).getElementsByTagName("textarea")[0].click();
+    } else {
+      (node as HTMLElement).focus();
+      (node as HTMLElement).click();
+    }
+  }
+
   public click(path: string) {
     const pathNumber = parseInt(path, 10);
     // If we are clicking a text path
@@ -145,13 +155,7 @@ export default class Overlay {
       // auto-execute
       if (this.clickables.length === 1) {
         const node = this.clickables[0];
-        if ((node as HTMLElement).className.includes("CodeMirror")) {
-          (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
-          (node as HTMLElement).getElementsByTagName("textarea")[0].click();
-        } else {
-          (node as HTMLElement).focus();
-          (node as HTMLElement).click();
-        }
+        this.clickNode(node);
         this.clearOverlays();
         return;
       } else {
@@ -172,6 +176,18 @@ export default class Overlay {
       }
     }
     this.clearOverlays();
+  }
+
+  public DOMClick(query: string) {
+    const nodes = document.querySelectorAll(query);
+    if (nodes.length === 0) {
+      return;
+    } else if (nodes.length === 1) {
+      const node: Element = nodes[0];
+      (node as HTMLElement).focus();
+      (node as HTMLElement).click();
+    } else {
+    }
   }
 
   public async copyClickable(index: number): Promise<boolean> {

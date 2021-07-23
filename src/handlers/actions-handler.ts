@@ -23,6 +23,7 @@ export default class ActionsHandler {
   COMMAND_TYPE_CLICK(data: any): Promise<any> {
     return this.resolvePostMessage!("click", {
       path: data.path,
+      text: data.text,
     });
   }
 
