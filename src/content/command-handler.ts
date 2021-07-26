@@ -69,10 +69,18 @@ export default class CommandHandler {
   public async click(data: any): Promise<any> {
     if (data.path) {
       Tab.overlay.click(data.path);
-    } else if (data.text) {
-      Tab.overlay.DOMClick(data.text);
+    } else if (data.query) {
+      Tab.overlay.DOMClick(data.query);
     }
     return { success: true };
+  }
+
+  public async focus(data: any): Promise<any> {
+    Tab.overlay.focus(data.query);
+  }
+
+  public async blur(data: any): Promise<any> {
+    Tab.overlay.blur(data.query);
   }
 
   public async useClickable(data: any): Promise<any> {

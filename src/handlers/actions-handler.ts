@@ -23,7 +23,7 @@ export default class ActionsHandler {
   COMMAND_TYPE_CLICK(data: any): Promise<any> {
     return this.resolvePostMessage!("click", {
       path: data.path,
-      text: data.text,
+      query: data.text,
     });
   }
 
@@ -45,6 +45,12 @@ export default class ActionsHandler {
 
   COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
     return this.clearOverlays();
+  }
+
+  COMMAND_TYPE_FOCUS(data: any): Promise<any> {
+    return this.resolvePostMessage!(data.direction, {
+      query: data.text,
+    });
   }
 
   COMMAND_TYPE_USE(data: any): Promise<any> {
