@@ -48,8 +48,13 @@ export default class ActionsHandler {
   }
 
   COMMAND_TYPE_FOCUS(data: any): Promise<any> {
-    return this.resolvePostMessage!(data.direction, {
-      query: data.text,
+    if (data.direction) {
+      return this.resolvePostMessage!(data.direction, {
+        query: data.text,
+      });
+    }
+    return new Promise((resolve) => {
+      resolve();
     });
   }
 
