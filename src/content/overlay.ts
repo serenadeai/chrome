@@ -167,13 +167,7 @@ export default class Overlay {
     // If we have a number that we can click
     if (pathNumber - 1 < this.clickables.length) {
       const node = this.clickables[pathNumber - 1];
-      if ((node as HTMLElement).className.includes("CodeMirror")) {
-        (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
-        (node as HTMLElement).getElementsByTagName("textarea")[0].click();
-      } else {
-        (node as HTMLElement).focus();
-        (node as HTMLElement).click();
-      }
+      this.clickNode(node);
     }
     this.clearOverlays();
   }
@@ -181,8 +175,7 @@ export default class Overlay {
   public DOMClick(query: string) {
     const node = document.querySelector(query);
     if (node !== null) {
-      (node as HTMLElement).focus();
-      (node as HTMLElement).click();
+      this.clickNode(node);
     } else {
       return;
     }
