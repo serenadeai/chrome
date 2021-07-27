@@ -179,11 +179,8 @@ export default class Overlay {
   }
 
   public DOMClick(query: string) {
-    const nodes = document.querySelectorAll(query);
-    if (nodes.length === 0) {
-      return;
-    } else if (nodes.length === 1) {
-      const node: Element = nodes[0];
+    const node = document.querySelector(query);
+    if (node !== null) {
       (node as HTMLElement).focus();
       (node as HTMLElement).click();
     } else {
@@ -192,11 +189,8 @@ export default class Overlay {
   }
 
   public focus(query: string) {
-    const nodes = document.querySelectorAll(query);
-    if (nodes.length === 0) {
-      return;
-    } else if (nodes.length === 1) {
-      const node: Element = nodes[0];
+    const node = document.querySelector(query);
+    if (node !== null) {
       (node as HTMLElement).focus();
     } else {
       return;
@@ -204,11 +198,8 @@ export default class Overlay {
   }
 
   public blur(query: string) {
-    const nodes = document.querySelectorAll(query);
-    if (nodes.length === 0) {
-      return;
-    } else if (nodes.length === 1) {
-      const node: Element = nodes[0];
+    const node = document.querySelector(query);
+    if (node !== null) {
       (node as HTMLElement).blur();
     } else {
       return;
