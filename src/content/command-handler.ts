@@ -76,11 +76,11 @@ export default class CommandHandler {
   }
 
   public async focus(data: any): Promise<any> {
-    Tab.overlay.focus(data.query);
+    Tab.overlay.DOMFocus(data.query);
   }
 
   public async blur(data: any): Promise<any> {
-    Tab.overlay.blur(data.query);
+    Tab.overlay.DOMBlur(data.query);
   }
 
   public async useClickable(data: any): Promise<any> {

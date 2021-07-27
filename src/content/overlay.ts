@@ -188,7 +188,7 @@ export default class Overlay {
     }
   }
 
-  public focus(query: string) {
+  public DOMFocus(query: string) {
     const node = document.querySelector(query);
     if (node !== null) {
       (node as HTMLElement).focus();
@@ -197,7 +197,7 @@ export default class Overlay {
     }
   }
 
-  public blur(query: string) {
+  public DOMBlur(query: string) {
     const node = document.querySelector(query);
     if (node !== null) {
       (node as HTMLElement).blur();
