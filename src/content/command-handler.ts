@@ -16,7 +16,7 @@ export default class CommandHandler {
       const error = source == null;
       return { source, cursor, filename, clickableCount, error, url };
     } else {
-      return { filename: "", error: true, url: url };
+      return { filename: "", error: true, url };
     }
   }
 
