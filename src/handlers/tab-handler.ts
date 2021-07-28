@@ -65,14 +65,13 @@ export default class TabHandler {
   }
 
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
-    if (data.index) {
-      chrome.tabs.query({ index: data.index - 1, lastFocusedWindow: true }, (tab) => {
-        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
-      });
-    } else {
-      // Undefined index corresponds to last tab (because protobuf does not send default values)
+    if (data.index < 0) {
       chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
         chrome.tabs.update(tabs[tabs.length - 1].id!, { active: true }, (_v: any) => {});
+      });
+    } else {
+      chrome.tabs.query({ index: data.index, lastFocusedWindow: true }, (tab) => {
+        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
       });
     }
   }
