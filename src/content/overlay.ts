@@ -138,12 +138,13 @@ export default class Overlay {
   }
 
   private clickNode(node: Node) {
-    if ((node as HTMLElement).className.includes("CodeMirror")) {
-      (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
-      (node as HTMLElement).getElementsByTagName("textarea")[0].click();
+    const element = node as HTMLElement;
+    if (element.className.includes("CodeMirror")) {
+      element.getElementsByTagName("textarea")[0].focus();
+      element.getElementsByTagName("textarea")[0].click();
     } else {
-      (node as HTMLElement).focus();
-      (node as HTMLElement).click();
+      element.focus();
+      element.click();
     }
   }
 
@@ -172,7 +173,7 @@ export default class Overlay {
     this.clearOverlays();
   }
 
-  public DOMClick(query: string) {
+  public domClick(query: string) {
     const node = document.querySelector(query);
     if (node !== null) {
       this.clickNode(node);
@@ -181,19 +182,19 @@ export default class Overlay {
     }
   }
 
-  public DOMFocus(query: string) {
-    const node = document.querySelector(query);
-    if (node !== null) {
-      (node as HTMLElement).focus();
+  public domFocus(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null) {
+      element.focus();
     } else {
       return;
     }
   }
 
-  public DOMBlur(query: string) {
-    const node = document.querySelector(query);
-    if (node !== null) {
-      (node as HTMLElement).blur();
+  public domBlur(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null) {
+      element.blur();
     } else {
       return;
     }

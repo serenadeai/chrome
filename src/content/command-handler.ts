@@ -70,17 +70,17 @@ export default class CommandHandler {
     if (data.path) {
       Tab.overlay.click(data.path);
     } else if (data.query) {
-      Tab.overlay.DOMClick(data.query);
+      Tab.overlay.domClick(data.query);
     }
     return { success: true };
   }
 
   public async focus(data: any): Promise<any> {
-    Tab.overlay.DOMFocus(data.query);
+    Tab.overlay.domFocus(data.query);
   }
 
   public async blur(data: any): Promise<any> {
-    Tab.overlay.DOMBlur(data.query);
+    Tab.overlay.domBlur(data.query);
   }
 
   public async useClickable(data: any): Promise<any> {
