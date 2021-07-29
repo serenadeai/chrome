@@ -21,9 +21,13 @@ export default class ActionsHandler {
   }
 
   COMMAND_TYPE_CLICK(data: any): Promise<any> {
+    if (data.text) {
+      return this.resolvePostMessage!("domClick", {
+        query: data.text,
+      });
+    }
     return this.resolvePostMessage!("click", {
       path: data.path,
-      query: data.text,
     });
   }
 
