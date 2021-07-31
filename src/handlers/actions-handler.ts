@@ -21,11 +21,6 @@ export default class ActionsHandler {
   }
 
   COMMAND_TYPE_CLICK(data: any): Promise<any> {
-    if (data.text) {
-      return this.resolvePostMessage!("domClick", {
-        query: data.text,
-      });
-    }
     return this.resolvePostMessage!("click", {
       path: data.path,
     });
@@ -51,14 +46,21 @@ export default class ActionsHandler {
     return this.clearOverlays();
   }
 
-  COMMAND_TYPE_FOCUS(data: any): Promise<any> {
-    if (data.direction) {
-      return this.resolvePostMessage!(data.direction, {
-        query: data.text,
-      });
-    }
-    return new Promise((resolve) => {
-      resolve();
+  COMMAND_TYPE_DOM_BLUR(data: any): Promise<any> {
+    return this.resolvePostMessage!("domBlur", {
+      query: data.text,
+    });
+  }
+
+  COMMAND_TYPE_DOM_CLICK(data: any): Promise<any> {
+    return this.resolvePostMessage!("domClick", {
+      query: data.text,
+    });
+  }
+
+  COMMAND_TYPE_DOM_FOCUS(data: any): Promise<any> {
+    return this.resolvePostMessage!("domFocus", {
+      query: data.text,
     });
   }
 
