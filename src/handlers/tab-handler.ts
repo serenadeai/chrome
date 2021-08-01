@@ -65,14 +65,9 @@ export default class TabHandler {
   }
 
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
-    if (data.index <= 0) {
-      chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
-        chrome.tabs.update(tabs[tabs.length - 1].id!, { active: true }, (_v: any) => {});
-      });
-    } else {
-      chrome.tabs.query({ index: data.index, lastFocusedWindow: true }, (tab) => {
-        chrome.tabs.update(tab[0].id!, { active: true }, (_v: any) => {});
-      });
-    }
+    chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
+      const index = data.index > 0 ? data.index - 1 : tabs.length - 1;
+      chrome.tabs.update(tabs[index].id!, { active: true }, (_v: any) => {});
+    });
   }
 }
