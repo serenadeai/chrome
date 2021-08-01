@@ -65,7 +65,7 @@ export default class TabHandler {
   }
 
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
-    if (data.index < 0) {
+    if (data.index <= 0) {
       chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
         chrome.tabs.update(tabs[tabs.length - 1].id!, { active: true }, (_v: any) => {});
       });
