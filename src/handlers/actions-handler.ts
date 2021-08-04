@@ -46,6 +46,24 @@ export default class ActionsHandler {
     return this.clearOverlays();
   }
 
+  COMMAND_TYPE_DOM_BLUR(data: any): Promise<any> {
+    return this.resolvePostMessage!("domBlur", {
+      query: data.text,
+    });
+  }
+
+  COMMAND_TYPE_DOM_CLICK(data: any): Promise<any> {
+    return this.resolvePostMessage!("domClick", {
+      query: data.text,
+    });
+  }
+
+  COMMAND_TYPE_DOM_FOCUS(data: any): Promise<any> {
+    return this.resolvePostMessage!("domFocus", {
+      query: data.text,
+    });
+  }
+
   COMMAND_TYPE_USE(data: any): Promise<any> {
     return this.resolvePostMessage!("useClickable", {
       index: data.index,

@@ -7,15 +7,16 @@ export default class CommandHandler {
   }
 
   public async editorState(): Promise<any> {
+    const url = window.location.toString();
     if (document.hasFocus()) {
       const source = await Tab.editor.activeElementSource();
       const cursor = await Tab.editor.activeElementCursor();
       const filename = await Tab.editor.activeElementFilename();
       const clickableCount = Tab.overlay.clickables.length;
       const error = source == null;
-      return { source, cursor, filename, clickableCount, error };
+      return { source, cursor, filename, clickableCount, error, url };
     } else {
-      return { filename: "", error: true };
+      return { filename: "", error: true, url };
     }
   }
 
@@ -69,6 +70,23 @@ export default class CommandHandler {
     if (data.path) {
       Tab.overlay.click(data.path);
     }
+    return { success: true };
+  }
+
+  public async domClick(data: any): Promise<any> {
+    if (data.query) {
+      Tab.overlay.domClick(data.query);
+    }
+    return { success: true };
+  }
+
+  public async domFocus(data: any): Promise<any> {
+    Tab.overlay.domFocus(data.query);
+    return { success: true };
+  }
+
+  public async domBlur(data: any): Promise<any> {
+    Tab.overlay.domBlur(data.query);
     return { success: true };
   }
 

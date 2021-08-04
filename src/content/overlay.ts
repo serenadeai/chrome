@@ -137,6 +137,17 @@ export default class Overlay {
     }
   }
 
+  private clickNode(node: Node) {
+    const element = node as HTMLElement;
+    if (element.className.includes("CodeMirror")) {
+      element.getElementsByTagName("textarea")[0].focus();
+      element.getElementsByTagName("textarea")[0].click();
+    } else {
+      element.focus();
+      element.click();
+    }
+  }
+
   public click(path: string) {
     const pathNumber = parseInt(path, 10);
     // If we are clicking a text path
@@ -145,13 +156,7 @@ export default class Overlay {
       // auto-execute
       if (this.clickables.length === 1) {
         const node = this.clickables[0];
-        if ((node as HTMLElement).className.includes("CodeMirror")) {
-          (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
-          (node as HTMLElement).getElementsByTagName("textarea")[0].click();
-        } else {
-          (node as HTMLElement).focus();
-          (node as HTMLElement).click();
-        }
+        this.clickNode(node);
         this.clearOverlays();
         return;
       } else {
@@ -163,15 +168,36 @@ export default class Overlay {
     // If we have a number that we can click
     if (pathNumber - 1 < this.clickables.length) {
       const node = this.clickables[pathNumber - 1];
-      if ((node as HTMLElement).className.includes("CodeMirror")) {
-        (node as HTMLElement).getElementsByTagName("textarea")[0].focus();
-        (node as HTMLElement).getElementsByTagName("textarea")[0].click();
-      } else {
-        (node as HTMLElement).focus();
-        (node as HTMLElement).click();
-      }
+      this.clickNode(node);
     }
     this.clearOverlays();
+  }
+
+  public domClick(query: string) {
+    const node = document.querySelector(query);
+    if (node !== null) {
+      this.clickNode(node);
+    } else {
+      return;
+    }
+  }
+
+  public domFocus(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null) {
+      element.focus();
+    } else {
+      return;
+    }
+  }
+
+  public domBlur(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null) {
+      element.blur();
+    } else {
+      return;
+    }
   }
 
   public async copyClickable(index: number): Promise<boolean> {
