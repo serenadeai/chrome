@@ -214,12 +214,12 @@ export default class Overlay {
       return await navigator.clipboard
         .writeText(text)
         .then(() => {
-          Tab.notifications.show(`Copied ${index}`);
+          Tab.notifications.show(`Copied ${index + 1}`);
           this.clearOverlays();
           return true;
         })
         .catch(() => {
-          Tab.notifications.show(`Failed to copy ${index}. Please focus Chrome.`);
+          Tab.notifications.show(`Failed to copy ${index + 1}. Please focus Chrome.`);
           return true;
         });
     }
