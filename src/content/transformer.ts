@@ -35,12 +35,7 @@ export default class Transformer {
 
   // Given a node, its offset from the start, and a cursorStart and cursorEnd,
   // set the cursor in the node.
-  private _trySetCursor(
-    node: Node,
-    startOffset: number,
-    cursorStart?: number,
-    cursorEnd?: number
-  ) {
+  private _trySetCursor(node: Node, startOffset: number, cursorStart?: number, cursorEnd?: number) {
     let shouldBreak = false;
 
     debug(
@@ -175,11 +170,7 @@ export default class Transformer {
           shouldAddContent = true;
         }
 
-        if (
-          this._isBlockElement(node) &&
-          !justAddedBlockNewline &&
-          !justAddedManualNewline
-        ) {
+        if (this._isBlockElement(node) && !justAddedBlockNewline && !justAddedManualNewline) {
           content = content.concat("\n");
           justAddedBlockNewline = true;
         }
@@ -310,5 +301,9 @@ export default class Transformer {
   // textContent because it doesn't generate line breaks.
   getSource(target: HTMLElement): string | null {
     return this._getTextContent(target);
+  }
+
+  getLinkUrl(target: HTMLLinkElement): string | null {
+    return target.href;
   }
 }

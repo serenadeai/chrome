@@ -3,7 +3,7 @@ import { xPathEscapeQuotes } from "./utils";
 
 export default class Overlay {
   clickables: Node[] = [];
-  clickableType: "click" | "copy" | null = null;
+  clickableType: "code" | "link" | null = null;
 
   inViewport(node: HTMLElement): boolean {
     const bounding = node.getBoundingClientRect();
@@ -107,7 +107,7 @@ export default class Overlay {
 
   public showOverlay(path: string, overlayType?: string) {
     this.showOverlayForPath(path, overlayType);
-    this.clickableType = overlayType === "code" ? "copy" : "click";
+    this.clickableType = overlayType === "code" ? "code" : "link";
   }
 
   public showOverlayForPath(path: string, overlayType?: string) {
@@ -160,7 +160,7 @@ export default class Overlay {
         this.clearOverlays();
         return;
       } else {
-        this.clickableType = "click";
+        this.clickableType = "link";
         return;
       }
     }
@@ -207,7 +207,12 @@ export default class Overlay {
       return false;
     }
 
-    const text = Tab.transformer.getSource(this.clickables[index] as HTMLElement);
+    let text: string | null = null;
+    if (this.clickableType === "code") {
+      text = Tab.transformer.getSource(this.clickables[index] as HTMLElement);
+    } else if (this.clickableType === "link") {
+      text = Tab.transformer.getLinkUrl(this.clickables[index] as HTMLLinkElement);
+    }
     if (text === null) {
       return false;
     } else {
@@ -223,5 +228,18 @@ export default class Overlay {
           return true;
         });
     }
+  }
+
+  public async openLinkInNewTab(index: number): Promise<boolean> {
+    index = index - 1;
+    if (index >= this.clickables.length) {
+      return false;
+    }
+    const url = Tab.transformer.getLinkUrl(this.clickables[index] as HTMLLinkElement);
+    if (url === null) {
+      return false;
+    }
+    window.open(url);
+    return true;
   }
 }

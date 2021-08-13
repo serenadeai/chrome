@@ -94,13 +94,25 @@ export default class CommandHandler {
     if (Tab.overlay.clickables.length === 0) {
       return { success: true };
     }
-    if (Tab.overlay.clickableType === "copy") {
-      return { success: await Tab.overlay.copyClickable(data.index) };
-    } else if (Tab.overlay.clickableType === "click") {
-      return Tab.overlay.click(data.index);
-    } else {
-      return { success: true };
+
+    if (!data.interactionType) {
+      // TODO: remove this when server is updated and we are guaranteed to get the interaction type
+      // This maintains older behavior in the absence of a set interactionType
+      if (Tab.overlay.clickableType === "link") {
+        return Tab.overlay.click(data.index);
+      } else if (Tab.overlay.clickableType === "code") {
+        return Tab.overlay.copyClickable(data.index);
+      }
     }
+
+    if (data.interactionType === "click") {
+      return Tab.overlay.click(data.index);
+    } else if (data.interactionType === "copy") {
+      return { success: await Tab.overlay.copyClickable(data.index) };
+    } else if (data.interactionType === "new tab" && Tab.overlay.clickableType === "link") {
+      return { success: await Tab.overlay.openLinkInNewTab(data.index) };
+    }
+    return { success: true };
   }
 
   public async scrollDirection(data: { direction: string }): Promise<any> {

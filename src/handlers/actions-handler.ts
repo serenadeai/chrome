@@ -67,6 +67,7 @@ export default class ActionsHandler {
   COMMAND_TYPE_USE(data: any): Promise<any> {
     return this.resolvePostMessage!("useClickable", {
       index: data.index,
+      interactionType: data.text,
     });
   }
 }
