@@ -132,6 +132,7 @@ export default class Overlay {
       overlay.style.opacity = "0.8";
       overlay.style.fontFamily =
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+      overlay.style.fontSize = "12px";
 
       document.body.appendChild(overlay);
     }
