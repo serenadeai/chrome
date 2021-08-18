@@ -29,10 +29,21 @@ function showLoadingIndicator() {
   }, 3000);
 }
 
+function detectBrowser() {
+  let userAgent = navigator.userAgent;
+  if (userAgent.indexOf("Brave") !== -1) {
+    return "brave";
+  } else if (userAgent.indexOf("Edg") !== -1) {
+    return "edge";
+  }
+  return "chrome";
+}
+
 window.setInterval(setIcon, 1000);
 
 commandHandler = new CommandHandler();
-ipc = new IPC(commandHandler, "chrome");
+const browserName = detectBrowser();
+ipc = new IPC(commandHandler, browserName);
 commandHandler.setIPC(ipc);
 setIcon();
 
