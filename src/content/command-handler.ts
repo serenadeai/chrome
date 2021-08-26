@@ -90,6 +90,11 @@ export default class CommandHandler {
     return { success: true };
   }
 
+  public async domSelect(data: any): Promise<any> {
+    Tab.overlay.domSelect(data.query);
+    return { success: true };
+  }
+
   public async useClickable(data: any): Promise<any> {
     if (Tab.overlay.clickables.length === 0) {
       return { success: true };

@@ -140,7 +140,10 @@ export default class Overlay {
 
   private clickNode(node: Node) {
     const element = node as HTMLElement;
-    if (element.className.includes("CodeMirror")) {
+    if (
+      element.className.includes("CodeMirror") &&
+      element.getElementsByTagName("textarea").length > 0
+    ) {
       element.getElementsByTagName("textarea")[0].focus();
       element.getElementsByTagName("textarea")[0].click();
     } else {
@@ -176,6 +179,7 @@ export default class Overlay {
 
   public domClick(query: string) {
     const node = document.querySelector(query);
+    console.log(node);
     if (node !== null) {
       this.clickNode(node);
     } else {
@@ -198,6 +202,20 @@ export default class Overlay {
       element.blur();
     } else {
       return;
+    }
+  }
+
+  public async domSelect(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null && window.getSelection) {
+      let selection = window.getSelection();
+      let range = document.createRange();
+      range.selectNodeContents(element);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      await navigator.clipboard.writeText(selection?.toString() || "");
+      console.log("copied");
+      selection?.removeAllRanges();
     }
   }
 

@@ -64,6 +64,12 @@ export default class ActionsHandler {
     });
   }
 
+  COMMAND_TYPE_DOM_SELECT(data: any): Promise<any> {
+    return this.resolvePostMessage!("domSelect", {
+      query: data.text,
+    });
+  }
+
   COMMAND_TYPE_USE(data: any): Promise<any> {
     return this.resolvePostMessage!("useClickable", {
       index: data.index,
