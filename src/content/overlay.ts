@@ -140,7 +140,10 @@ export default class Overlay {
 
   private clickNode(node: Node) {
     const element = node as HTMLElement;
-    if (element.className.includes("CodeMirror")) {
+    if (
+      element.className.includes("CodeMirror") &&
+      element.getElementsByTagName("textarea").length > 0
+    ) {
       element.getElementsByTagName("textarea")[0].focus();
       element.getElementsByTagName("textarea")[0].click();
     } else {
@@ -178,8 +181,6 @@ export default class Overlay {
     const node = document.querySelector(query);
     if (node !== null) {
       this.clickNode(node);
-    } else {
-      return;
     }
   }
 
@@ -187,8 +188,6 @@ export default class Overlay {
     const element = document.querySelector(query) as HTMLElement;
     if (element !== null) {
       element.focus();
-    } else {
-      return;
     }
   }
 
@@ -196,8 +195,30 @@ export default class Overlay {
     const element = document.querySelector(query) as HTMLElement;
     if (element !== null) {
       element.blur();
-    } else {
-      return;
+    }
+  }
+
+  public async domCopy(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null && window.getSelection) {
+      let selection = window.getSelection();
+      let range = document.createRange();
+      range.selectNodeContents(element);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      await navigator.clipboard.writeText(selection?.toString() || "");
+      selection?.removeAllRanges();
+    }
+  }
+
+  public async domScroll(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null) {
+      element.scrollIntoView({
+        block: "center",
+        inline: "center",
+        behavior: "smooth",
+      });
     }
   }
 

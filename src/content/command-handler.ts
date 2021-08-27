@@ -90,6 +90,16 @@ export default class CommandHandler {
     return { success: true };
   }
 
+  public async domCopy(data: any): Promise<any> {
+    Tab.overlay.domCopy(data.query);
+    return { success: true };
+  }
+
+  public async domScroll(data: any): Promise<any> {
+    Tab.overlay.domScroll(data.query);
+    return { success: true };
+  }
+
   public async useClickable(data: any): Promise<any> {
     if (Tab.overlay.clickables.length === 0) {
       return { success: true };
