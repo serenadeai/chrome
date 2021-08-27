@@ -179,7 +179,6 @@ export default class Overlay {
 
   public domClick(query: string) {
     const node = document.querySelector(query);
-    console.log(node);
     if (node !== null) {
       this.clickNode(node);
     } else {
@@ -189,7 +188,6 @@ export default class Overlay {
 
   public domFocus(query: string) {
     const element = document.querySelector(query) as HTMLElement;
-    console.log(element);
     if (element !== null) {
       element.focus();
     } else {
@@ -199,7 +197,6 @@ export default class Overlay {
 
   public domBlur(query: string) {
     const element = document.querySelector(query) as HTMLElement;
-    console.log(element);
     if (element !== null) {
       element.blur();
     } else {
@@ -209,7 +206,6 @@ export default class Overlay {
 
   public async domCopy(query: string) {
     const element = document.querySelector(query) as HTMLElement;
-    console.log(element);
     if (element !== null && window.getSelection) {
       let selection = window.getSelection();
       let range = document.createRange();
