@@ -181,8 +181,6 @@ export default class Overlay {
     const node = document.querySelector(query);
     if (node !== null) {
       this.clickNode(node);
-    } else {
-      return;
     }
   }
 
@@ -190,8 +188,6 @@ export default class Overlay {
     const element = document.querySelector(query) as HTMLElement;
     if (element !== null) {
       element.focus();
-    } else {
-      return;
     }
   }
 
@@ -199,8 +195,6 @@ export default class Overlay {
     const element = document.querySelector(query) as HTMLElement;
     if (element !== null) {
       element.blur();
-    } else {
-      return;
     }
   }
 
@@ -225,8 +219,6 @@ export default class Overlay {
         inline: "center",
         behavior: "smooth",
       });
-    } else {
-      return;
     }
   }
 
