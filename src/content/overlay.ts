@@ -189,6 +189,7 @@ export default class Overlay {
 
   public domFocus(query: string) {
     const element = document.querySelector(query) as HTMLElement;
+    console.log(element);
     if (element !== null) {
       element.focus();
     } else {
@@ -198,6 +199,7 @@ export default class Overlay {
 
   public domBlur(query: string) {
     const element = document.querySelector(query) as HTMLElement;
+    console.log(element);
     if (element !== null) {
       element.blur();
     } else {
@@ -205,8 +207,9 @@ export default class Overlay {
     }
   }
 
-  public async domSelect(query: string) {
+  public async domCopy(query: string) {
     const element = document.querySelector(query) as HTMLElement;
+    console.log(element);
     if (element !== null && window.getSelection) {
       let selection = window.getSelection();
       let range = document.createRange();
@@ -214,8 +217,20 @@ export default class Overlay {
       selection?.removeAllRanges();
       selection?.addRange(range);
       await navigator.clipboard.writeText(selection?.toString() || "");
-      console.log("copied");
       selection?.removeAllRanges();
+    }
+  }
+
+  public async domScroll(query: string) {
+    const element = document.querySelector(query) as HTMLElement;
+    if (element !== null) {
+      element.scrollIntoView({
+        block: "center",
+        inline: "center",
+        behavior: "smooth",
+      });
+    } else {
+      return;
     }
   }
 

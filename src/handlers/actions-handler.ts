@@ -64,8 +64,14 @@ export default class ActionsHandler {
     });
   }
 
-  COMMAND_TYPE_DOM_SELECT(data: any): Promise<any> {
-    return this.resolvePostMessage!("domSelect", {
+  COMMAND_TYPE_DOM_COPY(data: any): Promise<any> {
+    return this.resolvePostMessage!("domCopy", {
+      query: data.text,
+    });
+  }
+
+  COMMAND_TYPE_DOM_SCROLL(data: any): Promise<any> {
+    return this.resolvePostMessage!("domScroll", {
       query: data.text,
     });
   }
