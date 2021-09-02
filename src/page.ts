@@ -269,7 +269,7 @@ document.addEventListener("serenade-chrome-set-codemirror-source-and-cursor", (e
   if (!codeMirror) {
     document.dispatchEvent(new CustomEvent("set-source-status", { detail: { success: false } }));
   }
-  if ((e as any).detail.source && (e as any).detail.cursor !== null) {
+  if ((e as any).detail.source !== null && (e as any).detail.cursor !== null) {
     codeMirror?.setValue((e as any).detail.source);
     let position = positionFromCursor(
       (e as any).detail.cursor,
