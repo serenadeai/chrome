@@ -6,7 +6,7 @@
  */
 function injectScript(filePath) {
   const script = document.createElement("script");
-  script.type = 'text/javascript';
+  script.type = "text/javascript";
   script.src = filePath;
   (document.head || document.documentElement).appendChild(script);
 }
