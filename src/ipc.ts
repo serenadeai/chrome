@@ -100,8 +100,6 @@ export default class IPC {
             data: command,
           });
         }
-        console.log(command);
-        console.log(handlerResponse?.data);
       }
     }
 
