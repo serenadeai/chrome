@@ -28,12 +28,14 @@
       crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" href="static/style.css" />
+    <script src="static/js/lib/ace/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.min.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.min.css"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/mode/clike/clike.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/mode/dart/dart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/mode/javascript/javascript.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/mode/python/python.js"></script>
     <link
@@ -44,8 +46,28 @@
   </head>
   <body>
     <div class="container">
+      <header
+        class="d-flex flex-wrap justify-content-left py-3 mb-4 border-bottom"
+      >
+        <ul class="nav nav-pills">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link active" aria-current="page">
+              Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="custom_commands.html" class="nav-link">
+              Custom Commands
+            </a>
+          </li>
+        </ul>
+      </header>
+    </div>
+    <div class="container">
       <h1>Inputs</h1>
       <input type="checkbox" /> Checkbox
+      <br />
+      <input type="checkbox" /> Don't click me
       <br />
       <input type="radio" id="1" />
       <label for="1">Radio 1</label>
@@ -54,6 +76,7 @@
       <label for="2">Radio 2</label>
       <h1>Text Input</h1>
       <input />
+      <br />
     </div>
     <br />
 
@@ -62,12 +85,95 @@
       <textarea>Insert text here</textarea>
     </div>
     <br />
-
     <div class="container">
-      <h1>Content Editable</h1>
-      <div contenteditable="true">This text is editable</div>
+      <pre>
+def foo:
+    print(bar)</pre
+      >
     </div>
     <br />
+    <div class="container">
+      <h1>Ace</h1>
+      <div class="dropdown">
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="currentAceLanguage"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Text
+        </button>
+        <div class="dropdown-menu" id="aceLanguages">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('text', 'Text')"
+          >
+            Text
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('sh', 'Bash')"
+          >
+            Bash
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('scss', 'CSS/SCSS')"
+          >
+            CSS/SCSS
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('c_cpp', 'C++')"
+          >
+            C++
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('dart', 'Dart')"
+          >
+            Dart
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('java', 'Java')"
+          >
+            Java
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('javascript', 'JavaScript')"
+          >
+            JavaScript
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('kotlin', 'Kotlin')"
+          >
+            Kotlin
+          </button>
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setAceLanguage('python', 'Python')"
+          >
+            Python
+          </button>
+        </div>
+      </div>
+      <br />
+      <div class="container" id="aceEditor" style="height: 300px"></div>
+    </div>
 
     <div class="container">
       <h1>CodeMirror</h1>
@@ -83,10 +189,18 @@
           Text
         </button>
         <div class="dropdown-menu" id="codeMirrorLanguages">
-          <button class="dropdown-item" type="button" onclick="setCMLanguage('text', 'Text')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('text', 'Text')"
+          >
             Text
           </button>
-          <button class="dropdown-item" type="button" onclick="setCMLanguage('text/x-sh', 'Bash')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('text/x-sh', 'Bash')"
+          >
             Bash
           </button>
           <button
@@ -103,7 +217,11 @@
           >
             C++
           </button>
-          <button class="dropdown-item" type="button" onclick="setCMLanguage('dart', 'Dart')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('dart', 'Dart')"
+          >
             Dart
           </button>
           <button
@@ -127,7 +245,11 @@
           >
             Kotlin
           </button>
-          <button class="dropdown-item" type="button" onclick="setCMLanguage('python', 'Python')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setCMLanguage('python', 'Python')"
+          >
             Python
           </button>
         </div>
@@ -151,13 +273,25 @@
           Text
         </button>
         <div class="dropdown-menu" id="monacoLanguages">
-          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('text', 'Text')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('text', 'Text')"
+          >
             Text
           </button>
-          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('shell', 'Bash')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('shell', 'Bash')"
+          >
             Bash
           </button>
-          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('cpp', 'C++')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('cpp', 'C++')"
+          >
             C++
           </button>
           <button
@@ -167,10 +301,18 @@
           >
             CSS/SCSS
           </button>
-          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('dart', 'Dart')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('dart', 'Dart')"
+          >
             Dart
           </button>
-          <button class="dropdown-item" type="button" onclick="setMonacoLanguage('java', 'Java')">
+          <button
+            class="dropdown-item"
+            type="button"
+            onclick="setMonacoLanguage('java', 'Java')"
+          >
             Java
           </button>
           <button
@@ -203,12 +345,15 @@
     <script src="static/js/codemirror.js"></script>
     <script>
       var require = {
-        paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs" },
+        paths: {
+          vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs",
+        },
       };
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/loader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/editor/editor.main.nls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/editor/editor.main.js"></script>
     <script src="static/js/monaco.js"></script>
+    <script src="static/js/ace.js"></script>
   </body>
 </html>

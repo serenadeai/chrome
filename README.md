@@ -1,59 +1,87 @@
-# Serenade Chrome extension
+# Serenade Chrome Extension
 
-## Setup
+Source for the [Serenade Chrome Extension](https://chrome.google.com/webstore/detail/serenade-for-chrome/bgfbijeikimjmdjldemlegooghdjinmj?hl=en)
 
-1. Clone this `chrome` repo into the same folder as [`editor-shared`](https://github.com/serenadeai/editor-shared), so the `src/shared` symlink works for shared files.
-    - Be sure to pull the latest versions of both repos.
-2. Use a recent version of Node (12 or so) and run `yarn` to get dependencies.
-3. Run `yarn build` (or `yarn watch` if iterating).
-    - This generates a `build/extension.js` file in this directory from `src`.
-4. In Chrome, go to `chrome://extensions/` and enable Developer Mode in the top right.
-5. Click `Load unpacked` and select the `chrome` repo directory.
-6. Open a new tab, and go to a website like GitHub.
-    - The extension icon in the top right should turn from monochrome (disabled for certain pages) to orange and black.
-    - If the client is also running, then it will also register the Chrome plugin as being installed in `~/.serenade/serenade.json`, where `"plugins"` now includes `"chrome"`.
-7. After iterating on the source, the refresh button at `chrome://extensions/` for the unpacked extension needs to be clicked, and the target tab needs to be reloaded for the new build to be used.
-    
-## Build
+## Design
+Chrome extensions generally contain three types of scripts that each have access to different parts of the browser API and page content:
+- **Background workers/extension code** have full access to the browser APIs and handles the parts of the extension that do not depend on the content of a given page.
+- **Content scripts** have access to some of the browser APIs and access to the page DOM, but do not have access to any of the `window` properties or the page's global namespace.
+- **Injected content scripts** are embedded script tags that are added by the content script, and have full access to the page content as well as the `window` properties and the page's global namespace.
+  
+Each of these script types can communicate between each other with browser events. The source for this extension falls into these categories as follows:
 
-1. Update the version number in `manifest.json`.
-2. Run `yarn dist`.
-3. If you've added new files, consider updating the `dist` command in `package.json` to include them, if `webpack` does not. To test, unzip `build.zip` into a new directory, like `build2`, and load it in Chrome.
+- Extension code
+  - `extension.ts`: Entry-point for the extension
+  - `ipc.ts`: Handles communication between the Serenade app and the Chrome extension. Also determines which command handler to send each incoming command to.
+  - `extension-command-handler.ts`: Handles commands that do not need page content/require access to the browser APIs (e.g. tab management)
+- Content scripts
+  - `content-script.ts`: Adds the tag containing the injected scripts and sets up communication between `ipc.ts` and the injected code
+- Injected scripts
+  - `injected.ts`: Sets up injected code and handles communication between injected code and the content script
+  - `injected-command-handler.ts`: Handles commands that need access to the page content or objects in the page's global namespace
+  - `editors.ts`: Defines interactions with text editors using a common API
 
-## Commands
+Most of the extensions functionality is in three files: `extension-command-handler.ts`, `injected-command-handler.ts`, and `editors.ts`.
 
-Commands supported:
+### Command Handlers
+Both command handlers contain functions named for the various command types in the [Serenade Protocol](https://serenade.ai/docs/protocol/#commands-reference). These functions take a `data` object as a parameter and return a promise to the relevant response data (if any). The following commands are already implemented:
 
-- Editor state
-    - `COMMAND_TYPE_GET_EDITOR_STATE`
-    - `COMMAND_TYPE_SELECT`
-    - `COMMAND_TYPE_DIFF` for:
-      - `change`
-      - `copy/cut/paste <selector>`
-      - `delete <selector>`
-      - `line x`
-      - `type <text>`
-- Navigation
-    - `back`
-    - `forward`
-    - `reload`
-    - `scroll (left | right | up | down)`
-    - `scroll to <text>`
-    - `go to` (navigates)
-- Tab management
-    - `new tab`
-    - `close tab`
-    - `next tab`, `previous tab`
-    - `(first | second ...) tab`
-    - `duplicate tab`
-- Actions
-    - `show (links | inputs | code)` to overlay clickable/copyable elements
-    - `click (text | number)` to click based on text or previous clickables
-    - `use number` to click or copy previous clickables
-    - `COMMAND_TYPE_CLICKABLE` to invalidate alternatives
-    - `clear` to reset overlays
-    
-TODO:
-- custom
-    - go to tab
-    - searching docs
+- Extension
+  - `COMMAND_TYPE_CREATE_TAB` 
+  - `COMMAND_TYPE_CLOSE_TAB`
+  - `COMMAND_TYPE_DUPLICATE_TAB`
+  - `COMMAND_TYPE_NEXT_TAB` 
+  - `COMMAND_TYPE_PREVIOUS_TAB` 
+  - `COMMAND_TYPE_SWITCH_TAB` 
+  - `COMMAND_TYPE_BACK` 
+  - `COMMAND_TYPE_FORWARD` 
+  - `COMMAND_TYPE_RELOAD`
+
+- Injected
+  - `COMMAND_TYPE_GET_EDITOR_STATE`
+  - `COMMAND_TYPE_DIFF`
+  - `COMMAND_TYPE_UNDO`
+  - `COMMAND_TYPE_REDO`
+  - `COMMAND_TYPE_SCROLL`
+  - `COMMAND_TYPE_SELECT`
+  - `COMMAND_TYPE_DOM_CLICK`
+  - `COMMAND_TYPE_DOM_FOCUS`
+  - `COMMAND_TYPE_DOM_BLUR`
+  - `COMMAND_TYPE_CALLBACK`
+  - `COMMAND_TYPE_DOM_COPY`
+  - `COMMAND_TYPE_DOM_SCROLL`
+  - `COMMAND_TYPE_CLICK`
+  - `COMMAND_TYPE_SHOW`
+
+### Editors
+We currently support editing text in `textarea` and `input` tags, as well as a few third-party browser editors (Ace, CodeMirror, and Monaco). Each of these editor types are extensions of the `Editor` class that implement these functions:
+  - `active()`: Returns whether the current active DOM element is of the object type
+  - `getEditorState()`: Returns an object containing the source, cursor offset, file name, and a boolean to indicate the source was available
+  - `setSelection(cursor: number, cursorEnd: number)`: Sets the selection to be between `cursor` and `cursorEnd`
+  - `setSourceAndCursor(source: string, cursor: number)`: Sets the content of the editor to `source` and moves the cursor to `cursor`
+  - `undo`/`redo`: Undo/redo edits
+
+Supporting a new editor is a matter of implementing these functions.
+
+The `Editor` class also contains some helper functions to determine a suitable file name from a language name and to calculate a cursor position from the cursor row and column and vice versa. Third-party editors also have a private `editor()` method to capture the Javascript object corresponding to the editor from the page's global namespace, making the third-party API available.
+
+## Development
+
+1. Clone this repository
+2. Run `yarn` to get dependencies
+3. Run `yarn build` (or `yarn watch` to automatically update while iterating)
+
+- This creates `build/extension.js`, `build/content-script.js`, and `build/injected.js`
+
+4. In Chrome, go to [chrome://extensions](chrome://extensions) and enable Developer Mode
+5. Click "Load unpacked" and select the `chrome` repository
+6. Test the extension
+   - When iterating, make sure you update the extension by clicking "Update" on the Chrome Extensions page and refreshing the page you are using to test
+   - Running `yarn test` will serve a simple page at `localhost:8001` with instances of the various inputs/code editors we support
+   - The source for this test page can be found in `src/test`
+
+## Deployment
+
+1. Update the version number in `manifest.json`
+2. Run `yarn dist`
+3. Upload the new `build.zip` file to the Chrome Web Store

@@ -1,5 +1,7 @@
 var require = {
-  paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs" },
+  paths: {
+    vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs",
+  },
 };
 
 var me;
