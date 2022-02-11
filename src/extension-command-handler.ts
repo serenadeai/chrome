@@ -1,9 +1,9 @@
 export default class ExtensionCommandHandler {
-  private async changeTab(direction: number): Promise<any> {
+  private async changeTab(direction: number): Promise<void> {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (activeTab) => {
         if (!activeTab || activeTab.length === 0) {
-          resolve(null);
+          resolve();
         }
 
         chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
@@ -15,10 +15,10 @@ export default class ExtensionCommandHandler {
 
           chrome.tabs.query({ lastFocusedWindow: true, index }, (tab) => {
             if (!tab || tab.length === 0) {
-              resolve(null);
+              resolve();
             }
 
-            chrome.tabs.update(tab[0].id!, { active: true }, resolve);
+            chrome.tabs.update(tab[0].id!, { active: true });
           });
         });
       });
@@ -29,11 +29,11 @@ export default class ExtensionCommandHandler {
     chrome.tabs.goBack();
   }
 
-  async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<any> {
+  async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<void> {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
         if (!tabs || tabs.length === 0) {
-          resolve(null);
+          resolve();
         }
 
         chrome.tabs.remove(tabs[0].id!, resolve);
@@ -45,13 +45,13 @@ export default class ExtensionCommandHandler {
     chrome.tabs.create({});
   }
 
-  async COMMAND_TYPE_DUPLICATE_TAB(_data: any): Promise<any> {
+  async COMMAND_TYPE_DUPLICATE_TAB(_data: any): Promise<void> {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (activeTab) => {
         if (!activeTab || activeTab.length === 0) {
-          resolve(null);
+          resolve();
         }
-        chrome.tabs.duplicate(activeTab[0].id!, resolve);
+        chrome.tabs.duplicate(activeTab[0].id!);
       });
     });
   }

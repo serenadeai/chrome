@@ -414,21 +414,14 @@ export default class InjectedCommandHandler {
   async COMMAND_TYPE_REDO(_data: any): Promise<any> {
     const editor = await editors.active();
     editor?.redo();
-    return;
   }
 
   async COMMAND_TYPE_SCROLL(data: any): Promise<any> {
-    if (data.direction) {
-      this.scrollInDirection(data.direction);
+    if (data.direction || data.path === "top" || data.path === "bottom") {
+      return this.scrollInDirection(data.direction);
+    } else {
+      return this.findAndScroll(data.path);
     }
-    if (data.path) {
-      if (data.path === "top" || data.path === "bottom") {
-        return this.scrollInDirection(data.path);
-      } else {
-        return this.findAndScroll(data.path);
-      }
-    }
-    return;
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
@@ -459,7 +452,6 @@ export default class InjectedCommandHandler {
   async COMMAND_TYPE_UNDO(_data: any): Promise<any> {
     const editor = await editors.active();
     editor?.undo();
-    return;
   }
 
   async COMMAND_TYPE_USE(data: any): Promise<any> {

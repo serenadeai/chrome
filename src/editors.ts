@@ -198,13 +198,11 @@ class CodeMirror extends Editor {
   }
 
   redo() {
-    const editor = this.editor();
-    editor.redo();
+    this.editor()?.redo();
   }
 
   undo() {
-    const editor = this.editor();
-    editor.undo();
+    this.editor()?.undo();
   }
 }
 
@@ -303,13 +301,11 @@ class Monaco extends Editor {
   }
 
   redo() {
-    const editor = this.editor();
-    editor.trigger(null, "redo");
+    this.editor()?.trigger(null, "redo");
   }
 
   undo() {
-    const editor = this.editor();
-    editor.trigger(null, "undo");
+    this.editor()?.trigger(null, "undo");
   }
 }
 
