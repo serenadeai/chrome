@@ -5,7 +5,6 @@ function injectScript(path: string) {
   document.documentElement.appendChild(script);
 }
 
-console.log("injecting script");
 injectScript(chrome.runtime.getURL("build/injected.js"));
 
 let resolvers: { [k: number]: any } = [];

@@ -255,6 +255,25 @@ export default class InjectedCommandHandler {
     }, 2000);
   }
 
+  private showCopyOverlay(index: number) {
+    const overlay = document.createElement("div");
+    overlay.innerHTML = `Copied ${index}`;
+    overlay.id = "serenade-copy-overlay";
+    overlay.style.position = "absolute";
+    overlay.style.zIndex = "999";
+    overlay.style.top = "50%";
+    overlay.style.left = "50%";
+    overlay.style.padding = "3px";
+    overlay.style.textAlign = "center";
+    overlay.style.color = "#e6ecf2";
+    overlay.style.background = "#1c1c16";
+    overlay.style.borderRadius = "3px";
+    overlay.style.fontFamily =
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+    document.body.appendChild(overlay);
+    setTimeout(() => {document.body.removeChild(overlay)}, 1000);
+  }
+
   private showOverlays(nodes: Node[], overlayType: string) {
     if (this.overlays.length > 0) {
       this.clearOverlays();
@@ -449,7 +468,7 @@ export default class InjectedCommandHandler {
       this.clickNode(overlay.node);
     } else if (overlay.type === "code") {
       await this.copyCode(overlay.node);
-      alert(`Copied ${data.index}`);
+      this.showCopyOverlay(data.index);
     }
     this.clearOverlays();
   }
