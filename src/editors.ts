@@ -49,6 +49,7 @@ const extensionAliasMap = {
   sh: ["sh"], // must be after c# to avoid returning file.sh instead of file.cs
   c: ["c"], // must be after all aliases that contain "c"
 };
+
 abstract class Editor {
   abstract active(): boolean;
   abstract getEditorState(): EditorState;
