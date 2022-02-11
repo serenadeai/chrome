@@ -2,12 +2,11 @@ function injectScript(path: string) {
   const script = document.createElement("script");
   script.setAttribute("type", "text/javascript");
   script.setAttribute("src", path);
-  document.body.appendChild(script);
+  document.documentElement.appendChild(script);
 }
 
-document.addEventListener("DOMContentLoaded", (_e) => {
-  injectScript(chrome.runtime.getURL("build/injected.js"));
-});
+console.log("injecting script");
+injectScript(chrome.runtime.getURL("build/injected.js"));
 
 let resolvers: { [k: number]: any } = [];
 document.addEventListener(`serenade-injected-script-command-response`, (e: any) => {

@@ -1,30 +1,34 @@
 let monacoEditors: any[] = [];
+
 function monacoListener() {
   (window as any).monaco.editor.onDidCreateEditor((e: any) => {
     monacoEditors.push(e);
   });
 }
-if ((window as any).monaco?.editor) {
-  monacoListener();
-} else {
-  // The following attempts to add a Monaco listener for apps that use the react-monaco-editor package
-  // We check if the monaco.editor module is loaded whenever nodes are added/removed from the ReactDOM
-  let mutationObserver = new MutationObserver((_mutations: any[], observer) => {
-    if ((window as any).monaco?.editor) {
-      monacoListener();
-      observer.disconnect();
-    }
-  });
-  let reactRootNode = document.querySelector(".react-root");
-  if (reactRootNode) {
-    mutationObserver.observe(reactRootNode!, {
+
+const mutationObserver = new MutationObserver((_mutations: any[], observer) => {
+  if ((window as any).monaco?.editor) {
+    monacoListener();
+    observer.disconnect();
+  }
+});
+
+document.addEventListener("DOMContentLoaded", (_e) => {
+  if ((window as any).monaco?.editor) {
+    monacoListener();
+  } else {
+    // The following attempts to add a Monaco listener for apps dynamically load the Monaco library
+    // We add check for the monaco.editor library whenever nodes are added/removed from the DOM or attributes are changed
+    let rootNode = document;
+    mutationObserver.observe(rootNode!, {
       childList: true,
       subtree: true,
+      attributes: true,
     });
-    // if this takes longer than 10s to happen, stop trying -- there probably isn't any monaco instance
-    setTimeout(mutationObserver.disconnect, 10000);
+    // If the observer is still running after 3s, the monaco object was never found
+    setTimeout(() => {mutationObserver.disconnect()}, 3000);
   }
-}
+});
 
 type EditorState = {
   source: string;
@@ -68,10 +72,7 @@ abstract class Editor {
     return cursor;
   }
 
-  rowAndColumnFromCursor(
-    source: string,
-    cursor: number
-  ): { row: number; column: number } {
+  rowAndColumnFromCursor(source: string, cursor: number): { row: number; column: number } {
     let row = 0;
     let column = 0;
     for (let index = 0; index < cursor; index++) {
@@ -109,10 +110,7 @@ class Ace extends Editor {
   }
 
   active(): boolean {
-    return (
-      !!document.activeElement &&
-      !!document.activeElement!.closest(".ace_editor")!
-    );
+    return !!document.activeElement && !!document.activeElement!.closest(".ace_editor")!;
   }
 
   getEditorState(): EditorState {
@@ -149,9 +147,9 @@ class Ace extends Editor {
     editor.session.selection.moveCursorTo(row, column);
   }
 
-  redo() { }
+  redo() {}
 
-  undo() { }
+  undo() {}
 }
 
 class CodeMirror extends Editor {
@@ -161,10 +159,7 @@ class CodeMirror extends Editor {
   }
 
   active(): boolean {
-    return (
-      !!document.activeElement &&
-      !!document.activeElement.closest(".CodeMirror")
-    );
+    return !!document.activeElement && !!document.activeElement.closest(".CodeMirror");
   }
 
   getEditorState(): EditorState {
@@ -186,14 +181,8 @@ class CodeMirror extends Editor {
 
   setSelection(cursor: number, cursorEnd: number) {
     const editor = this.editor();
-    const positionStart = this.rowAndColumnFromCursor(
-      editor.getValue(),
-      cursor
-    );
-    const positionEnd = this.rowAndColumnFromCursor(
-      editor.getValue(),
-      cursorEnd
-    );
+    const positionStart = this.rowAndColumnFromCursor(editor.getValue(), cursor);
+    const positionEnd = this.rowAndColumnFromCursor(editor.getValue(), cursorEnd);
     editor.setSelection(
       { line: positionStart.row, ch: positionStart.column, sticky: null },
       { line: positionEnd.row, ch: positionEnd.column, sticky: null }
@@ -230,14 +219,19 @@ class Monaco extends Editor {
   }
 
   active(): boolean {
-    return (
-      !!document.activeElement &&
-      !!document.activeElement.closest(".monaco-editor")
-    );
+    return !!document.activeElement && !!document.activeElement.closest(".monaco-editor");
   }
 
   getEditorState(): EditorState {
     const editor = this.editor();
+    if (!editor) {
+      return {
+        source: "",
+        cursor: 0,
+        filename: "",
+        available: false
+      }
+    }
     const model = editor.getModel();
     let languageId = "";
     if (model.getLanguageIdentifier) {
@@ -248,11 +242,7 @@ class Monaco extends Editor {
     let filename = this.filenameFromLanguage(languageId);
     const source = editor.getValue();
     const { lineNumber, column } = editor.getPosition();
-    const cursor = this.cursorFromRowAndColumn(
-      source,
-      lineNumber - 1,
-      column - 1
-    );
+    const cursor = this.cursorFromRowAndColumn(source, lineNumber - 1, column - 1);
     return {
       source: source,
       cursor: cursor,
@@ -326,8 +316,7 @@ class NativeInput extends Editor {
   active(): boolean {
     return (
       !!document.activeElement &&
-      (document.activeElement!.tagName == "INPUT" ||
-        document.activeElement!.tagName == "TEXTAREA")
+      (document.activeElement!.tagName == "INPUT" || document.activeElement!.tagName == "TEXTAREA")
     );
   }
 
@@ -352,9 +341,9 @@ class NativeInput extends Editor {
     editor.setSelection(cursor, cursor);
   }
 
-  redo() { }
+  redo() {}
 
-  undo() { }
+  undo() {}
 }
 
 const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
