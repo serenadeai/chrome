@@ -5,6 +5,10 @@
   "description": "Code with voice. Learn more at https://serenade.ai.",
   "permissions": ["tabs", "scripting"],
   "host_permissions": ["ws://localhost:17373/", "*://*/*"],
+  "action": {
+    "default_title": "Serenade for Chrome",
+    "default_popup": "src/popup.html"
+  },
   "background": {
     "service_worker": "build/extension.js"
   },
