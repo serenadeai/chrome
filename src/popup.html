@@ -3,7 +3,6 @@
   <head>
     <title>Serenade for Chrome</title>
     <link rel="stylesheet" href="popup.css">
-    <script src="../build/popup.js"></script>
   </head>
   <body>
     <h1>Serenade for Chrome</h1>
@@ -12,9 +11,10 @@
     </a>
     <br/>
     <label class="switch">
-      <input type="checkbox" />
+      <input id="showClickables" type="checkbox"/>
       <span class="slider round"></span>
     </label>
     Always show clickables
   </body>
+  <script src="../build/popup.js"></script>
 </html>

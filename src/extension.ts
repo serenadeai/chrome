@@ -11,4 +11,12 @@ const ipc = new IPC(
   extensionCommandHandler
 );
 
+chrome.runtime.onMessage.addListener(
+  (message, _sender, _sendResponse) => {
+    if (message.command === "updateSettings") {
+      chrome.storage.sync.set({settings: message.data});
+    }
+  }
+)
+
 ipc.start();

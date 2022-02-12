@@ -2,7 +2,7 @@ import * as editors from "./editors";
 
 export default class InjectedCommandHandler {
   overlays: { node: Node, type: string }[] = [];
-
+  
   private clickNode(node: Node) {
     const element = node as HTMLElement;
     if (element.className!.includes("CodeMirror")) {
