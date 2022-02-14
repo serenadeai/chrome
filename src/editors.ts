@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", (_e) => {
       attributes: true,
     });
     // If the observer is still running after 3s, the monaco object was never found
-    setTimeout(() => {mutationObserver.disconnect()}, 3000);
+    setTimeout(() => { mutationObserver.disconnect() }, 3000);
   }
 });
 
@@ -118,8 +118,7 @@ class Ace extends Editor {
     const editor = this.editor();
     const source = editor.getValue();
     const { row, column } = editor.getCursorPosition();
-    let modeParts = editor.session.getMode()["$id"].split("/");
-    const mode = modeParts[modeParts.length - 1];
+    let mode = editor.session["$modeId"];
     return {
       source,
       cursor: this.cursorFromRowAndColumn(source, row, column),
@@ -148,9 +147,9 @@ class Ace extends Editor {
     editor.session.selection.moveCursorTo(row, column);
   }
 
-  redo() {}
+  redo() { }
 
-  undo() {}
+  undo() { }
 }
 
 class CodeMirror extends Editor {
@@ -338,9 +337,9 @@ class NativeInput extends Editor {
     editor.setSelection(cursor, cursor);
   }
 
-  redo() {}
+  redo() { }
 
-  undo() {}
+  undo() { }
 }
 
 const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
