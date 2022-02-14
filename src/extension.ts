@@ -6,17 +6,9 @@ const ipc = new IPC(
   navigator.userAgent.indexOf("Brave") != -1
     ? "brave"
     : navigator.userAgent.indexOf("Edg") != -1
-    ? "edge"
-    : "chrome",
+      ? "edge"
+      : "chrome",
   extensionCommandHandler
 );
-
-chrome.runtime.onMessage.addListener(
-  (message, _sender, _sendResponse) => {
-    if (message.command === "updateSettings") {
-      chrome.storage.sync.set({settings: message.data});
-    }
-  }
-)
 
 ipc.start();

@@ -15,23 +15,34 @@ document.addEventListener(`serenade-injected-script-command-response`, (e: any) 
   }
 });
 
+async function sendMessageToInjectedScript(data: any) {
+  const id = Math.random();
+  const response = await new Promise((resolve) => {
+    resolvers[id] = resolve;
+    document.dispatchEvent(
+      new CustomEvent(`serenade-injected-script-command-request`, {
+        detail: {
+          id,
+          data: data,
+        },
+      })
+    );
+  });
+  return response
+}
+
 chrome.runtime.onMessage.addListener(async (request, _sender, sendResponse) => {
   if (request.type == "injected-script-command-request") {
-    const id = Math.random();
-    const response = await new Promise((resolve) => {
-      resolvers[id] = resolve;
-      document.dispatchEvent(
-        new CustomEvent(`serenade-injected-script-command-request`, {
-          detail: {
-            id,
-            data: request.data,
-          },
-        })
-      );
-    });
-
+    const response = sendMessageToInjectedScript(request.data)
     sendResponse(response);
   }
-
   return true;
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const settings = await chrome.storage.sync.get(["alwaysShowClickables"]);
+  sendMessageToInjectedScript({
+    type: "updateSettings",
+    ...settings,
+  })
 });
