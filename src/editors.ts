@@ -166,7 +166,7 @@ class CodeMirror extends Editor {
     const editor = this.editor();
     const source = editor.getValue();
     const { line, ch } = editor.getCursor();
-    let mode = editor.options.mode;
+    let mode = editor.getMode();
     if (mode && typeof mode !== "string" && mode.name) {
       mode = mode.name;
     }
