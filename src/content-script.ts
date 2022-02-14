@@ -33,7 +33,7 @@ async function sendMessageToInjectedScript(data: any) {
 
 chrome.runtime.onMessage.addListener(async (request, _sender, sendResponse) => {
   if (request.type == "injected-script-command-request") {
-    const response = sendMessageToInjectedScript(request.data)
+    const response = await sendMessageToInjectedScript(request.data)
     sendResponse(response);
   }
   return true;

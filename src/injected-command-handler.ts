@@ -282,7 +282,7 @@ export default class InjectedCommandHandler {
       overlay.style.position = "absolute";
       overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
-      overlay.style.left = elementRect.left - bodyRect.left + "px";
+      overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
       overlay.style.padding = "3px";
       overlay.style.textAlign = "center";
       overlay.style.color = "#e6ecf2";
@@ -398,8 +398,7 @@ export default class InjectedCommandHandler {
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
     if (this.settings.alwaysShowClickables) {
-      await this.COMMAND_TYPE_SHOW({ text: "links" });
-      return;
+      this.COMMAND_TYPE_SHOW({ text: "links" });
     }
     const editor = await editors.active();
     if (!editor) {
