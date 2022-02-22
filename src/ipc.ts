@@ -70,18 +70,21 @@ export default class IPC {
     } catch (e) { }
   }
 
-  private async tab(): Promise<number> {
+  private async tab(): Promise<any> {
     const [result] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
 
-    return result.id!;
+    return result?.id;
   }
 
-  private async sendMessageToContentScript(message: any): Promise<any> {
+  private async sendMessageToContentScript(message: any): Promise<void> {
     let tabId = await this.tab();
     return new Promise((resolve) => {
+      if (!tabId) {
+        resolve();
+      }
       chrome.tabs.sendMessage(tabId, message, (response) => {
         resolve(response);
       });
