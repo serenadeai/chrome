@@ -87,8 +87,6 @@ export default class InjectedCommandHandler {
       const item = nodes[i];
       if (item !== null && this.inViewport(item as HTMLElement)) {
         matches.push(item);
-      } else {
-        console.log(item);
       }
     }
     return matches;
@@ -385,9 +383,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
-    console.log(this.settings);
     if (this.settings.alwaysShowClickables) {
-      console.log(this.overlays);
       this.COMMAND_TYPE_SHOW({ text: "all" });
     }
     const editor = await editors.active();
@@ -420,7 +416,6 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
-    console.log(data)
     let selector = "";
     if (data.text == "links") {
       selector = 'a, button, summary, [role="link"], [role="button"]';
@@ -433,9 +428,7 @@ export default class InjectedCommandHandler {
     } else {
       return;
     }
-    console.log(selector);
     const nodes = this.nodesMatchingSelector(selector);
-    console.log(nodes);
     this.showOverlays(Array.from(nodes), data.text);
   }
 
