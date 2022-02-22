@@ -1,36 +1,5 @@
-/*
- * Handles commands from the client about tabs.
- */
-
-export default class TabHandler {
-  async COMMAND_TYPE_CREATE_TAB(_data: any): Promise<any> {
-    chrome.tabs.create({});
-  }
-
-  async COMMAND_TYPE_DUPLICATE_TAB(_data: any): Promise<any> {
-    return new Promise((resolve) => {
-      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (activeTab) => {
-        if (!activeTab || activeTab.length === 0) {
-          resolve();
-        }
-        chrome.tabs.duplicate(activeTab[0].id!, resolve);
-      });
-    });
-  }
-
-  async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<any> {
-    return new Promise((resolve) => {
-      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-        if (!tabs || tabs.length === 0) {
-          resolve();
-        }
-
-        chrome.tabs.remove(tabs[0].id!, resolve);
-      });
-    });
-  }
-
-  private async changeTab(direction: number): Promise<any> {
+export default class ExtensionCommandHandler {
+  private async changeTab(direction: number): Promise<void> {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (activeTab) => {
         if (!activeTab || activeTab.length === 0) {
@@ -49,11 +18,46 @@ export default class TabHandler {
               resolve();
             }
 
-            chrome.tabs.update(tab[0].id!, { active: true }, resolve);
+            chrome.tabs.update(tab[0].id!, { active: true });
           });
         });
       });
     });
+  }
+
+  async COMMAND_TYPE_BACK(_data: any): Promise<any> {
+    chrome.tabs.goBack();
+  }
+
+  async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<void> {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+        if (!tabs || tabs.length === 0) {
+          resolve();
+        }
+
+        chrome.tabs.remove(tabs[0].id!, resolve);
+      });
+    });
+  }
+
+  async COMMAND_TYPE_CREATE_TAB(_data: any): Promise<any> {
+    chrome.tabs.create({});
+  }
+
+  async COMMAND_TYPE_DUPLICATE_TAB(_data: any): Promise<void> {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (activeTab) => {
+        if (!activeTab || activeTab.length === 0) {
+          resolve();
+        }
+        chrome.tabs.duplicate(activeTab[0].id!);
+      });
+    });
+  }
+
+  async COMMAND_TYPE_FORWARD(_data: any): Promise<any> {
+    chrome.tabs.goForward();
   }
 
   async COMMAND_TYPE_NEXT_TAB(_data: any): Promise<any> {
@@ -62,6 +66,10 @@ export default class TabHandler {
 
   async COMMAND_TYPE_PREVIOUS_TAB(_data: any): Promise<any> {
     return this.changeTab(-1);
+  }
+
+  async COMMAND_TYPE_RELOAD(_data: any): Promise<any> {
+    chrome.tabs.reload();
   }
 
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
