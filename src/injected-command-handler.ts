@@ -34,20 +34,6 @@ export default class InjectedCommandHandler {
   private inViewport(element: HTMLElement) {
     const bounding = element.getBoundingClientRect();
 
-    // If all four of the corners are covered by another element that's not a parent, no need to show
-    if (
-      !element.contains(document.elementFromPoint(bounding.left + 1, bounding.top + 1)) &&
-      !element.contains(document.elementFromPoint(bounding.right - 1, bounding.top + 1)) &&
-      !element.contains(document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)) &&
-      !element.contains(document.elementFromPoint(bounding.right - 1, bounding.bottom - 1)) &&
-      !document.elementFromPoint(bounding.left + 1, bounding.top + 1)?.contains(element) &&
-      !document.elementFromPoint(bounding.right - 1, bounding.top + 1)?.contains(element) &&
-      !document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)?.contains(element) &&
-      !document.elementFromPoint(bounding.right - 1, bounding.bottom - 1)?.contains(element)
-    ) {
-      return false;
-    }
-
     // Check that this is in the viewport and has some dimensions
     return (
       ((bounding.top >= 0 && bounding.top <= window.innerHeight) ||
@@ -101,6 +87,8 @@ export default class InjectedCommandHandler {
       const item = nodes[i];
       if (item !== null && this.inViewport(item as HTMLElement)) {
         matches.push(item);
+      } else {
+        console.log(item);
       }
     }
     return matches;
@@ -397,8 +385,10 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
+    console.log(this.settings);
     if (this.settings.alwaysShowClickables) {
-      this.COMMAND_TYPE_SHOW({ text: "links" });
+      console.log(this.overlays);
+      this.COMMAND_TYPE_SHOW({ text: "all" });
     }
     const editor = await editors.active();
     if (!editor) {
@@ -430,17 +420,22 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
+    console.log(data)
     let selector = "";
     if (data.text == "links") {
       selector = 'a, button, summary, [role="link"], [role="button"]';
     } else if (data.text == "inputs") {
-      selector = 'input, textarea, [role="checkbox"], [role="radio"], .CodeMirror';
+      selector = 'input, textarea, [role="checkbox"], [role="radio"]';
     } else if (data.text == "code") {
       selector = "pre, code";
+    } else if (data.text == "all") {
+      selector = 'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"]';
     } else {
       return;
     }
+    console.log(selector);
     const nodes = this.nodesMatchingSelector(selector);
+    console.log(nodes);
     this.showOverlays(Array.from(nodes), data.text);
   }
 
@@ -451,7 +446,7 @@ export default class InjectedCommandHandler {
 
   async COMMAND_TYPE_USE(data: any): Promise<any> {
     let overlay = this.overlays[data.index - 1];
-    if (overlay.type === "links" || overlay.type === "inputs") {
+    if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
       this.clickNode(overlay.node);
     } else if (overlay.type === "code") {
       await this.copyCode(overlay.node);
