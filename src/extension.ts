@@ -15,8 +15,7 @@ function connect() {
   return ipc
 }
 
-function keepAlive() {
-  console.log(ipc?.isConnected())
+function keepAliveAndEnsureConnection() {
   if (!ipc || !ipc.isConnected()) {
     ipc = connect();
   }
@@ -24,10 +23,10 @@ function keepAlive() {
 }
 
 let ipc = connect();
-chrome.alarms.onAlarm.addListener(keepAlive);
+chrome.alarms.onAlarm.addListener(keepAliveAndEnsureConnection);
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (message.type === "reconnect") {
     ipc = connect();
   }
 });
-keepAlive();
+keepAliveAndEnsureConnection();
