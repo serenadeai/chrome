@@ -75,7 +75,7 @@ export default class ExtensionCommandHandler {
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
     chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
       const index = data.index > 0 ? data.index - 1 : tabs.length - 1;
-      chrome.tabs.update(tabs[index].id!, { active: true }, (_v: any) => {});
+      chrome.tabs.update(tabs[index].id!, { active: true }, (_v: any) => { });
     });
   }
 }

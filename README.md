@@ -2,6 +2,12 @@
 
 Source for the [Serenade Chrome Extension](https://chrome.google.com/webstore/detail/serenade-for-chrome/bgfbijeikimjmdjldemlegooghdjinmj?hl=en)
 
+## Installation
+1. Download `build.zip` and unzip
+2. In Chrome, go to [chrome://extensions](chrome://extensions) and enable Developer Mode
+3. Click "Load unpacked" and select the unzipped `build` folder
+
+You may need to reload any tabs that were open before the extension was loaded.
 ## Design
 Chrome extensions generally contain three types of scripts that each have access to different parts of the browser API and page content:
 - **Background workers/extension code** have full access to the browser APIs and handles the parts of the extension that do not depend on the content of a given page.
