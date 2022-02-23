@@ -1,7 +1,10 @@
 import * as editors from "./editors";
 
 export default class InjectedCommandHandler {
-  overlays: { node: Node, type: string }[] = [];
+  private overlays: { node: Node; type: string }[] = [];
+  private settings = {
+    alwaysShowClickables: false,
+  };
 
   private clickNode(node: Node) {
     const element = node as HTMLElement;
@@ -31,47 +34,13 @@ export default class InjectedCommandHandler {
   private inViewport(element: HTMLElement) {
     const bounding = element.getBoundingClientRect();
 
-    // If all four of the corners are covered by another element that's not a parent, no need to show
-    if (
-      !element.contains(
-        document.elementFromPoint(bounding.left + 1, bounding.top + 1)
-      ) &&
-      !element.contains(
-        document.elementFromPoint(bounding.right - 1, bounding.top + 1)
-      ) &&
-      !element.contains(
-        document.elementFromPoint(bounding.left + 1, bounding.bottom - 1)
-      ) &&
-      !element.contains(
-        document.elementFromPoint(bounding.right - 1, bounding.bottom - 1)
-      ) &&
-      !document
-        .elementFromPoint(bounding.left + 1, bounding.top + 1)
-        ?.contains(element) &&
-      !document
-        .elementFromPoint(bounding.right - 1, bounding.top + 1)
-        ?.contains(element) &&
-      !document
-        .elementFromPoint(bounding.left + 1, bounding.bottom - 1)
-        ?.contains(element) &&
-      !document
-        .elementFromPoint(bounding.right - 1, bounding.bottom - 1)
-        ?.contains(element)
-    ) {
-      return false;
-    }
-
     // Check that this is in the viewport and has some dimensions
     return (
       ((bounding.top >= 0 && bounding.top <= window.innerHeight) ||
         (bounding.bottom >= 0 && bounding.bottom <= window.innerHeight)) &&
       ((bounding.left >= 0 && bounding.left <= window.innerWidth) ||
         (bounding.right >= 0 && bounding.right <= window.innerWidth)) &&
-      !!(
-        element.offsetWidth ||
-        element.offsetHeight ||
-        element.getClientRects().length
-      )
+      !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length)
     );
   }
 
@@ -124,15 +93,22 @@ export default class InjectedCommandHandler {
   }
 
   private elementIsScrollable(element: HTMLElement, direction: string): boolean {
-    if (direction === "up" || direction === "down" || direction === "bottom" || direction === "top") {
+    if (
+      direction === "up" ||
+      direction === "down" ||
+      direction === "bottom" ||
+      direction === "top"
+    ) {
       const overflowStyle = window.getComputedStyle(element).overflowY;
       return (
-        element.scrollHeight > element.clientHeight && (overflowStyle === "scroll" || overflowStyle === "auto")
+        element.scrollHeight > element.clientHeight &&
+        (overflowStyle === "scroll" || overflowStyle === "auto")
       );
     } else if (direction === "left" || direction === "right") {
       const overflowStyle = window.getComputedStyle(element).overflowX;
       return (
-        element.scrollWidth > element.clientWidth && (overflowStyle === "scroll" || overflowStyle === "auto")
+        element.scrollWidth > element.clientWidth &&
+        (overflowStyle === "scroll" || overflowStyle === "auto")
       );
     }
     return false;
@@ -191,13 +167,15 @@ export default class InjectedCommandHandler {
 
   private async scrollInDirection(direction: string) {
     let hoveredElements = document.querySelectorAll("*:hover");
-    let lastHoveredElement = hoveredElements.length ? hoveredElements[hoveredElements.length - 1] as HTMLElement : null;
+    let lastHoveredElement = hoveredElements.length
+      ? (hoveredElements[hoveredElements.length - 1] as HTMLElement)
+      : null;
     let scrolled = false;
     while (lastHoveredElement && !scrolled) {
       if (this.elementIsScrollable(lastHoveredElement, direction)) {
         let options = this.scrollOptions(lastHoveredElement, direction);
         if (direction === "top" || direction === "bottom") {
-          lastHoveredElement.scrollTo(options)
+          lastHoveredElement.scrollTo(options);
         } else {
           lastHoveredElement.scrollBy(options);
         }
@@ -209,7 +187,7 @@ export default class InjectedCommandHandler {
     if (!scrolled) {
       let options = this.scrollOptions(window, direction);
       if (direction === "top" || direction === "bottom") {
-        window.scrollTo(options)
+        window.scrollTo(options);
       } else {
         window.scrollBy(options);
       }
@@ -238,7 +216,7 @@ export default class InjectedCommandHandler {
     }
     // Use first match
     if (!target) {
-      target = matches[0]
+      target = matches[0];
     }
 
     const style = window.getComputedStyle(target as Element);
@@ -271,7 +249,9 @@ export default class InjectedCommandHandler {
     overlay.style.fontFamily =
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
     document.body.appendChild(overlay);
-    setTimeout(() => {document.body.removeChild(overlay)}, 1000);
+    setTimeout(() => {
+      document.body.removeChild(overlay);
+    }, 1000);
   }
 
   private showOverlays(nodes: Node[], overlayType: string) {
@@ -288,7 +268,7 @@ export default class InjectedCommandHandler {
       overlay.style.position = "absolute";
       overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
-      overlay.style.left = elementRect.left - bodyRect.left + "px";
+      overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
       overlay.style.padding = "3px";
       overlay.style.textAlign = "center";
       overlay.style.color = "#e6ecf2";
@@ -338,8 +318,7 @@ export default class InjectedCommandHandler {
     const pathNumber = parseInt(data.path, 10);
     if (!isNaN(pathNumber)) {
       // if path is a number, check that it is available
-      response.clickable =
-        pathNumber - 1 >= 0 && pathNumber - 1 < this.overlays.length;
+      response.clickable = pathNumber - 1 >= 0 && pathNumber - 1 < this.overlays.length;
     } else {
       // otherwise, search for matching nodes
       let matches = this.nodesMatchingPath(data.path);
@@ -404,6 +383,9 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_GET_EDITOR_STATE(_data: any): Promise<any> {
+    if (this.settings.alwaysShowClickables) {
+      this.COMMAND_TYPE_SHOW({ text: "all" });
+    }
     const editor = await editors.active();
     if (!editor) {
       return;
@@ -438,10 +420,11 @@ export default class InjectedCommandHandler {
     if (data.text == "links") {
       selector = 'a, button, summary, [role="link"], [role="button"]';
     } else if (data.text == "inputs") {
-      selector =
-        'input, textarea, [role="checkbox"], [role="radio"], .CodeMirror';
+      selector = 'input, textarea, [role="checkbox"], [role="radio"]';
     } else if (data.text == "code") {
       selector = "pre, code";
+    } else if (data.text == "all") {
+      selector = 'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"]';
     } else {
       return;
     }
@@ -456,12 +439,21 @@ export default class InjectedCommandHandler {
 
   async COMMAND_TYPE_USE(data: any): Promise<any> {
     let overlay = this.overlays[data.index - 1];
-    if (overlay.type === "links" || overlay.type === "inputs") {
+    if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
       this.clickNode(overlay.node);
     } else if (overlay.type === "code") {
       await this.copyCode(overlay.node);
       this.showCopyOverlay(data.index);
     }
     this.clearOverlays();
+  }
+
+  async updateSettings(data: any): Promise<void> {
+    this.settings = {
+      alwaysShowClickables: data.alwaysShowClickables,
+    };
+    if (!this.settings.alwaysShowClickables) {
+      this.clearOverlays();
+    }
   }
 }
