@@ -70,7 +70,7 @@ export default class IPC {
     } catch (e) { }
   }
 
-  private async tab(): Promise<any> {
+  private async tab(): Promise<number | undefined> {
     const [result] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
@@ -85,10 +85,7 @@ export default class IPC {
       return;
     }
     return new Promise((resolve) => {
-      if (!tabId) {
-        resolve();
-      }
-      chrome.tabs.sendMessage(tabId, message, (response) => {
+      chrome.tabs.sendMessage(tabId!, message, (response) => {
         resolve(response);
       });
     });
