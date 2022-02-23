@@ -1,4 +1,12 @@
 const showClickablesCheckbox = document.getElementById("showClickables") as HTMLInputElement;
+const reconnectButton = document.getElementById("reconnect") as HTMLAnchorElement;
+
+async function reconnect() {
+  console.log("reconnect")
+  chrome.runtime.sendMessage({
+    type: "reconnnect",
+  });
+}
 
 async function restoreSettings() {
   chrome.storage.sync.get(
@@ -32,5 +40,7 @@ function saveSettingsAndUpdate() {
   });
 }
 
+console.log(reconnectButton);
 document.addEventListener("DOMContentLoaded", restoreSettings);
+reconnectButton?.addEventListener("click", reconnect);
 showClickablesCheckbox?.addEventListener("change", saveSettingsAndUpdate);
