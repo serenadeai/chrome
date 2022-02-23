@@ -10,7 +10,6 @@ module.exports = [
       extension: "./src/extension.ts",
       "content-script": "./src/content-script.ts",
       injected: "./src/injected.ts",
-      popup: "./src/popup.ts",
     },
     output: {
       path: path.resolve(__dirname, "build"),

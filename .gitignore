@@ -4,4 +4,3 @@ build
 *.log
 .idea
 package-lock.json
-.vscode
