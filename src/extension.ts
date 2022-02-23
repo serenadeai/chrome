@@ -14,8 +14,7 @@ const ipc = new IPC(
 ipc.start();
 
 // Keep-alive logic
-// Based on:
-// https://stackoverflow.com/questions/66618136/persistent-service-worker-in-chrome-extension/66618269
+// Based on https://stackoverflow.com/a/66618269/15726648
 let connection: any = null;
 keepAlive();
 

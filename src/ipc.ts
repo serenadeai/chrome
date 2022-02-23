@@ -114,7 +114,6 @@ export default class IPC {
     if (handlerResponse) {
       result = { ...handlerResponse };
     }
-
     return result;
   }
 
