@@ -81,6 +81,9 @@ export default class IPC {
 
   private async sendMessageToContentScript(message: any): Promise<void> {
     let tabId = await this.tab();
+    if (!tabId) {
+      return;
+    }
     return new Promise((resolve) => {
       if (!tabId) {
         resolve();
