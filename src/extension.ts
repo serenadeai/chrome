@@ -12,7 +12,7 @@ function connect() {
     extensionCommandHandler
   );
   ipc.start();
-  return ipc
+  return ipc;
 }
 
 function keepAliveAndEnsureConnection() {
