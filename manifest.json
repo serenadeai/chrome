@@ -3,7 +3,7 @@
   "name": "Serenade",
   "version": "2.0.0",
   "description": "Code with voice. Learn more at https://serenade.ai.",
-  "permissions": ["tabs", "scripting", "storage", "alarms"],
+  "permissions": ["tabs", "scripting", "storage", "alarms", "idle"],
   "host_permissions": ["ws://localhost:17373/", "*://*/*"],
   "action": {
     "default_title": "Serenade for Chrome",

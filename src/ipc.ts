@@ -48,7 +48,7 @@ export default class IPC {
     this.sendActive();
   }
 
-  ensureConnection() {
+  async ensureConnection() {
     if (this.connected) {
       return;
     }
@@ -70,22 +70,21 @@ export default class IPC {
     } catch (e) { }
   }
 
-  private async tab(): Promise<number | undefined> {
+  private async tab(): Promise<any> {
     const [result] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
-
-    return result?.id;
+    return result;
   }
 
   private async sendMessageToContentScript(message: any): Promise<void> {
-    let tabId = await this.tab();
-    if (!tabId) {
+    let tab = await this.tab();
+    if (!tab?.id || tab.url?.startsWith("chrome://")) {
       return;
     }
     return new Promise((resolve) => {
-      chrome.tabs.sendMessage(tabId!, message, (response) => {
+      chrome.tabs.sendMessage(tab!.id!, message, (response) => {
         resolve(response);
       });
     });
@@ -124,6 +123,13 @@ export default class IPC {
     });
   }
 
+  sendHeartbeat() {
+    this.send("heartbeat", {
+      app: this.app,
+      id: this.id,
+    });
+  }
+
   send(message: string, data: any) {
     if (!this.connected || !this.websocket || this.websocket!.readyState != 1) {
       return false;
@@ -138,18 +144,20 @@ export default class IPC {
     }
   }
 
-  start() {
-    this.ensureConnection();
+  async start() {
+    await this.ensureConnection();
 
+    // Minimum interval available with the chrome.alarms API is 1 minute
     setInterval(() => {
       this.ensureConnection();
     }, 1000);
 
-    setInterval(() => {
-      this.send("heartbeat", {
-        app: this.app,
-        id: this.id,
-      });
-    }, 60 * 1000);
+    // Use alarm to send heartbeat to client
+    chrome.alarms.create("sendHeartbeatToClient", { periodInMinutes: 1 })
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === "sendHeartbeatToClient") {
+        this.sendHeartbeat();
+      }
+    })
   }
 }
