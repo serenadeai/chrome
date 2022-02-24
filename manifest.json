@@ -7,7 +7,7 @@
   "host_permissions": ["ws://localhost:17373/", "*://*/*"],
   "action": {
     "default_title": "Serenade for Chrome",
-    "default_popup": "src/popup.html"
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "build/extension.js"

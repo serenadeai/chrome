@@ -1,5 +1,10 @@
 const showClickablesCheckbox = document.getElementById("showClickables") as HTMLInputElement;
+const docsButton = document.getElementById("docs") as HTMLAnchorElement;
 const reconnectButton = document.getElementById("reconnect") as HTMLAnchorElement;
+
+async function openDocs() {
+  chrome.tabs.create({ url: "https://serenade.ai/docs" })
+}
 
 async function reconnect() {
   chrome.runtime.sendMessage({
@@ -40,5 +45,6 @@ function saveSettingsAndUpdate() {
 }
 
 document.addEventListener("DOMContentLoaded", restoreSettings);
+docsButton.addEventListener("click", openDocs);
 reconnectButton?.addEventListener("click", reconnect);
 showClickablesCheckbox?.addEventListener("change", saveSettingsAndUpdate);
