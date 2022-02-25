@@ -29,6 +29,7 @@ a {
 }
 
 a:hover {
+  cursor: pointer;
   background-color: rgb(37 99 235);
   box-shadow: 0 4px 6px -1px #3b82f688;
 }

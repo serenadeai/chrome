@@ -48,26 +48,28 @@ export default class IPC {
     this.sendActive();
   }
 
-  ensureConnection() {
+  async ensureConnection(): Promise<void> {
     if (this.connected) {
       return;
     }
+    return new Promise((resolve) => {
+      try {
+        this.websocket = new WebSocket(this.url);
 
-    try {
-      this.websocket = new WebSocket(this.url);
+        this.websocket.addEventListener("open", () => {
+          this.onOpen();
+          resolve();
+        });
 
-      this.websocket.addEventListener("open", () => {
-        this.onOpen();
-      });
+        this.websocket.addEventListener("close", () => {
+          this.onClose();
+        });
 
-      this.websocket.addEventListener("close", () => {
-        this.onClose();
-      });
-
-      this.websocket.addEventListener("message", (event) => {
-        this.onMessage(event.data);
-      });
-    } catch (e) { }
+        this.websocket.addEventListener("message", (event) => {
+          this.onMessage(event.data);
+        });
+      } catch (e) { }
+    });
   }
 
   private async tab(): Promise<any> {
@@ -75,17 +77,16 @@ export default class IPC {
       active: true,
       currentWindow: true,
     });
-
-    return result?.id;
+    return result;
   }
 
-  private async sendMessageToContentScript(message: any): Promise<any> {
-    let tabId = await this.tab();
-    if (!tabId) {
+  private async sendMessageToContentScript(message: any): Promise<void> {
+    let tab = await this.tab();
+    if (!tab?.id || tab.url?.startsWith("chrome://")) {
       return;
     }
     return new Promise((resolve) => {
-      chrome.tabs.sendMessage(tabId, message, (response) => {
+      chrome.tabs.sendMessage(tab!.id!, message, (response) => {
         resolve(response);
       });
     });
@@ -114,12 +115,18 @@ export default class IPC {
     if (handlerResponse) {
       result = { ...handlerResponse };
     }
-
     return result;
   }
 
   sendActive() {
     this.send("active", {
+      app: this.app,
+      id: this.id,
+    });
+  }
+
+  sendHeartbeat() {
+    this.send("heartbeat", {
       app: this.app,
       id: this.id,
     });
@@ -139,18 +146,15 @@ export default class IPC {
     }
   }
 
-  start() {
-    this.ensureConnection();
+  async start() {
+    await this.ensureConnection();
 
-    setInterval(() => {
-      this.ensureConnection();
-    }, 1000);
-
-    setInterval(() => {
-      this.send("heartbeat", {
-        app: this.app,
-        id: this.id,
-      });
-    }, 60 * 1000);
+    // Use alarm to send heartbeat to client
+    chrome.alarms.create("sendHeartbeatToClient", { periodInMinutes: 1 })
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === "sendHeartbeatToClient") {
+        this.sendHeartbeat();
+      }
+    })
   }
 }

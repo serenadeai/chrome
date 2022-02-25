@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "webpack --mode development",
-    "dist": "webpack --mode production && zip -r build.zip build img manifest.json",
+    "dist": "webpack --mode production && zip -r build.zip build img manifest.json popup.css popup.html",
     "watch": "webpack --mode development --watch",
     "test": "open http://localhost:8001/src/test & python -m http.server 8001"
   },

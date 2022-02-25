@@ -1,6 +1,8 @@
 const showClickablesCheckbox = document.getElementById("showClickables") as HTMLInputElement;
+const docsButton = document.getElementById("docs") as HTMLAnchorElement;
+const reconnectButton = document.getElementById("reconnect") as HTMLAnchorElement;
 
-async function restoreSettings() {
+document.addEventListener("DOMContentLoaded", async () => {
   chrome.storage.sync.get(
     {
       alwaysShowClickables: false,
@@ -9,9 +11,21 @@ async function restoreSettings() {
       showClickablesCheckbox.checked = settings.alwaysShowClickables;
     }
   );
-}
+});
 
-function saveSettingsAndUpdate() {
+docsButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  chrome.tabs.create({ url: "https://serenade.ai/docs" })
+});
+
+reconnectButton?.addEventListener("click", (event) => {
+  event.preventDefault();
+  chrome.runtime.sendMessage({
+    type: "reconnect",
+  });
+});
+
+showClickablesCheckbox?.addEventListener("change", () => {
   const settings = {
     alwaysShowClickables: showClickablesCheckbox.checked,
   };
@@ -30,7 +44,4 @@ function saveSettingsAndUpdate() {
       },
     });
   });
-}
-
-document.addEventListener("DOMContentLoaded", restoreSettings);
-showClickablesCheckbox?.addEventListener("change", saveSettingsAndUpdate);
+});
