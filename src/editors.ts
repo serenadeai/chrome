@@ -26,7 +26,9 @@ document.addEventListener("DOMContentLoaded", (_e) => {
       attributes: true,
     });
     // If the observer is still running after 3s, the monaco object was never found
-    setTimeout(() => { mutationObserver.disconnect() }, 3000);
+    setTimeout(() => {
+      mutationObserver.disconnect();
+    }, 3000);
   }
 });
 
@@ -147,9 +149,13 @@ class Ace extends Editor {
     editor.session.selection.moveCursorTo(row, column);
   }
 
-  redo() { }
+  redo() {
+    return { success: false };
+  }
 
-  undo() { }
+  undo() {
+    return { success: false };
+  }
 }
 
 class CodeMirror extends Editor {
@@ -198,10 +204,12 @@ class CodeMirror extends Editor {
 
   redo() {
     this.editor()?.redo();
+    return { success: true };
   }
 
   undo() {
     this.editor()?.undo();
+    return { success: true };
   }
 }
 
@@ -227,8 +235,8 @@ class Monaco extends Editor {
         source: "",
         cursor: 0,
         filename: "",
-        available: false
-      }
+        available: false,
+      };
     }
     const model = editor.getModel();
     let languageId = "";
@@ -301,10 +309,12 @@ class Monaco extends Editor {
 
   redo() {
     this.editor()?.trigger(null, "redo");
+    return { success: true };
   }
 
   undo() {
     this.editor()?.trigger(null, "undo");
+    return { success: true };
   }
 }
 
@@ -328,18 +338,22 @@ class NativeInput extends Editor {
 
   setSelection(cursor: number, cursorEnd?: number) {
     const editor = document.activeElement as any;
-    editor.setSelection(cursor, cursorEnd || cursor);
+    editor.setSelectionRange(cursor, cursorEnd || cursor);
   }
 
   setSourceAndCursor(source: string, cursor: number) {
     const editor = document.activeElement as any;
     editor.value = source;
-    editor.setSelection(cursor, cursor);
+    editor.setSelectionRange(cursor, cursor);
   }
 
-  redo() { }
+  redo() {
+    return { success: false };
+  }
 
-  undo() { }
+  undo() {
+    return { success: false };
+  }
 }
 
 const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];

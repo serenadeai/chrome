@@ -96,6 +96,9 @@ export default class IPC {
     let handlerResponse = null;
     if (response.execute) {
       for (const command of response.execute.commandsList) {
+        if (command.type !== "COMMAND_TYPE_GET_EDITOR_STATE") {
+          console.log(command);
+        }
         if (command.type in (this.extensionCommandHandler as any)) {
           handlerResponse = await (this.extensionCommandHandler as any)[command.type](command);
         } else {
@@ -110,11 +113,17 @@ export default class IPC {
     let result = {
       message: "completed",
       data: {},
+      success: true,
     };
 
     if (handlerResponse) {
+      if (handlerResponse.data?.success !== undefined) {
+        handlerResponse.success = handlerResponse.data.success;
+        delete (handlerResponse.data.success)
+      }
       result = { ...handlerResponse };
     }
+    console.log(result);
     return result;
   }
 
@@ -148,6 +157,8 @@ export default class IPC {
 
   async start() {
     await this.ensureConnection();
+
+    setInterval(this.ensureConnection, 1000);
 
     // Use alarm to send heartbeat to client
     chrome.alarms.create("sendHeartbeatToClient", { periodInMinutes: 1 })

@@ -330,11 +330,12 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
-      return;
+      return { success: false };
     }
-    await editor.setSourceAndCursor(data.source, data.cursor);
+    editor.setSourceAndCursor(data.source, data.cursor);
+    return { success: true };
   }
 
   async COMMAND_TYPE_DOM_BLUR(data: any): Promise<any> {
@@ -386,7 +387,7 @@ export default class InjectedCommandHandler {
     if (this.settings.alwaysShowClickables) {
       this.COMMAND_TYPE_SHOW({ text: "all" });
     }
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return;
     }
@@ -394,7 +395,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_REDO(_data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     editor?.redo();
   }
 
@@ -407,12 +408,12 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
-      return;
+      return { success: false }
     }
-
-    return editor.setSelection(data.cursor, data.cursorEnd);
+    editor.setSelection(data.cursor, data.cursorEnd);
+    return { success: true }
   }
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
@@ -433,19 +434,21 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_UNDO(_data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     editor?.undo();
   }
 
   async COMMAND_TYPE_USE(data: any): Promise<any> {
     let overlay = this.overlays[data.index - 1];
-    if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
-      this.clickNode(overlay.node);
-    } else if (overlay.type === "code") {
-      await this.copyCode(overlay.node);
-      this.showCopyOverlay(data.index);
+    if (overlay) {
+      if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
+        this.clickNode(overlay.node);
+      } else if (overlay.type === "code") {
+        await this.copyCode(overlay.node);
+        this.showCopyOverlay(data.index);
+      }
+      this.clearOverlays();
     }
-    this.clearOverlays();
   }
 
   async updateSettings(data: any): Promise<void> {
