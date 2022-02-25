@@ -110,10 +110,12 @@ export default class IPC {
     let result = {
       message: "completed",
       data: {},
+      success: true,
     };
 
     if (handlerResponse) {
       result = { ...handlerResponse };
+      result.success = true;
     }
     return result;
   }

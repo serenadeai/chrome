@@ -26,7 +26,9 @@ document.addEventListener("DOMContentLoaded", (_e) => {
       attributes: true,
     });
     // If the observer is still running after 3s, the monaco object was never found
-    setTimeout(() => { mutationObserver.disconnect() }, 3000);
+    setTimeout(() => {
+      mutationObserver.disconnect();
+    }, 3000);
   }
 });
 
@@ -227,8 +229,8 @@ class Monaco extends Editor {
         source: "",
         cursor: 0,
         filename: "",
-        available: false
-      }
+        available: false,
+      };
     }
     const model = editor.getModel();
     let languageId = "";
@@ -342,7 +344,56 @@ class NativeInput extends Editor {
   undo() { }
 }
 
-const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
+class ContentEditable extends Editor {
+  active(): boolean {
+    return (
+      !!document.activeElement &&
+      (document.activeElement! as HTMLElement).isContentEditable &&
+      window.getSelection()!.anchorNode !== null
+    );
+  }
+
+  getEditorState(): EditorState {
+    const editor = window.getSelection();
+    const source = editor?.anchorNode?.nodeValue;
+    const cursor = editor?.anchorOffset;
+    return {
+      source: source || "",
+      cursor: cursor || 0,
+      filename: "chrome.txt",
+      available: source !== null && cursor !== null,
+    };
+  }
+
+  setSelection(cursor: number, cursorEnd: number): void {
+    const editor = window.getSelection();
+    let range = document.createRange();
+    range.setStart(editor?.anchorNode!, cursor);
+    range.setEnd(editor?.anchorNode!, cursorEnd);
+    editor?.removeAllRanges();
+    editor?.addRange(range);
+  }
+
+  setSourceAndCursor(source: string, cursor: number): void {
+    const editor = window.getSelection();
+    if (editor?.anchorNode) {
+      editor.anchorNode.nodeValue = source;
+    }
+    this.setSelection(cursor, cursor);
+  }
+
+  redo(): void { }
+
+  undo(): void { }
+}
+
+const editors = [
+  new Ace(),
+  new CodeMirror(),
+  new Monaco(),
+  new NativeInput(),
+  new ContentEditable(),
+];
 export const active = (): Editor | null => {
   for (const editor of editors) {
     if (editor.active()) {
