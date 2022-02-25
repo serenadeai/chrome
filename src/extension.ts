@@ -23,14 +23,15 @@ chrome.alarms.create("keepAlive", { periodInMinutes: 1 });
 // Reset the extension when waking from idle state
 chrome.idle.onStateChanged.addListener(async (state) => {
   if (state === "active") {
-    ipc.sendActive();
     await ipc.ensureConnection();
+    ipc.sendActive();
   }
 });
 
 // Reset the extension when clicking the reconnect button
 chrome.runtime.onMessage.addListener(async (message, _sender, _sendResponse) => {
   if (message.type === "reconnect") {
-    chrome.runtime.reload();
+    await ipc.ensureConnection();
+    ipc.sendActive();
   }
 });
