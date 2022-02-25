@@ -48,26 +48,28 @@ export default class IPC {
     this.sendActive();
   }
 
-  async ensureConnection() {
+  async ensureConnection(): Promise<void> {
     if (this.connected) {
       return;
     }
+    return new Promise((resolve) => {
+      try {
+        this.websocket = new WebSocket(this.url);
 
-    try {
-      this.websocket = new WebSocket(this.url);
+        this.websocket.addEventListener("open", () => {
+          this.onOpen();
+          resolve();
+        });
 
-      this.websocket.addEventListener("open", () => {
-        this.onOpen();
-      });
+        this.websocket.addEventListener("close", () => {
+          this.onClose();
+        });
 
-      this.websocket.addEventListener("close", () => {
-        this.onClose();
-      });
-
-      this.websocket.addEventListener("message", (event) => {
-        this.onMessage(event.data);
-      });
-    } catch (e) { }
+        this.websocket.addEventListener("message", (event) => {
+          this.onMessage(event.data);
+        });
+      } catch (e) { }
+    });
   }
 
   private async tab(): Promise<any> {
@@ -146,11 +148,6 @@ export default class IPC {
 
   async start() {
     await this.ensureConnection();
-
-    // Minimum interval available with the chrome.alarms API is 1 minute
-    setInterval(() => {
-      this.ensureConnection();
-    }, 1000);
 
     // Use alarm to send heartbeat to client
     chrome.alarms.create("sendHeartbeatToClient", { periodInMinutes: 1 })
