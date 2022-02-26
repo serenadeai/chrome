@@ -334,10 +334,9 @@ export default class InjectedCommandHandler {
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
     const editor = editors.active();
     if (!editor) {
-      return { success: false };
+      return;
     }
     editor.setSourceAndCursor(data.source, data.cursor);
-    return { success: true };
   }
 
   async COMMAND_TYPE_DOM_BLUR(data: any): Promise<any> {
@@ -391,7 +390,13 @@ export default class InjectedCommandHandler {
     }
     const editor = editors.active();
     if (!editor) {
-      return;
+      return {
+        source: "",
+        cursor: 0,
+        filename: "",
+        available: false,
+        canModifyState: false,
+      }
     }
     return editor.getEditorState();
   }
@@ -412,10 +417,9 @@ export default class InjectedCommandHandler {
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
     const editor = editors.active();
     if (!editor) {
-      return { success: false }
+      return;
     }
     editor.setSelection(data.cursor, data.cursorEnd);
-    return { success: true }
   }
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {

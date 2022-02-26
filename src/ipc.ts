@@ -96,6 +96,7 @@ export default class IPC {
     let handlerResponse = null;
     if (response.execute) {
       for (const command of response.execute.commandsList) {
+        console.log(command);
         if (command.type in (this.extensionCommandHandler as any)) {
           handlerResponse = await (this.extensionCommandHandler as any)[command.type](command);
         } else {
@@ -110,16 +111,12 @@ export default class IPC {
     let result = {
       message: "completed",
       data: {},
-      success: true,
     };
 
     if (handlerResponse) {
-      if (handlerResponse.data?.success !== undefined) {
-        handlerResponse.success = handlerResponse.data.success;
-        delete (handlerResponse.data.success)
-      }
       result = { ...handlerResponse };
     }
+    console.log(result);
     return result;
   }
 

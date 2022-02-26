@@ -37,6 +37,7 @@ type EditorState = {
   cursor: number;
   filename: string;
   available: boolean;
+  canModifyState: boolean;
 };
 
 const extensionAliasMap = {
@@ -126,6 +127,7 @@ class Ace extends Editor {
       cursor: this.cursorFromRowAndColumn(source, row, column),
       filename: this.filenameFromLanguage(mode),
       available: true,
+      canModifyState: true,
     };
   }
 
@@ -178,6 +180,7 @@ class CodeMirror extends Editor {
       cursor: this.cursorFromRowAndColumn(source, line, ch),
       filename: filename,
       available: true,
+      canModifyState: true,
     };
   }
 
@@ -230,6 +233,7 @@ class Monaco extends Editor {
         cursor: 0,
         filename: "",
         available: false,
+        canModifyState: true,
       };
     }
     const model = editor.getModel();
@@ -248,6 +252,7 @@ class Monaco extends Editor {
       cursor: cursor,
       filename: filename,
       available: true,
+      canModifyState: true,
     };
   }
 
@@ -325,6 +330,7 @@ class NativeInput extends Editor {
       cursor: editor.selectionStart,
       filename: "chrome.txt",
       available: true,
+      canModifyState: true,
     };
   }
 
