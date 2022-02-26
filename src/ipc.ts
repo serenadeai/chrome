@@ -96,9 +96,6 @@ export default class IPC {
     let handlerResponse = null;
     if (response.execute) {
       for (const command of response.execute.commandsList) {
-        if (command.type !== "COMMAND_TYPE_GET_EDITOR_STATE") {
-          console.log(command);
-        }
         if (command.type in (this.extensionCommandHandler as any)) {
           handlerResponse = await (this.extensionCommandHandler as any)[command.type](command);
         } else {
@@ -123,7 +120,6 @@ export default class IPC {
       }
       result = { ...handlerResponse };
     }
-    console.log(result);
     return result;
   }
 
