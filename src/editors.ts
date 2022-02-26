@@ -149,13 +149,9 @@ class Ace extends Editor {
     editor.session.selection.moveCursorTo(row, column);
   }
 
-  redo() {
-    return { success: false };
-  }
+  redo() { }
 
-  undo() {
-    return { success: false };
-  }
+  undo() { }
 }
 
 class CodeMirror extends Editor {
@@ -204,12 +200,10 @@ class CodeMirror extends Editor {
 
   redo() {
     this.editor()?.redo();
-    return { success: true };
   }
 
   undo() {
     this.editor()?.undo();
-    return { success: true };
   }
 }
 
@@ -309,12 +303,10 @@ class Monaco extends Editor {
 
   redo() {
     this.editor()?.trigger(null, "redo");
-    return { success: true };
   }
 
   undo() {
     this.editor()?.trigger(null, "undo");
-    return { success: true };
   }
 }
 
@@ -347,13 +339,9 @@ class NativeInput extends Editor {
     editor.setSelectionRange(cursor, cursor);
   }
 
-  redo() {
-    return { success: false };
-  }
+  redo() { }
 
-  undo() {
-    return { success: false };
-  }
+  undo() { }
 }
 
 const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
