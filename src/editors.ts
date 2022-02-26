@@ -344,7 +344,12 @@ class NativeInput extends Editor {
   undo() { }
 }
 
-const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
+const editors = [
+  new Ace(),
+  new CodeMirror(),
+  new Monaco(),
+  new NativeInput()
+];
 export const active = (): Editor | null => {
   for (const editor of editors) {
     if (editor.active()) {

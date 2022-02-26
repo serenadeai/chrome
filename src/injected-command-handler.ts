@@ -418,14 +418,17 @@ export default class InjectedCommandHandler {
 
   async COMMAND_TYPE_SHOW(data: any): Promise<any> {
     let selector = "";
+    const linkSelector = 'a, button, summary, [role="link"], [role="button"]';
+    const inputSelector = 'input, textarea, [role="checkbox"], [role="radio"], [contenteditable=true]';
+    const codeSelector = "pre, code";
     if (data.text == "links") {
-      selector = 'a, button, summary, [role="link"], [role="button"]';
+      selector = linkSelector;
     } else if (data.text == "inputs") {
-      selector = 'input, textarea, [role="checkbox"], [role="radio"]';
+      selector = inputSelector;
     } else if (data.text == "code") {
-      selector = "pre, code";
+      selector = codeSelector;
     } else if (data.text == "all") {
-      selector = 'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"]';
+      selector = linkSelector + ", " + inputSelector + ", " + codeSelector;
     } else {
       return;
     }

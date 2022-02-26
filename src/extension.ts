@@ -12,6 +12,12 @@ const ipc = new IPC(
 );
 ipc.start();
 
+// Make sure connection is active when starting up Chrome session
+chrome.runtime.onStartup.addListener(async () => {
+  await ipc.ensureConnection();
+  ipc.sendActive();
+})
+
 // Use alarm every minute to keep background service worker alive
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "keepAlive") {
@@ -31,7 +37,7 @@ chrome.idle.onStateChanged.addListener(async (state) => {
 // Reset the extension when clicking the reconnect button
 chrome.runtime.onMessage.addListener(async (message, _sender, _sendResponse) => {
   if (message.type === "reconnect") {
-    await ipc.ensureConnection();
-    ipc.sendActive();
+    chrome.runtime.reload();
+    chrome.tabs.reload();
   }
 });

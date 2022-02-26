@@ -119,6 +119,7 @@ export default class IPC {
         delete (handlerResponse.data.success)
       }
       result = { ...handlerResponse };
+      result.success = true;
     }
     return result;
   }
