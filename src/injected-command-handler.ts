@@ -268,7 +268,7 @@ export default class InjectedCommandHandler {
       overlay.style.position = "absolute";
       overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
-      overlay.style.left = elementRect.left - bodyRect.left + "px";
+      overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
       overlay.style.width = "1.5em";
       overlay.style.padding = "0px";
       overlay.style.textAlign = "center";
