@@ -37,7 +37,7 @@ chrome.idle.onStateChanged.addListener(async (state) => {
 // Reset the extension when clicking the reconnect button
 chrome.runtime.onMessage.addListener(async (message, _sender, _sendResponse) => {
   if (message.type === "reconnect") {
-    chrome.runtime.reload();
-    chrome.tabs.reload();
+    await ipc.ensureConnection();
+    ipc.sendActive();
   }
 });
