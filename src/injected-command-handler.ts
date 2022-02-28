@@ -439,13 +439,15 @@ export default class InjectedCommandHandler {
 
   async COMMAND_TYPE_USE(data: any): Promise<any> {
     let overlay = this.overlays[data.index - 1];
-    if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
-      this.clickNode(overlay.node);
-    } else if (overlay.type === "code") {
-      await this.copyCode(overlay.node);
-      this.showCopyOverlay(data.index);
+    if (overlay) {
+      if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
+        this.clickNode(overlay.node);
+      } else if (overlay.type === "code") {
+        await this.copyCode(overlay.node);
+        this.showCopyOverlay(data.index);
+      }
+      this.clearOverlays();
     }
-    this.clearOverlays();
   }
 
   async updateSettings(data: any): Promise<void> {
