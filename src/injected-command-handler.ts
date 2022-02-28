@@ -269,11 +269,13 @@ export default class InjectedCommandHandler {
       overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
       overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
-      overlay.style.padding = "3px";
+      overlay.style.width = "1.5em";
+      overlay.style.padding = "0px";
       overlay.style.textAlign = "center";
       overlay.style.color = "#e6ecf2";
-      overlay.style.background = "#1c1c16";
+      overlay.style.background = "#1c1c1688";
       overlay.style.borderRadius = "3px";
+      overlay.style.fontSize = "12px";
       overlay.style.fontFamily =
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
       document.body.appendChild(overlay);
