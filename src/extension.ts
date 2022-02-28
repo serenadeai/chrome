@@ -12,6 +12,12 @@ const ipc = new IPC(
 );
 ipc.start();
 
+// Make sure connection is active when starting up Chrome session
+chrome.runtime.onStartup.addListener(async () => {
+  await ipc.ensureConnection();
+  ipc.sendActive();
+})
+
 // Use alarm every minute to keep background service worker alive
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "keepAlive") {
