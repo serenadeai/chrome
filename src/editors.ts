@@ -147,9 +147,9 @@ class Ace extends Editor {
     editor.session.selection.moveCursorTo(row, column);
   }
 
-  redo() { }
+  redo() {}
 
-  undo() { }
+  undo() {}
 }
 
 class CodeMirror extends Editor {
@@ -328,18 +328,18 @@ class NativeInput extends Editor {
 
   setSelection(cursor: number, cursorEnd?: number) {
     const editor = document.activeElement as any;
-    editor.setSelection(cursor, cursorEnd || cursor);
+    editor.setSelectionRange(cursor, cursorEnd || cursor);
   }
 
   setSourceAndCursor(source: string, cursor: number) {
     const editor = document.activeElement as any;
     editor.value = source;
-    editor.setSelection(cursor, cursor);
+    editor.setSelectionRange(cursor, cursor);
   }
 
-  redo() { }
+  redo() {}
 
-  undo() { }
+  undo() {}
 }
 
 const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
