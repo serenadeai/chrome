@@ -388,7 +388,7 @@ export default class InjectedCommandHandler {
     }
     const editor = await editors.active();
     if (!editor) {
-      return;
+      return { source: "", cursor: 0, available: false };
     }
     return editor.getEditorState();
   }
