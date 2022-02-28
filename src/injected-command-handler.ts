@@ -330,11 +330,11 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return;
     }
-    await editor.setSourceAndCursor(data.source, data.cursor);
+    editor.setSourceAndCursor(data.source, data.cursor);
   }
 
   async COMMAND_TYPE_DOM_BLUR(data: any): Promise<any> {
@@ -386,7 +386,7 @@ export default class InjectedCommandHandler {
     if (this.settings.alwaysShowClickables) {
       this.COMMAND_TYPE_SHOW({ text: "all" });
     }
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return { source: "", cursor: 0, available: false };
     }
@@ -394,7 +394,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_REDO(_data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     editor?.redo();
   }
 
@@ -407,7 +407,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return;
     }
@@ -433,7 +433,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_UNDO(_data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     editor?.undo();
   }
 
