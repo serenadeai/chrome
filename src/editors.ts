@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", (_e) => {
     monacoListener();
   } else {
     // The following attempts to add a Monaco listener for apps dynamically load the Monaco library
-    // We add check for the monaco.editor library whenever nodes are added/removed from the DOM or attributes are changed
+    // We add check for the monaco.editor library whenever nodes are added/removed from the
+    // DOM or attributes are changed
     let rootNode = document;
     mutationObserver.observe(rootNode!, {
       childList: true,
@@ -26,7 +27,9 @@ document.addEventListener("DOMContentLoaded", (_e) => {
       attributes: true,
     });
     // If the observer is still running after 3s, the monaco object was never found
-    setTimeout(() => { mutationObserver.disconnect() }, 3000);
+    setTimeout(() => {
+      mutationObserver.disconnect();
+    }, 3000);
   }
 });
 
@@ -35,12 +38,15 @@ type EditorState = {
   cursor: number;
   filename: string;
   available: boolean;
+  canGetState: boolean;
+  canSetState: boolean;
 };
 
 const extensionAliasMap = {
   py: ["python"],
   js: ["javascript", "js", "typescript", "ts", "react", "vue"],
-  java: ["java"], // must be after javascript
+  // must be after javascript
+  java: ["java"],
   html: ["html"],
   dart: ["dart"],
   rs: ["rust", "rs"],
@@ -50,8 +56,10 @@ const extensionAliasMap = {
   rb: ["ruby", "rb"],
   cs: ["csharp", "c#"],
   cpp: ["cplusplus", "c++", "cpp"],
-  sh: ["sh"], // must be after c# to avoid returning file.sh instead of file.cs
-  c: ["c"], // must be after all aliases that contain "c"
+  // must be after c# to avoid returning file.sh instead of file.cs
+  sh: ["sh"],
+  // must be after all aliases that contain "c"
+  c: ["c"],
 };
 
 abstract class Editor {
@@ -92,6 +100,7 @@ abstract class Editor {
     if (typeof languageId !== "string") {
       return "chrome.txt";
     }
+
     for (const [extension, aliases] of Object.entries(extensionAliasMap)) {
       for (const alias of aliases) {
         if (languageId.includes(alias)) {
@@ -99,6 +108,7 @@ abstract class Editor {
         }
       }
     }
+
     return "chrome.txt";
   }
 }
@@ -106,8 +116,7 @@ abstract class Editor {
 class Ace extends Editor {
   private editor(): any {
     const ace = document.activeElement!.closest(".ace_editor")!;
-    const editor = (ace as any).env.editor;
-    return editor;
+    return (ace as any).env.editor;
   }
 
   active(): boolean {
@@ -118,12 +127,14 @@ class Ace extends Editor {
     const editor = this.editor();
     const source = editor.getValue();
     const { row, column } = editor.getCursorPosition();
-    let mode = editor.session["$modeId"];
+    const mode = editor.session["$modeId"];
     return {
       source,
       cursor: this.cursorFromRowAndColumn(source, row, column),
       filename: this.filenameFromLanguage(mode),
       available: true,
+      canGetState: true,
+      canSetState: true,
     };
   }
 
@@ -147,9 +158,13 @@ class Ace extends Editor {
     editor.session.selection.moveCursorTo(row, column);
   }
 
-  redo() {}
+  redo() {
+    this.editor().getSession().getUndoManager().redo();
+  }
 
-  undo() {}
+  undo() {
+    this.editor().getSession().getUndoManager().undo();
+  }
 }
 
 class CodeMirror extends Editor {
@@ -170,12 +185,14 @@ class CodeMirror extends Editor {
     if (mode && typeof mode !== "string" && mode.name) {
       mode = mode.name;
     }
-    const filename = this.filenameFromLanguage(mode);
+
     return {
       source,
       cursor: this.cursorFromRowAndColumn(source, line, ch),
-      filename: filename,
+      filename: this.filenameFromLanguage(mode),
       available: true,
+      canGetState: true,
+      canSetState: true,
     };
   }
 
@@ -213,6 +230,7 @@ class Monaco extends Editor {
         return editor;
       }
     }
+
     return null;
   }
 
@@ -227,25 +245,27 @@ class Monaco extends Editor {
         source: "",
         cursor: 0,
         filename: "",
-        available: false
-      }
+        available: false,
+        canGetState: false,
+        canSetState: false,
+      };
     }
+
     const model = editor.getModel();
-    let languageId = "";
-    if (model.getLanguageIdentifier) {
-      languageId = model.getLanguageIdentifier().language;
-    } else {
-      languageId = model.getLanguageId();
-    }
-    let filename = this.filenameFromLanguage(languageId);
+    const languageId = model.getLanguageIdentifier
+      ? model.getLanguageIdentifier().language
+      : model.getLanguageId();
+
     const source = editor.getValue();
     const { lineNumber, column } = editor.getPosition();
     const cursor = this.cursorFromRowAndColumn(source, lineNumber - 1, column - 1);
     return {
       source: source,
       cursor: cursor,
-      filename: filename,
+      filename: this.filenameFromLanguage(languageId),
       available: true,
+      canGetState: true,
+      canSetState: true,
     };
   }
 
@@ -323,6 +343,8 @@ class NativeInput extends Editor {
       cursor: editor.selectionStart,
       filename: "chrome.txt",
       available: true,
+      canGetState: true,
+      canSetState: true,
     };
   }
 
