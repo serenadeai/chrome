@@ -269,11 +269,13 @@ export default class InjectedCommandHandler {
       overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
       overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
-      overlay.style.padding = "3px";
+      overlay.style.width = "1.5em";
+      overlay.style.padding = "0px";
       overlay.style.textAlign = "center";
       overlay.style.color = "#e6ecf2";
-      overlay.style.background = "#1c1c16";
+      overlay.style.background = "#1c1c1688";
       overlay.style.borderRadius = "3px";
+      overlay.style.fontSize = "12px";
       overlay.style.fontFamily =
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
       document.body.appendChild(overlay);
@@ -330,11 +332,11 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_DIFF(data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return;
     }
-    await editor.setSourceAndCursor(data.source, data.cursor);
+    editor.setSourceAndCursor(data.source, data.cursor);
   }
 
   async COMMAND_TYPE_DOM_BLUR(data: any): Promise<any> {
@@ -386,7 +388,7 @@ export default class InjectedCommandHandler {
     if (this.settings.alwaysShowClickables) {
       this.COMMAND_TYPE_SHOW({ text: "all" });
     }
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return { source: "", cursor: 0, available: false };
     }
@@ -394,7 +396,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_REDO(_data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     editor?.redo();
   }
 
@@ -407,7 +409,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_SELECT(data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     if (!editor) {
       return;
     }
@@ -433,19 +435,21 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_UNDO(_data: any): Promise<any> {
-    const editor = await editors.active();
+    const editor = editors.active();
     editor?.undo();
   }
 
   async COMMAND_TYPE_USE(data: any): Promise<any> {
     let overlay = this.overlays[data.index - 1];
-    if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
-      this.clickNode(overlay.node);
-    } else if (overlay.type === "code") {
-      await this.copyCode(overlay.node);
-      this.showCopyOverlay(data.index);
+    if (overlay) {
+      if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
+        this.clickNode(overlay.node);
+      } else if (overlay.type === "code") {
+        await this.copyCode(overlay.node);
+        this.showCopyOverlay(data.index);
+      }
+      this.clearOverlays();
     }
-    this.clearOverlays();
   }
 
   async updateSettings(data: any): Promise<void> {
