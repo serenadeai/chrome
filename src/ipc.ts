@@ -157,7 +157,7 @@ export default class IPC {
       return false;
     }
   }
-
+  
   setIcon() {
     const iconDir = this.isConnected() ? "icon_default" : "icon_disconnected";
     chrome.action.setIcon({
