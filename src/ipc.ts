@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import ExtensionCommandHandler from "./extension-command-handler";
+
 export default class IPC {
   private app: string;
   private extensionCommandHandler: ExtensionCommandHandler;
@@ -12,10 +13,6 @@ export default class IPC {
     this.app = app;
     this.extensionCommandHandler = extensionCommandHandler;
     this.id = uuidv4();
-  }
-
-  isConnected() {
-    return this.connected;
   }
 
   private onClose() {
@@ -52,6 +49,7 @@ export default class IPC {
     if (this.connected) {
       return;
     }
+
     return new Promise((resolve) => {
       try {
         this.websocket = new WebSocket(this.url);
@@ -68,7 +66,7 @@ export default class IPC {
         this.websocket.addEventListener("message", (event) => {
           this.onMessage(event.data);
         });
-      } catch (e) { }
+      } catch (e) {}
     });
   }
 
@@ -77,6 +75,7 @@ export default class IPC {
       active: true,
       currentWindow: true,
     });
+
     return result;
   }
 
@@ -85,6 +84,7 @@ export default class IPC {
     if (!tab?.id || tab.url?.startsWith("chrome://")) {
       return;
     }
+
     return new Promise((resolve) => {
       chrome.tabs.sendMessage(tab!.id!, message, (response) => {
         resolve(response);
@@ -115,7 +115,12 @@ export default class IPC {
     if (handlerResponse) {
       result = { ...handlerResponse };
     }
+
     return result;
+  }
+
+  isConnected() {
+    return this.connected;
   }
 
   sendActive() {
@@ -144,17 +149,5 @@ export default class IPC {
       this.connected = false;
       return false;
     }
-  }
-
-  async start() {
-    await this.ensureConnection();
-
-    // Use alarm to send heartbeat to client
-    chrome.alarms.create("sendHeartbeatToClient", { periodInMinutes: 1 })
-    chrome.alarms.onAlarm.addListener((alarm) => {
-      if (alarm.name === "sendHeartbeatToClient") {
-        this.sendHeartbeat();
-      }
-    })
   }
 }
