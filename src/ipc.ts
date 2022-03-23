@@ -17,6 +17,7 @@ export default class IPC {
 
   private onClose() {
     this.connected = false;
+    this.setIcon();
   }
 
   private async onMessage(message: any) {
@@ -43,6 +44,7 @@ export default class IPC {
   private onOpen() {
     this.connected = true;
     this.sendActive();
+    this.setIcon();
   }
 
   async ensureConnection(): Promise<void> {
@@ -66,7 +68,10 @@ export default class IPC {
         this.websocket.addEventListener("message", (event) => {
           this.onMessage(event.data);
         });
-      } catch (e) {}
+      } catch (e) {
+        this.connected = false;
+        this.setIcon();
+      }
     });
   }
 
@@ -128,6 +133,7 @@ export default class IPC {
       app: this.app,
       id: this.id,
     });
+    this.setIcon();
   }
 
   sendHeartbeat() {
@@ -135,6 +141,7 @@ export default class IPC {
       app: this.app,
       id: this.id,
     });
+    this.setIcon();
   }
 
   send(message: string, data: any) {
@@ -149,5 +156,17 @@ export default class IPC {
       this.connected = false;
       return false;
     }
+  }
+
+  setIcon() {
+    const iconDir = this.isConnected() ? "icon_default" : "icon_disconnected";
+    chrome.action.setIcon({
+      path: {
+        "16": `../img/${iconDir}/16x16.png`,
+        "32": `../img/${iconDir}/32x32.png`,
+        "48": `../img/${iconDir}/48x48.png`,
+        "128": `../img/${iconDir}/128x128.png`,
+      },
+    });
   }
 }
