@@ -46,6 +46,7 @@ export default class InjectedCommandHandler {
 
   private nodesMatchingPath(path: string) {
     let matches = [];
+    path = path.toLowerCase();
     const snapshot = document.evaluate(
       `.//*[not(self::script)][not(self::noscript)][not(self::title)][not(self::meta)][not(self::svg)][not(self::style)]
       [contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), "${path}")]|
@@ -314,11 +315,8 @@ export default class InjectedCommandHandler {
     let response: any = {
       clickable: false,
     };
-    if (this.overlays.length === 0) {
-      return response;
-    }
     const pathNumber = parseInt(data.path, 10);
-    if (!isNaN(pathNumber)) {
+    if (this.overlays.length > 0 && !isNaN(pathNumber)) {
       // if path is a number, check that it is available
       response.clickable = pathNumber - 1 >= 0 && pathNumber - 1 < this.overlays.length;
     } else {
