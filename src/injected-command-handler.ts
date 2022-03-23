@@ -284,6 +284,14 @@ export default class InjectedCommandHandler {
     }
   }
 
+  async COMMAND_TYPE_BACK(_data: any): Promise<any> {
+    window.history.back();
+  }
+
+  async COMMAND_TYPE_FORWARD(_data: any): Promise<any> {
+    window.history.forward();
+  }
+
   async COMMAND_TYPE_CANCEL(_data: any): Promise<any> {
     this.clearOverlays();
   }

@@ -39,11 +39,11 @@ Both command handlers contain functions named for the various command types in t
   - `COMMAND_TYPE_NEXT_TAB` 
   - `COMMAND_TYPE_PREVIOUS_TAB` 
   - `COMMAND_TYPE_SWITCH_TAB` 
-  - `COMMAND_TYPE_BACK` 
-  - `COMMAND_TYPE_FORWARD` 
   - `COMMAND_TYPE_RELOAD`
 
 - Injected
+  - `COMMAND_TYPE_BACK` 
+  - `COMMAND_TYPE_FORWARD` 
   - `COMMAND_TYPE_GET_EDITOR_STATE`
   - `COMMAND_TYPE_DIFF`
   - `COMMAND_TYPE_UNDO`
