@@ -25,10 +25,6 @@ export default class ExtensionCommandHandler {
     });
   }
 
-  async COMMAND_TYPE_BACK(_data: any): Promise<any> {
-    chrome.tabs.goBack();
-  }
-
   async COMMAND_TYPE_CLOSE_TAB(_data: any): Promise<void> {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
@@ -54,10 +50,6 @@ export default class ExtensionCommandHandler {
         chrome.tabs.duplicate(activeTab[0].id!);
       });
     });
-  }
-
-  async COMMAND_TYPE_FORWARD(_data: any): Promise<any> {
-    chrome.tabs.goForward();
   }
 
   async COMMAND_TYPE_NEXT_TAB(_data: any): Promise<any> {
