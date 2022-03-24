@@ -42,6 +42,9 @@ chrome.runtime.onMessage.addListener(async (request, _sender, sendResponse) => {
 document.addEventListener("DOMContentLoaded", async () => {
   const settings = await chrome.storage.sync.get(["alwaysShowClickables"]);
   sendMessageToInjectedScript({
+    type: "clearOverlays"
+  })
+  sendMessageToInjectedScript({
     type: "updateSettings",
     ...settings,
   })
