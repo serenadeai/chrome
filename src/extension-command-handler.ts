@@ -18,7 +18,7 @@ export default class ExtensionCommandHandler {
               resolve();
             }
 
-            chrome.tabs.update(tab[0].id!, { active: true });
+            chrome.tabs.update(tab[0].id!, { active: true }, (_v) => { resolve(); });
           });
         });
       });
@@ -38,7 +38,7 @@ export default class ExtensionCommandHandler {
   }
 
   async COMMAND_TYPE_CREATE_TAB(_data: any): Promise<any> {
-    chrome.tabs.create({});
+    chrome.tabs.create({}, (_v) => {});
   }
 
   async COMMAND_TYPE_DUPLICATE_TAB(_data: any): Promise<void> {
@@ -47,7 +47,7 @@ export default class ExtensionCommandHandler {
         if (!activeTab || activeTab.length === 0) {
           resolve();
         }
-        chrome.tabs.duplicate(activeTab[0].id!);
+        chrome.tabs.duplicate(activeTab[0].id!, (_v) => { resolve(); });
       });
     });
   }
@@ -67,7 +67,7 @@ export default class ExtensionCommandHandler {
   async COMMAND_TYPE_SWITCH_TAB(data: any): Promise<any> {
     chrome.tabs.query({ lastFocusedWindow: true }, (tabs) => {
       const index = data.index > 0 ? data.index - 1 : tabs.length - 1;
-      chrome.tabs.update(tabs[index].id!, { active: true }, (_v: any) => { });
+      chrome.tabs.update(tabs[index].id!, { active: true }, (_v: any) => {});
     });
   }
 }

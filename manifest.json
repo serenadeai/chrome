@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Serenade",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Code with voice. Learn more at https://serenade.ai.",
   "permissions": ["background", "tabs", "scripting", "storage", "alarms", "idle"],
   "host_permissions": ["ws://localhost:17373/", "*://*/*"],
