@@ -237,18 +237,8 @@ export default class InjectedCommandHandler {
   private showCopyOverlay(index: number) {
     const overlay = document.createElement("div");
     overlay.innerHTML = `Copied ${index}`;
+    overlay.className = "serenade-copy-overlay";
     overlay.id = "serenade-copy-overlay";
-    overlay.style.position = "absolute";
-    overlay.style.zIndex = "999";
-    overlay.style.top = "50%";
-    overlay.style.left = "50%";
-    overlay.style.padding = "3px";
-    overlay.style.textAlign = "center";
-    overlay.style.color = "#e6ecf2";
-    overlay.style.background = "#1c1c16";
-    overlay.style.borderRadius = "3px";
-    overlay.style.fontFamily =
-      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
     document.body.appendChild(overlay);
     setTimeout(() => {
       document.body.removeChild(overlay);
@@ -264,21 +254,11 @@ export default class InjectedCommandHandler {
       let element = nodes[i] as HTMLElement;
       const elementRect = element.getBoundingClientRect();
       const overlay = document.createElement("div");
-      overlay.innerHTML = `${i + 1}`;
+      overlay.innerText = `${i + 1}`;
+      overlay.className = "serenade-overlay";
       overlay.id = `serenade-overlay-${i + 1}`;
-      overlay.style.position = "absolute";
-      overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
-      overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
-      overlay.style.width = "1.5em";
-      overlay.style.padding = "0px";
-      overlay.style.textAlign = "center";
-      overlay.style.color = "#e6ecf2";
-      overlay.style.background = "#1c1c1688";
-      overlay.style.borderRadius = "3px";
-      overlay.style.fontSize = "12px";
-      overlay.style.fontFamily =
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+      overlay.style.left = elementRect.left - bodyRect.left - overlay.offsetWidth + "px";
       document.body.appendChild(overlay);
       this.overlays.push({ node: nodes[i], type: overlayType });
     }

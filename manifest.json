@@ -21,7 +21,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["build/injected.js"],
+      "resources": ["build/injected.js", "src/injected.css"],
       "matches": ["*://*/*"]
     }
   ],
