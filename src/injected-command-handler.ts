@@ -408,11 +408,11 @@ export default class InjectedCommandHandler {
     if (data.text == "links") {
       selector = 'a, button, summary, [role="link"], [role="button"]';
     } else if (data.text == "inputs") {
-      selector = 'input, textarea, [role="checkbox"], [role="radio"]';
+      selector = 'input, textarea, [role="checkbox"], [role="radio"], label, [contenteditable="true"]';
     } else if (data.text == "code") {
       selector = "pre, code";
     } else if (data.text == "all") {
-      selector = 'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"]';
+      selector = 'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"], label, [contenteditable="true"]';
     } else {
       return;
     }
