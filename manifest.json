@@ -4,7 +4,7 @@
   "version": "2.0.1",
   "description": "Code with voice. Learn more at https://serenade.ai.",
   "permissions": ["background", "tabs", "scripting", "storage", "alarms", "idle"],
-  "host_permissions": ["ws://localhost:17373/", "*://*/*"],
+  "host_permissions": ["*://*/*"],
   "action": {
     "default_title": "Serenade for Chrome",
     "default_popup": "popup.html"
