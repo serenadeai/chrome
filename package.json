@@ -1,13 +1,10 @@
 {
   "name": "serenade-chrome",
-  "version": "2.0.0",
+  "version": "2.0.3",
   "description": "Code with voice. Learn more at https://serenade.ai.",
   "main": "dist/index.js",
   "author": "Serenade Labs, Inc. <contact@serenade.ai>",
-  "keywords": [
-    "voice",
-    "accessibility"
-  ],
+  "keywords": ["voice", "accessibility"],
   "license": "MIT",
   "homepage": "https://serenade.ai",
   "repository": {
@@ -19,7 +16,7 @@
   },
   "scripts": {
     "build": "webpack --mode development",
-    "dist": "webpack --mode production && zip -r build.zip build img manifest.json popup.css popup.html src/injected.css",
+    "dist": "webpack --mode production && zip -r build.zip build img manifest.json popup.css popup.html",
     "watch": "webpack --mode development --watch",
     "test": "open http://localhost:8001/src/test & python -m http.server 8001"
   },

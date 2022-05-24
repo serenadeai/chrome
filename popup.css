@@ -16,7 +16,7 @@ h1 {
 
 a {
   color: #fff;
-  background-color: rgb(59 130 246);
+  background-color: rgb(59, 130, 246);
   display: inline-block;
   text-decoration: none;
   padding: 0.5em 1.5em;
@@ -31,7 +31,7 @@ a {
 
 a:hover {
   cursor: pointer;
-  background-color: rgb(37 99 235);
+  background-color: rgb(37, 99, 235);
   box-shadow: 0 4px 6px -1px #3b82f688;
 }
 
@@ -58,7 +58,7 @@ a:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgb(209 213 219);
+  background-color: rgb(209, 213, 219);
 }
 
 .slider:before {
@@ -74,11 +74,11 @@ a:hover {
 }
 
 input:checked + .slider {
-  background-color: rgb(59 130 246);
+  background-color: rgb(59, 130, 246);
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px rgb(59 130 246);
+  box-shadow: 0 0 1px rgb(59, 130, 246);
 }
 
 input:checked + .slider:before {

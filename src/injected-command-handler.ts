@@ -28,6 +28,7 @@ export default class InjectedCommandHandler {
     overlays.forEach((overlay) => {
       overlay!.remove();
     });
+
     this.overlays = [];
   }
 
@@ -94,12 +95,7 @@ export default class InjectedCommandHandler {
   }
 
   private elementIsScrollable(element: HTMLElement, direction: string): boolean {
-    if (
-      direction === "up" ||
-      direction === "down" ||
-      direction === "bottom" ||
-      direction === "top"
-    ) {
+    if (direction == "up" || direction == "down" || direction == "bottom" || direction == "top") {
       const overflowStyle = window.getComputedStyle(element).overflowY;
       return (
         element.scrollHeight > element.clientHeight &&
@@ -112,57 +108,57 @@ export default class InjectedCommandHandler {
         (overflowStyle === "scroll" || overflowStyle === "auto")
       );
     }
+
     return false;
   }
 
   private scrollOptions(element: HTMLElement | Window, direction: string) {
-    let dir = {};
+    let data = {};
     if ("clientWidth" in element) {
-      // Element type
       switch (direction) {
         case "left":
-          dir = { left: -element.clientWidth * 0.6 };
+          data = { left: -element.clientWidth * 0.6 };
           break;
         case "right":
-          dir = { left: element.clientWidth * 0.6 };
+          data = { left: element.clientWidth * 0.6 };
           break;
         case "up":
-          dir = { top: -element.clientHeight * 0.6 };
+          data = { top: -element.clientHeight * 0.6 };
           break;
         case "down":
-          dir = { top: element.clientHeight * 0.6 };
+          data = { top: element.clientHeight * 0.6 };
           break;
         case "bottom":
-          dir = { top: element.scrollHeight };
+          data = { top: element.scrollHeight };
           break;
         case "top":
-          dir = { top: 0 };
+          data = { top: 0 };
           break;
       }
     } else {
-      // Window type
       switch (direction) {
         case "left":
-          dir = { left: -element.innerWidth * 0.8 };
+          data = { left: -element.innerWidth * 0.8 };
           break;
         case "right":
-          dir = { left: element.innerWidth * 0.8 };
+          data = { left: element.innerWidth * 0.8 };
           break;
         case "up":
-          dir = { top: -element.innerHeight * 0.8 };
+          data = { top: -element.innerHeight * 0.8 };
           break;
         case "down":
-          dir = { top: element.innerHeight * 0.8 };
+          data = { top: element.innerHeight * 0.8 };
           break;
         case "bottom":
-          dir = { top: document.body.scrollHeight };
+          data = { top: document.body.scrollHeight };
           break;
         case "top":
-          dir = { top: 0 };
+          data = { top: 0 };
           break;
       }
     }
-    let options = Object.assign(dir, { behavior: "smooth" }) as ScrollOptions;
+
+    const options = Object.assign(data, { behavior: "smooth" }) as ScrollOptions;
     return options;
   }
 
@@ -175,7 +171,7 @@ export default class InjectedCommandHandler {
     while (lastHoveredElement && !scrolled) {
       if (this.elementIsScrollable(lastHoveredElement, direction)) {
         let options = this.scrollOptions(lastHoveredElement, direction);
-        if (direction === "top" || direction === "bottom") {
+        if (direction == "top" || direction == "bottom") {
           lastHoveredElement.scrollTo(options);
         } else {
           lastHoveredElement.scrollBy(options);
@@ -185,6 +181,7 @@ export default class InjectedCommandHandler {
         lastHoveredElement = lastHoveredElement.parentElement;
       }
     }
+
     if (!scrolled) {
       let options = this.scrollOptions(window, direction);
       if (direction === "top" || direction === "bottom") {
@@ -193,6 +190,7 @@ export default class InjectedCommandHandler {
         window.scrollBy(options);
       }
     }
+
     await new Promise((resolve) => {
       setTimeout(resolve, 300);
     });
@@ -237,8 +235,18 @@ export default class InjectedCommandHandler {
   private showCopyOverlay(index: number) {
     const overlay = document.createElement("div");
     overlay.innerHTML = `Copied ${index}`;
-    overlay.className = "serenade-copy-overlay";
     overlay.id = "serenade-copy-overlay";
+    overlay.style.position = "absolute";
+    overlay.style.zIndex = "999";
+    overlay.style.top = "50%";
+    overlay.style.left = "50%";
+    overlay.style.padding = "3px";
+    overlay.style.textAlign = "center";
+    overlay.style.color = "#e6ecf2";
+    overlay.style.background = "#1c1c16";
+    overlay.style.borderRadius = "3px";
+    overlay.style.fontFamily =
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
     document.body.appendChild(overlay);
     setTimeout(() => {
       document.body.removeChild(overlay);
@@ -254,11 +262,20 @@ export default class InjectedCommandHandler {
       let element = nodes[i] as HTMLElement;
       const elementRect = element.getBoundingClientRect();
       const overlay = document.createElement("div");
-      overlay.innerText = `${i + 1}`;
-      overlay.className = "serenade-overlay";
+      overlay.innerHTML = `${i + 1}`;
       overlay.id = `serenade-overlay-${i + 1}`;
+      overlay.style.position = "absolute";
+      overlay.style.zIndex = "999";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
-      overlay.style.left = elementRect.left - bodyRect.left - overlay.offsetWidth + "px";
+      overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
+      overlay.style.padding = "0.1em 0.3em";
+      overlay.style.textAlign = "center";
+      overlay.style.color = "#fff";
+      overlay.style.background = "#1c1c1688";
+      overlay.style.borderRadius = "3px";
+      overlay.style.fontSize = "12px";
+      overlay.style.fontFamily =
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
       document.body.appendChild(overlay);
       this.overlays.push({ node: nodes[i], type: overlayType });
     }
@@ -408,11 +425,13 @@ export default class InjectedCommandHandler {
     if (data.text == "links") {
       selector = 'a, button, summary, [role="link"], [role="button"]';
     } else if (data.text == "inputs") {
-      selector = 'input, textarea, [role="checkbox"], [role="radio"], label, [contenteditable="true"]';
+      selector =
+        'input, textarea, [role="checkbox"], [role="radio"], label, [contenteditable="true"]';
     } else if (data.text == "code") {
       selector = "pre, code";
     } else if (data.text == "all") {
-      selector = 'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"], label, [contenteditable="true"]';
+      selector =
+        'a, button, summary, [role="link"], [role="button"], input, textarea, [role="checkbox"], [role="radio"], label, [contenteditable="true"]';
     } else {
       return;
     }
