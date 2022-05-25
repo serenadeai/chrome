@@ -1,19 +1,4 @@
-.serenade-overlay {
-  position: absolute;
-  z-index: 9999999;
-  min-width: 1.5em;
-  padding: 0px;
-  text-align: center;
-  color: #e6ecf2;
-  background: #1c1c16aa;
-  border-radius: 3px;
-  border: 1px solid #e6ecf2;
-  font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell,
-    "Helvetica Neue", sans-serif;
-}
-
-.serenade-copy-overlay {
+#serenade-copy-overlay {
   position: absolute;
   z-index: 999;
   top: 50%;
@@ -23,6 +8,19 @@
   color: #e6ecf2;
   background: #1c1c16;
   border-radius: 3px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    "Helvetica Neue", sans-serif;
+}
+
+.serenade-overlay {
+  position: absolute;
+  z-index: 999;
+  padding: 0.1em 0.3em;
+  text-align: center;
+  color: #fff;
+  background: #1c1c1688;
+  border-radius: 3px;
+  font-size: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell,
     "Helvetica Neue", sans-serif;
 }

@@ -23,7 +23,7 @@ chrome.runtime.onStartup.addListener(async () => {
 
 chrome.alarms.create("keepAlive", { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === "keepAlive") {
+  if (alarm.name == "keepAlive") {
     await ensureConnection();
   }
 });
@@ -37,13 +37,13 @@ chrome.windows.onFocusChanged.addListener(async () => {
 });
 
 chrome.idle.onStateChanged.addListener(async (state) => {
-  if (state === "active") {
+  if (state == "active") {
     await ensureConnection();
   }
 });
 
 chrome.runtime.onMessage.addListener(async (message, _sender, _sendResponse) => {
-  if (message.type === "reconnect") {
+  if (message.type == "reconnect") {
     await ensureConnection();
   }
 });

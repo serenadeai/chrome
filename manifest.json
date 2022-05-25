@@ -7,7 +7,7 @@
   "host_permissions": ["*://*/*"],
   "action": {
     "default_title": "Serenade for Chrome",
-    "default_popup": "popup.html"
+    "default_popup": "build/popup.html"
   },
   "background": {
     "service_worker": "build/extension.js"
@@ -21,7 +21,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["build/injected.js"],
+      "resources": ["build/injected.js", "build/injected.css"],
       "matches": ["*://*/*"]
     }
   ],

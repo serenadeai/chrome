@@ -21,7 +21,7 @@ export default class IPC {
   }
 
   private async onMessage(message: any) {
-    if (typeof message === "string") {
+    if (typeof message == "string") {
       let request;
       try {
         request = JSON.parse(message);
@@ -29,7 +29,7 @@ export default class IPC {
         return;
       }
 
-      if (request.message === "response") {
+      if (request.message == "response") {
         const result = await this.handle(request.data.response);
         if (result) {
           this.send("callback", {
@@ -157,7 +157,7 @@ export default class IPC {
       return false;
     }
   }
-  
+
   setIcon() {
     const iconDir = this.isConnected() ? "icon_default" : "icon_disconnected";
     chrome.action.setIcon({

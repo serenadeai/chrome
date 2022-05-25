@@ -1,17 +1,15 @@
 html {
-  min-width: 350px;
+  min-width: 300px;
 }
 
 body {
   font-family: aktiv-grotesk, sans-serif;
-  font-size: medium;
   color: #475569;
-  text-align: center;
-  padding-bottom: 1em;
+  padding: 0.5rem 1rem;
 }
 
 h1 {
-  font-size: medium;
+  font-size: 1.3rem;
 }
 
 a {
@@ -35,6 +33,11 @@ a:hover {
   box-shadow: 0 4px 6px -1px #3b82f688;
 }
 
+label {
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
 .switch {
   --width: 40px;
   --height: calc(var(--width) / 1.8);
@@ -42,7 +45,8 @@ a:hover {
   display: inline-block;
   width: var(--width);
   height: var(--height);
-  vertical-align: middle;
+  vertical-align: 4px;
+  margin-left: 0.25rem;
 }
 
 .switch input {

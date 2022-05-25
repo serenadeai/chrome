@@ -73,6 +73,7 @@ export default class InjectedCommandHandler {
       if (
         item !== null &&
         this.inViewport(item as HTMLElement) &&
+        (item as HTMLElement).innerText &&
         (item as HTMLElement).innerText.match(re)
       ) {
         matches.push(item);
@@ -99,13 +100,13 @@ export default class InjectedCommandHandler {
       const overflowStyle = window.getComputedStyle(element).overflowY;
       return (
         element.scrollHeight > element.clientHeight &&
-        (overflowStyle === "scroll" || overflowStyle === "auto")
+        (overflowStyle == "scroll" || overflowStyle == "auto")
       );
-    } else if (direction === "left" || direction === "right") {
+    } else if (direction == "left" || direction == "right") {
       const overflowStyle = window.getComputedStyle(element).overflowX;
       return (
         element.scrollWidth > element.clientWidth &&
-        (overflowStyle === "scroll" || overflowStyle === "auto")
+        (overflowStyle == "scroll" || overflowStyle == "auto")
       );
     }
 
@@ -184,7 +185,7 @@ export default class InjectedCommandHandler {
 
     if (!scrolled) {
       let options = this.scrollOptions(window, direction);
-      if (direction === "top" || direction === "bottom") {
+      if (direction == "top" || direction == "bottom") {
         window.scrollTo(options);
       } else {
         window.scrollBy(options);
@@ -236,17 +237,6 @@ export default class InjectedCommandHandler {
     const overlay = document.createElement("div");
     overlay.innerHTML = `Copied ${index}`;
     overlay.id = "serenade-copy-overlay";
-    overlay.style.position = "absolute";
-    overlay.style.zIndex = "999";
-    overlay.style.top = "50%";
-    overlay.style.left = "50%";
-    overlay.style.padding = "3px";
-    overlay.style.textAlign = "center";
-    overlay.style.color = "#e6ecf2";
-    overlay.style.background = "#1c1c16";
-    overlay.style.borderRadius = "3px";
-    overlay.style.fontFamily =
-      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
     document.body.appendChild(overlay);
     setTimeout(() => {
       document.body.removeChild(overlay);
@@ -264,18 +254,9 @@ export default class InjectedCommandHandler {
       const overlay = document.createElement("div");
       overlay.innerHTML = `${i + 1}`;
       overlay.id = `serenade-overlay-${i + 1}`;
-      overlay.style.position = "absolute";
-      overlay.style.zIndex = "999";
+      overlay.className = "serenade-overlay";
       overlay.style.top = elementRect.top - bodyRect.top + "px";
       overlay.style.left = elementRect.left - bodyRect.left - overlay.clientWidth + "px";
-      overlay.style.padding = "0.1em 0.3em";
-      overlay.style.textAlign = "center";
-      overlay.style.color = "#fff";
-      overlay.style.background = "#1c1c1688";
-      overlay.style.borderRadius = "3px";
-      overlay.style.fontSize = "12px";
-      overlay.style.fontFamily =
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
       document.body.appendChild(overlay);
       this.overlays.push({ node: nodes[i], type: overlayType });
     }
@@ -295,13 +276,13 @@ export default class InjectedCommandHandler {
 
   async COMMAND_TYPE_CLICK(data: any): Promise<any> {
     const pathNumber = parseInt(data.path, 10);
-    if (this.overlays.length === 0 || isNaN(pathNumber)) {
+    if (this.overlays.length == 0 || isNaN(pathNumber)) {
       // if no overlays are currently shown or the path provided is not a number
       this.clearOverlays();
       let matches = this.nodesMatchingPath(data.path);
       if (matches.length <= 0) {
         return;
-      } else if (matches.length === 1) {
+      } else if (matches.length == 1) {
         // auto-execute
         this.clickNode(matches[0]);
       } else {
@@ -404,7 +385,7 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_SCROLL(data: any): Promise<any> {
-    if (data.direction || data.path === "top" || data.path === "bottom") {
+    if (data.direction || data.path == "top" || data.path == "bottom") {
       return this.scrollInDirection(data.direction);
     } else {
       return this.findAndScroll(data.path);
@@ -447,9 +428,9 @@ export default class InjectedCommandHandler {
   async COMMAND_TYPE_USE(data: any): Promise<any> {
     let overlay = this.overlays[data.index - 1];
     if (overlay) {
-      if (overlay.type === "links" || overlay.type === "inputs" || overlay.type === "all") {
+      if (overlay.type == "links" || overlay.type == "inputs" || overlay.type == "all") {
         this.clickNode(overlay.node);
-      } else if (overlay.type === "code") {
+      } else if (overlay.type == "code") {
         await this.copyCode(overlay.node);
         this.showCopyOverlay(data.index);
       }

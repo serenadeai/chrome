@@ -5,7 +5,16 @@ function injectScript(path: string) {
   document.documentElement.appendChild(script);
 }
 
+function injectCSS(path: string) {
+  const css = document.createElement("link");
+  css.setAttribute("rel", "stylesheet");
+  css.setAttribute("type", "text/css");
+  css.setAttribute("href", path);
+  document.documentElement.appendChild(css);
+}
+
 injectScript(chrome.runtime.getURL("build/injected.js"));
+injectCSS(chrome.runtime.getURL("build/injected.css"));
 
 let resolvers: { [k: number]: any } = [];
 document.addEventListener(`serenade-injected-script-command-response`, (e: any) => {

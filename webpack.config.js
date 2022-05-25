@@ -1,6 +1,5 @@
-"use strict";
-
 const path = require("path");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = [
   {
@@ -30,5 +29,14 @@ module.exports = [
         },
       ],
     },
+    plugins: [
+      new CopyPlugin({
+        patterns: [
+          { from: "src/injected.css", to: "injected.css" },
+          { from: "src/popup.html", to: "popup.html" },
+          { from: "src/popup.css", to: "popup.css" },
+        ],
+      }),
+    ],
   },
 ];
