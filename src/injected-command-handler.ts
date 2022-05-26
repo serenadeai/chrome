@@ -73,6 +73,7 @@ export default class InjectedCommandHandler {
       if (
         item !== null &&
         this.inViewport(item as HTMLElement) &&
+        (item as HTMLElement).innerText &&
         (item as HTMLElement).innerText.match(re)
       ) {
         matches.push(item);

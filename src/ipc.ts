@@ -12,7 +12,7 @@ export default class IPC {
   constructor(app: string, extensionCommandHandler: ExtensionCommandHandler) {
     this.app = app;
     this.extensionCommandHandler = extensionCommandHandler;
-    this.id = uuidv4();
+    this.id = app; // Two instances of chrome share the same service worker.
   }
 
   private onClose() {
@@ -69,6 +69,7 @@ export default class IPC {
           this.onMessage(event.data);
         });
       } catch (e) {
+        console.error(e);
         this.connected = false;
         this.setIcon();
       }
