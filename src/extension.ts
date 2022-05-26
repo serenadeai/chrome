@@ -80,21 +80,14 @@ async function keepAlive() {
         func: () => chrome.runtime.connect({ name: 'keepAlive' }),
       });
       chrome.tabs.onUpdated.removeListener(retryOnTabUpdate);
-      chrome.webNavigation.onCompleted.removeListener(retryOnNavigation)
-
       return;
     } catch (e) {}
   }
   chrome.tabs.onUpdated.addListener(retryOnTabUpdate);
-  chrome.tabs.onUpdated.addListener(retryOnNavigation);
 }
 
 async function retryOnTabUpdate(tabId: any, info: any, tab: any) {
   if (info.url && /^(file|https?):/.test(info.url)) {
     keepAlive();
   }
-}
-
-async function retryOnNavigation(info: any) {
-  await retryOnTabUpdate(null, info, null);
 }
