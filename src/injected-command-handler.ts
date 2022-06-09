@@ -275,6 +275,9 @@ export default class InjectedCommandHandler {
   }
 
   async COMMAND_TYPE_CLICK(data: any): Promise<any> {
+    if (!data.path) {
+      return;
+    }
     const pathNumber = parseInt(data.path, 10);
     if (this.overlays.length == 0 || isNaN(pathNumber)) {
       // if no overlays are currently shown or the path provided is not a number

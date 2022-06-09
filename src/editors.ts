@@ -329,6 +329,25 @@ class Monaco extends Editor {
 }
 
 class NativeInput extends Editor {
+  private maxUndoStackSize = 20;
+  private nextCommandIndex: number = 0;
+  private undoStacks: Map<Element, { source: string; cursor: number }[]> = new Map();
+
+  private setSourceAndCursorOnActiveElement(source: string, cursor: number) {
+    const editor = document.activeElement as any;
+    editor.value = source;
+    editor.setSelectionRange(cursor, cursor);
+  }
+
+  private undoStack(): { source: string; cursor: number }[] {
+    const editor = document.activeElement as Element;
+    console.log(editor);
+    if (!this.undoStacks.has(editor)) {
+      this.undoStacks.set(editor, []); 
+    }
+    return this.undoStacks.get(editor)!;
+  }
+
   active(): boolean {
     return (
       !!document.activeElement &&
@@ -357,11 +376,33 @@ class NativeInput extends Editor {
     const editor = document.activeElement as any;
     editor.value = source;
     editor.setSelectionRange(cursor, cursor);
+
+    this.undoStack().splice(this.nextCommandIndex, this.undoStack().length - this.nextCommandIndex + 1);
+    this.undoStack().push({ source, cursor });
+    while (this.undoStack().length > this.maxUndoStackSize) {
+      this.undoStack().shift();
+    }
+    this.nextCommandIndex = this.undoStack().length;
   }
 
-  redo() {}
+  redo() {
+    if (this.nextCommandIndex < this.undoStack().length) {
+      const stackElement = this.undoStack()[this.nextCommandIndex];
+      this.setSourceAndCursorOnActiveElement(stackElement.source, stackElement.cursor);
+      this.nextCommandIndex++;
+    }
+  }
 
-  undo() {}
+  undo() {
+    if (this.nextCommandIndex - 1 >= 0) {
+      this.nextCommandIndex--;
+      const stackElement =
+        this.nextCommandIndex - 1 >= 0
+          ? this.undoStack()[this.nextCommandIndex - 1]
+          : { source: "", cursor: 0 };
+      this.setSourceAndCursorOnActiveElement(stackElement.source, stackElement.cursor);
+    }
+  }
 }
 
 const editors = [new Ace(), new CodeMirror(), new Monaco(), new NativeInput()];
