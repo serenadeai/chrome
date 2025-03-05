@@ -192,12 +192,14 @@ export default class InjectedCommandHandler {
       }
     }
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, 300);
-    });
+    await this.createAlarm('scroll-complete', 0.3);
   }
 
-  private findAndScroll(path: string) {
+  private async createAlarm(name: string, delayInMinutes: number) {
+    await chrome.alarms.create(name, { delayInMinutes });
+  }
+
+  private async findAndScroll(path: string) {
     const matches = this.nodesMatchingPath(path);
     if (matches.length <= 0) {
       return;
@@ -228,9 +230,12 @@ export default class InjectedCommandHandler {
       inline: "center",
       behavior: "smooth",
     });
-    window.setTimeout(() => {
-      (target as HTMLElement).style.backgroundColor = backgroundColor;
-    }, 2000);
+    await this.createAlarm('reset-background', 2);
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === 'reset-background') {
+        (target as HTMLElement).style.backgroundColor = backgroundColor;
+      }
+    });
   }
 
   private showCopyOverlay(index: number) {
@@ -238,9 +243,12 @@ export default class InjectedCommandHandler {
     overlay.innerHTML = `Copied ${index}`;
     overlay.id = "serenade-copy-overlay";
     document.body.appendChild(overlay);
-    setTimeout(() => {
-      document.body.removeChild(overlay);
-    }, 1000);
+    this.createAlarm('remove-overlay', 1);
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === 'remove-overlay') {
+        document.body.removeChild(overlay);
+      }
+    });
   }
 
   private showOverlays(nodes: Node[], overlayType: string) {
