@@ -9,9 +9,9 @@ const ensureConnection = async () => {
 
 const extensionCommandHandler = new ExtensionCommandHandler();
 const ipc = new IPC(
-  navigator.userAgent.indexOf("Brave") != -1
+  navigator.userAgent.includes("Brave")
     ? "brave"
-    : navigator.userAgent.indexOf("Edg") != -1
+    : navigator.userAgent.includes("Edg")
     ? "edge"
     : "chrome",
   extensionCommandHandler
@@ -56,16 +56,22 @@ keepAlive();
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === 'keepAlive') {
     lifeline = port;
-    setTimeout(keepAliveForced, 4 * 60 * 1000); // under five minutes
-    port.onDisconnect.addListener(keepAliveForced);
+    createKeepAliveAlarm();
+    port.onDisconnect.addListener(createKeepAliveAlarm);
   }
 });
 
-function keepAliveForced() {
-  lifeline?.disconnect();
-  lifeline = null;
-  keepAlive();
+function createKeepAliveAlarm() {
+  chrome.alarms.create('keepAliveForced', { delayInMinutes: 4 });
 }
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'keepAliveForced') {
+    lifeline?.disconnect();
+    lifeline = null;
+    keepAlive();
+  }
+});
 
 async function keepAlive() {
   if (lifeline) {
